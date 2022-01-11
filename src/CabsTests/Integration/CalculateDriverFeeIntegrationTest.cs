@@ -26,12 +26,14 @@ public class CalculateDriverFeeIntegrationTest
   [Test]
   public async Task ShouldCalculateDriversFlatFee()
   {
+    _app.StartReuseRequestScope();
     //given
     var driver = await Fixtures.ADriver();
     //and
     var transit = await Fixtures.ATransit(driver, 60);
     //and
     await Fixtures.DriverHasFee(driver, DriverFee.FeeTypes.Flat, 10);
+    _app.EndReuseRequestScope();
 
     //when
     var fee = await DriverFeeService.CalculateDriverFee(transit.Id);
@@ -43,12 +45,14 @@ public class CalculateDriverFeeIntegrationTest
   [Test]
   public async Task ShouldCalculateDriversPercentageFee()
   {
+    _app.StartReuseRequestScope();
     //given
     var driver = await Fixtures.ADriver();
     //and
     var transit = await Fixtures.ATransit(driver, 80);
     //and
     await Fixtures.DriverHasFee(driver, DriverFee.FeeTypes.Percentage, 50);
+    _app.EndReuseRequestScope();
 
     //when
     var fee = await DriverFeeService.CalculateDriverFee(transit.Id);
@@ -60,12 +64,14 @@ public class CalculateDriverFeeIntegrationTest
   [Test]
   public async Task ShouldUseMinimumFee()
   {
+    _app.StartReuseRequestScope();
     //given
     var driver = await Fixtures.ADriver();
     //and
     var transit = await Fixtures.ATransit(driver, 10);
     //and
     await Fixtures.DriverHasFee(driver, DriverFee.FeeTypes.Percentage, 7, 5);
+    _app.EndReuseRequestScope();
 
     //when
     var fee = await DriverFeeService.CalculateDriverFee(transit.Id);

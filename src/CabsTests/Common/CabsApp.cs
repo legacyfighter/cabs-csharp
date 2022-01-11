@@ -11,6 +11,11 @@ internal class CabsApp : WebApplicationFactory<Program>
 {
   private IServiceScope _scope;
   private readonly Action<IServiceCollection> _customization;
+  
+  /// <summary>
+  /// https://stackoverflow.com/questions/66942392/unwanted-unique-constraint-in-many-to-many-relationship
+  /// </summary>
+  private bool _reuseScope = false;
 
   private CabsApp(Action<IServiceCollection> customization)
   {
@@ -36,6 +41,15 @@ internal class CabsApp : WebApplicationFactory<Program>
     builder.ConfigureServices(_customization);
   }
 
+  public void StartReuseRequestScope()
+  {
+    _reuseScope = true;
+  }
+
+  public void EndReuseRequestScope()
+  {
+    _reuseScope = false;
+  }
 
   protected override void Dispose(bool disposing)
   {
@@ -43,31 +57,34 @@ internal class CabsApp : WebApplicationFactory<Program>
     base.Dispose(disposing);
   }
 
-  private IServiceScope NewRequestScope()
+  private IServiceScope RequestScope()
   {
-    _scope.Dispose();
-    _scope = Services.CreateAsyncScope();
+    if (!_reuseScope)
+    {
+      _scope.Dispose();
+      _scope = Services.CreateAsyncScope();
+    }
     return _scope;
   }
 
   public Fixtures Fixtures 
-    => NewRequestScope().ServiceProvider.GetRequiredService<Fixtures>();
+    => RequestScope().ServiceProvider.GetRequiredService<Fixtures>();
 
   public IDriverFeeService DriverFeeService
-    => NewRequestScope().ServiceProvider.GetRequiredService<IDriverFeeService>();
+    => RequestScope().ServiceProvider.GetRequiredService<IDriverFeeService>();
 
   public IDriverService DriverService
-    => NewRequestScope().ServiceProvider.GetRequiredService<IDriverService>();
+    => RequestScope().ServiceProvider.GetRequiredService<IDriverService>();
 
   public ITransitService TransitService
-    => NewRequestScope().ServiceProvider.GetRequiredService<ITransitService>();
+    => RequestScope().ServiceProvider.GetRequiredService<ITransitService>();
 
   public IDriverSessionService DriverSessionService
-    => NewRequestScope().ServiceProvider.GetRequiredService<IDriverSessionService>();
+    => RequestScope().ServiceProvider.GetRequiredService<IDriverSessionService>();
 
   public IDriverTrackingService DriverTrackingService
-    => NewRequestScope().ServiceProvider.GetRequiredService<IDriverTrackingService>();
+    => RequestScope().ServiceProvider.GetRequiredService<IDriverTrackingService>();
 
   public TransitController TransitController
-    => NewRequestScope().ServiceProvider.GetRequiredService<TransitController>();
+    => RequestScope().ServiceProvider.GetRequiredService<TransitController>();
 }

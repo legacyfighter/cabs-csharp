@@ -4,7 +4,6 @@ using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;
 using NodaTime;
-using NodaTime.Extensions;
 
 namespace LegacyFighter.CabsTests.Ui;
 
@@ -46,15 +45,9 @@ public class CalculateTransitDistanceTest
 
   TransitDto TransitForDistance(float km)
   {
-    var t = new Transit
+    var t = new Transit(new Address(), new Address(), new Client(), null, SystemClock.Instance.GetCurrentInstant(), Distance.OfKm(km))
     {
-      Price = new Money(10),
-      DateTime = SystemClock.Instance.InUtc().GetCurrentInstant(),
-      To = new Address(),
-      From = new Address(),
-      Status = Transit.Statuses.Draft,
-      KmDistance = Distance.OfKm(km),
-      Client = new Client()
+      Price = new Money(10)
     };
     return new TransitDto(t);
   }

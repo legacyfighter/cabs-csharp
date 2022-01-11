@@ -1,4 +1,5 @@
 using System.Linq;
+using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;
@@ -39,15 +40,15 @@ public class Fixtures
     return _clientRepository.Save(new Client());
   }
 
-  public Task<Transit> ATransit(Driver driver, int price, LocalDateTime when)
+  public async Task<Transit> ATransit(Driver driver, int price, LocalDateTime when)
   {
-    var transit = new Transit
+    var transit = new Transit(null, null, null, null, when.InUtc().ToInstant(), Distance.Zero)
     {
-      Price = new Money(price),
-      Driver = driver,
-      DateTime = when.InUtc().ToInstant()
+      Price = new Money(price)
     };
-    return _transitRepository.Save(transit);
+    transit.ProposeTo(driver);
+    transit.AcceptBy(driver, SystemClock.Instance.GetCurrentInstant());
+    return await _transitRepository.Save(transit);
   }
 
   public Task<Transit> ATransit(Driver driver, int price)
@@ -55,7 +56,7 @@ public class Fixtures
     return ATransit(driver, price, SystemClock.Instance.InBclSystemDefaultZone().GetCurrentLocalDateTime());
   }
 
-  public Task<DriverFee> DriverHasFee(Driver driver, DriverFee.FeeTypes feeType, int amount, int min)
+  public async Task<DriverFee> DriverHasFee(Driver driver, DriverFee.FeeTypes feeType, int amount, int min)
   {
     var driverFee = new DriverFee
     {
@@ -64,7 +65,7 @@ public class Fixtures
       FeeType = feeType,
       Min = new Money(min)
     };
-    return _feeRepository.Save(driverFee);
+    return await _feeRepository.Save(driverFee);
   }
 
   public Task<DriverFee> DriverHasFee(Driver driver, DriverFee.FeeTypes feeType, int amount)
@@ -80,11 +81,15 @@ public class Fixtures
 
   public async Task<Transit> ACompletedTransitAt(int price, Instant when)
   {
-    var transit = await ATransit(null, price);
-    transit.DateTime = when;
-    transit.To = await _addressRepository.Save(new Address("Polska", "Warszawa", "Zytnia", 20));
-    transit.From = await _addressRepository.Save(new Address("Polska", "Warszawa", "M³ynarska", 20));
-    transit.Client = await AClient();
+    var transit = new Transit(
+      await _addressRepository.Save(new Address("Polska", "Warszawa", "M³ynarska", 20)),
+      await _addressRepository.Save(new Address("Polska", "Warszawa", "Zytnia", 20)),
+      await AClient(),
+      null,
+      when,
+      Distance.Zero);
+    transit.PublishAt(when);
+    transit.Price = new Money(price);
     return await _transitRepository.Save(transit);
   }
 

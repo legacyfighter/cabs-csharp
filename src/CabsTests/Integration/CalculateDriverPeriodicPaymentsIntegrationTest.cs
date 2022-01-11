@@ -27,6 +27,7 @@ public class CalculateDriverPeriodicPaymentsIntegrationTest
   [Test]
   public async Task CalculateMonthlyPayment()
   {
+    _app.StartReuseRequestScope();
     //given
     var driver = await Fixtures.ADriver();
     //and
@@ -38,6 +39,7 @@ public class CalculateDriverPeriodicPaymentsIntegrationTest
     await Fixtures.ATransit(driver, 15, new LocalDateTime(2000, 12, 10, 2, 30));
     //and
     await Fixtures.DriverHasFee(driver, DriverFee.FeeTypes.Flat, 10);
+    _app.EndReuseRequestScope();
 
     //when
     var feeOctober = await DriverService.CalculateDriverMonthlyPayment(driver.Id, 2000, 10);
@@ -58,6 +60,7 @@ public class CalculateDriverPeriodicPaymentsIntegrationTest
   [Test]
   public async Task CalculateYearlyPayment()
   {
+    _app.StartReuseRequestScope();
     //given
     var driver = await Fixtures.ADriver();
     //and
@@ -69,6 +72,7 @@ public class CalculateDriverPeriodicPaymentsIntegrationTest
     await Fixtures.ATransit(driver, 15, new LocalDateTime(2000, 12, 10, 2, 30));
     //and
     await Fixtures.DriverHasFee(driver, DriverFee.FeeTypes.Flat, 10);
+    _app.EndReuseRequestScope();
 
     //when
     var payments = await DriverService.CalculateDriverYearlyPayment(driver.Id, 2000);

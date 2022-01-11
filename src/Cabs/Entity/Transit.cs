@@ -1,4 +1,3 @@
-using System.Globalization;
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.MoneyValue;
@@ -8,11 +7,6 @@ namespace LegacyFighter.Cabs.Entity;
 
 public class Transit : BaseEntity
 {
-
-
-  public Transit()
-  {
-  }
 
   public enum Statuses
   {
@@ -49,7 +43,171 @@ public class Transit : BaseEntity
   private Instant? _dateTime;
 
   public CarType.CarClasses? CarType { get; set; }
-  public virtual Driver Driver { get; set; }
+  
+  public Transit()
+  {
+  }
+
+  public Transit(Address from, Address to, Client client, CarType.CarClasses? carClass, Instant when, Distance distance)
+    : this(Statuses.Draft, from, to, client, carClass, when, distance)
+  {
+  }
+
+  public Transit(Statuses status, Address from, Address to, Client client, CarType.CarClasses? carClass, Instant when, Distance distance)
+  {
+    From = from;
+    To = to;
+    Client = client;
+    CarType = carClass;
+    DateTime = when;
+    Km = distance.ToKmInFloat();
+    Status = status;
+  }
+
+  public void ChangePickupTo(Address newAddress, Distance newDistance, double distanceFromPreviousPickup)
+  {
+    if (distanceFromPreviousPickup > 0.25)
+    {
+      throw new InvalidOperationException("Address 'from' cannot be changed, id = " + Id);
+    }
+
+    if (Status != Statuses.Draft &&
+        Status != Statuses.WaitingForDriverAssignment)
+    {
+      throw new InvalidOperationException("Address 'from' cannot be changed, id = " + Id);
+    }
+    else if (PickupAddressChangeCounter > 2)
+    {
+      throw new InvalidOperationException("Address 'from' cannot be changed, id = " + Id);
+    }
+
+    From = newAddress;
+    PickupAddressChangeCounter = PickupAddressChangeCounter + 1;
+    Km = newDistance.ToKmInFloat();
+    EstimateCost();
+  }
+
+  public void ChangeDestinationTo(Address newAddress, Distance newDistance)
+  {
+    if (Status == Statuses.Completed)
+    {
+      throw new InvalidOperationException("Address 'to' cannot be changed, id = " + Id);
+    }
+
+    To = newAddress;
+    Km = newDistance.ToKmInFloat();
+    EstimateCost();
+  }
+
+  public void Cancel()
+  {
+    if (!new HashSet<Statuses?> { Statuses.Draft, Statuses.WaitingForDriverAssignment, Statuses.TransitToPassenger }.Contains(Status))
+    {
+      throw new InvalidOperationException("Transit cannot be cancelled, id = " + Id);
+    }
+
+    Status = Statuses.Cancelled;
+    Driver = null;
+    Km = Distance.Zero.ToKmInFloat();
+    AwaitingDriversResponses = 0;
+  }
+
+  public bool CanProposeTo(Driver driver)
+  {
+    return !DriversRejections.Contains(driver);
+  }
+
+  public void ProposeTo(Driver driver)
+  {
+    if (CanProposeTo(driver))
+    {
+      ProposedDrivers.Add(driver);
+      AwaitingDriversResponses++;
+    }
+  }
+
+  public void FailDriverAssignment()
+  {
+    Status = Statuses.DriverAssignmentFailed;
+    Driver = null;
+    Km = Distance.Zero.ToKmInFloat();
+    AwaitingDriversResponses = 0;
+  }
+
+  public bool ShouldNotWaitForDriverAnyMore(Instant date)
+  {
+    return Status == Statuses.Cancelled || Published + Duration.FromSeconds(300) < date;
+  }
+
+  public void AcceptBy(Driver driver, Instant when)
+  {
+    if (Driver != null)
+    {
+      throw new InvalidOperationException("Transit already accepted, id = " + Id);
+    }
+    else
+    {
+      if (!ProposedDrivers.Contains(driver))
+      {
+        throw new InvalidOperationException("Driver out of possible drivers, id = " + Id);
+      }
+      else
+      {
+        if (DriversRejections.Contains(driver))
+        {
+          throw new InvalidOperationException("Driver out of possible drivers, id = " + Id);
+        }
+      }
+
+      Driver = driver;
+      driver.Occupied = true;
+      AwaitingDriversResponses = 0;
+      AcceptedAt = when;
+      Status = Statuses.TransitToPassenger;
+    }
+  }
+
+  public void Start(Instant when)
+  {
+    if (Status != Statuses.TransitToPassenger)
+    {
+      throw new InvalidOperationException("Transit cannot be started, id = " + Id);
+    }
+
+    Started = when;
+    Status = Statuses.InTransit;
+  }
+
+  public void RejectBy(Driver driver)
+  {
+    DriversRejections.Add(driver);
+    AwaitingDriversResponses--;
+  }
+
+  public void PublishAt(Instant when)
+  {
+    Status = Statuses.WaitingForDriverAssignment;
+    Published = when;
+  }
+
+  public void CompleteTransitAt(Instant when, Address destinationAddress, Distance distance)
+  {
+    if (Status == Statuses.InTransit)
+    {
+      Km = distance.ToKmInFloat();
+      EstimateCost();
+      CompleteAt = when;
+      To = destinationAddress;
+      Status = Statuses.Completed;
+      CalculateFinalCosts();
+    }
+    else
+    {
+      throw new ArgumentException("Cannot complete Transit, id = " + Id);
+    }
+  }
+
+  public virtual Driver Driver { get; protected set; }
 
   public Money Price
   {
@@ -57,9 +215,7 @@ public class Transit : BaseEntity
     set; //just for testing
   }
 
-  public Statuses? Status { get; set; }
-
-  public Instant? CompleteAt { get; private set; }
+  public Statuses? Status { get; private set; }
 
   public Money EstimateCost()
   {
@@ -76,7 +232,7 @@ public class Transit : BaseEntity
     return estimated;
   }
 
-  public virtual Client Client { get; set; }
+  public virtual Client Client { get; protected set; }
 
   public Money CalculateFinalCosts()
   {
@@ -108,7 +264,9 @@ public class Transit : BaseEntity
     get => _dateTime;
   }
 
-  public Instant? Published { get; set; }
+  public Instant? Published { get; private set; }
+
+  public Instant? CompleteAt { get; set; }
 
   public Distance KmDistance 
   {
@@ -116,7 +274,7 @@ public class Transit : BaseEntity
     set => Km = value.ToKmInFloat();
   }
 
-  private float Km 
+  private float Km
   {
     get => _km;
     set
@@ -126,15 +284,15 @@ public class Transit : BaseEntity
     }
   }
 
-  public int AwaitingDriversResponses { get; set; } = 0;
-  public virtual ISet<Driver> DriversRejections { get; set; } = new HashSet<Driver>();
-  public virtual ISet<Driver> ProposedDrivers { get; set; } = new HashSet<Driver>();
-  public Instant? AcceptedAt { get; set; }
-  public Instant? Started { get; set; }
-  public virtual Address From { get; set; }
-  public virtual Address To { get; set; }
+  public int AwaitingDriversResponses { get; private set; } = 0;
+  protected virtual ISet<Driver> DriversRejections { get; set; } = new HashSet<Driver>();
+  public virtual ISet<Driver> ProposedDrivers { get; protected set; } = new HashSet<Driver>();
+  public Instant? AcceptedAt { get; private set; }
+  public Instant? Started { get; private set; }
+  public virtual Address From { get; protected set; }
+  public virtual Address To { get; protected set; }
 
-  public int PickupAddressChangeCounter { get; set; } = 0;
+  private int PickupAddressChangeCounter { get; set; } = 0;
 
   public override bool Equals(object obj)
   {
@@ -150,11 +308,6 @@ public class Transit : BaseEntity
   public static bool operator !=(Transit left, Transit right)
   {
     return !Equals(left, right);
-  }
-
-  public void CompleteTransitAt(Instant when)
-  {
-    CompleteAt = when;
   }
 
   public Money DriversFee { get; set; }

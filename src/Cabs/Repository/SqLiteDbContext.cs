@@ -195,6 +195,7 @@ public class SqLiteDbContext : DbContext
       builder.MapBaseEntityProperties();
       builder.Ignore(x => x.KmDistance);
       builder.Property("Km");
+      builder.Property("PickupAddressChangeCounter");
       builder.Property(x => x.AcceptedAt).HasConversion(instantConverter);
       builder.Property(x => x.CompleteAt).HasConversion(instantConverter);
       builder.Property(x => x.DateTime).HasConversion(instantConverter);
@@ -206,7 +207,7 @@ public class SqLiteDbContext : DbContext
       builder.HasOne(t => t.Client);
       builder.HasOne(t => t.Driver).WithMany(d => d.Transits);
       builder.HasMany(t => t.ProposedDrivers).WithMany(d => d.ProposingTransits);
-      builder.HasMany(t => t.DriversRejections).WithMany(d => d.RejectingTransits);
+      builder.HasMany("DriversRejections").WithMany("RejectingTransits");
       builder.OwnsOne(t => t.DriversFee, navigation =>
       {
         navigation.Property(m => m.IntValue).HasColumnName(nameof(Transit.DriversFee));

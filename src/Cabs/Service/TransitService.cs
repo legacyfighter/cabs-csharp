@@ -78,20 +78,12 @@ public class TransitService : ITransitService
       throw new ArgumentException("Client does not exist, id = " + clientId);
     }
 
-    var transit = new Transit();
-
     // TODO FIXME later: add some exceptions handling
     var geoFrom = _geocodingService.GeocodeAddress(from);
     var geoTo = _geocodingService.GeocodeAddress(to);
-
-    transit.Client = client;
-    transit.From = @from;
-    transit.To = to;
-    transit.CarType = carClass;
-    transit.Status = Transit.Statuses.Draft;
-    transit.DateTime = _clock.GetCurrentInstant();
-    transit.KmDistance = Distance.OfKm((float)_distanceCalculator.CalculateByMap(geoFrom[0], geoFrom[1], geoTo[0], geoTo[1]));
-
+    var km = Distance.OfKm((float) _distanceCalculator.CalculateByMap(geoFrom[0], geoFrom[1], geoTo[0], geoTo[1]));
+    var transit = new Transit(from, to, client, carClass, _clock.GetCurrentInstant(), km);
+    transit.EstimateCost();
     return await _transitRepository.Save(transit);
   }
 
@@ -132,17 +124,8 @@ public class TransitService : ITransitService
     // calculate the result
     var distanceInKMeters = c * r;
 
-    if (!(transit.Status == Transit.Statuses.Draft ||
-          transit.Status == Transit.Statuses.WaitingForDriverAssignment) ||
-        transit.PickupAddressChangeCounter > 2 ||
-        distanceInKMeters > 0.25)
-    {
-      throw new InvalidOperationException("Address 'from' cannot be changed, id = " + transitId);
-    }
-
-    transit.From = newAddress;
-    transit.KmDistance = Distance.OfKm((float)_distanceCalculator.CalculateByMap(geoFromNew[0], geoFromNew[1], geoFromOld[0], geoFromOld[1]));
-    transit.PickupAddressChangeCounter = transit.PickupAddressChangeCounter + 1;
+    var newDistance = Distance.OfKm((float) _distanceCalculator.CalculateByMap(geoFromNew[0], geoFromNew[1], geoFromOld[0], geoFromOld[1]));
+    transit.ChangePickupTo(newAddress, newDistance, distanceInKMeters);
     await _transitRepository.Save(transit);
 
     foreach (var driver in transit.ProposedDrivers) 
@@ -171,17 +154,12 @@ public class TransitService : ITransitService
       throw new ArgumentException("Transit does not exist, id = " + transitId);
     }
 
-    if (transit.Status == Transit.Statuses.Completed)
-    {
-      throw new InvalidOperationException("Address 'to' cannot be changed, id = " + transitId);
-    }
-
     // TODO FIXME later: add some exceptions handling
     var geoFrom = _geocodingService.GeocodeAddress(transit.From);
     var geoTo = _geocodingService.GeocodeAddress(newAddress);
 
-    transit.To = newAddress;
-    transit.KmDistance = Distance.OfKm((float)_distanceCalculator.CalculateByMap(geoFrom[0], geoFrom[1], geoTo[0], geoTo[1]));
+    var newDistance = Distance.OfKm((float) _distanceCalculator.CalculateByMap(geoFrom[0], geoFrom[1], geoTo[0], geoTo[1]));
+    transit.ChangeDestinationTo(newAddress, newDistance);
 
     if (transit.Driver != null)
     {
@@ -198,22 +176,12 @@ public class TransitService : ITransitService
       throw new ArgumentException("Transit does not exist, id = " + transitId);
     }
 
-    if (!new HashSet<Transit.Statuses?>
-        { Transit.Statuses.Draft, Transit.Statuses.WaitingForDriverAssignment, Transit.Statuses.TransitToPassenger }
-      .Contains(transit.Status))
-    {
-      throw new InvalidOperationException("Transit cannot be cancelled, id = " + transitId);
-    }
-
     if (transit.Driver != null)
     {
       _notificationService.NotifyAboutCancelledTransit(transit.Driver.Id, transitId);
     }
 
-    transit.Status = Transit.Statuses.Cancelled;
-    transit.Driver = null;
-    transit.KmDistance = Distance.Zero;
-    transit.AwaitingDriversResponses = 0;
+    transit.Cancel();
     await _transitRepository.Save(transit);
   }
 
@@ -226,10 +194,8 @@ public class TransitService : ITransitService
       throw new ArgumentException("Transit does not exist, id = " + transitId);
     }
 
-    transit.Status = Transit.Statuses.WaitingForDriverAssignment;
-    transit.Published = _clock.GetCurrentInstant();
+    transit.PublishAt(_clock.GetCurrentInstant());
     await _transitRepository.Save(transit);
-
     return await FindDriversForTransit(transitId);
   }
 
@@ -260,18 +226,9 @@ public class TransitService : ITransitService
           distanceToCheck++;
 
           // TODO FIXME: to refactor when the final business logic will be determined
-          if (transit.Published.Value.Plus(Duration.FromSeconds(300)) < _clock.GetCurrentInstant()
-              ||
-              (distanceToCheck >= 20)
-              ||
-              // Should it be here? How is it even possible due to previous status check above loop?
-              (transit.Status == Transit.Statuses.Cancelled)
-          )
+          if (transit.ShouldNotWaitForDriverAnyMore(_clock.GetCurrentInstant()) || distanceToCheck >= 20)
           {
-            transit.Status = Transit.Statuses.DriverAssignmentFailed;
-            transit.Driver = null;
-            transit.KmDistance = Distance.Zero;
-            transit.AwaitingDriversResponses = 0;
+            transit.FailDriverAssignment();
             await _transitRepository.Save(transit);
             return transit;
           }
@@ -365,13 +322,11 @@ public class TransitService : ITransitService
             {
               var driver = driverAvgPosition.Driver;
               if (driver.Status == Driver.Statuses.Active &&
-
                   driver.Occupied == false)
               {
-                if (!transit.DriversRejections.Contains(driver))
+                if (transit.CanProposeTo(driver))
                 {
-                  transit.ProposedDrivers.Add(driver);
-                  transit.AwaitingDriversResponses = transit.AwaitingDriversResponses + 1;
+                  transit.ProposeTo(driver);
                   _notificationService.NotifyAboutPossibleTransit(driver.Id, transitId);
                 }
               }
@@ -421,34 +376,9 @@ public class TransitService : ITransitService
       }
       else
       {
-        if (transit.Driver != null)
-        {
-          throw new InvalidOperationException("Transit already accepted, id = " + transitId);
-        }
-        else
-        {
-          if (!transit.ProposedDrivers.Contains(driver))
-          {
-            throw new InvalidOperationException("Driver out of possible drivers, id = " + transitId);
-          }
-          else
-          {
-            if (transit.DriversRejections.Contains(driver))
-            {
-              throw new InvalidOperationException("Driver out of possible drivers, id = " + transitId);
-            }
-            else
-            {
-              transit.Driver = driver;
-              transit.AwaitingDriversResponses = 0;
-              transit.AcceptedAt = _clock.GetCurrentInstant();
-              transit.Status = Transit.Statuses.TransitToPassenger;
-              await _transitRepository.Save(transit);
-              driver.Occupied = true;
-              await _driverRepository.Save(driver);
-            }
-          }
-        }
+        transit.AcceptBy(driver, _clock.GetCurrentInstant());
+        await _transitRepository.Save(transit);
+        await _driverRepository.Save(driver);
       }
     }
   }
@@ -469,13 +399,7 @@ public class TransitService : ITransitService
       throw new ArgumentException("Transit does not exist, id = " + transitId);
     }
 
-    if (transit.Status != Transit.Statuses.TransitToPassenger)
-    {
-      throw new InvalidOperationException("Transit cannot be started, id = " + transitId);
-    }
-
-    transit.Status = Transit.Statuses.InTransit;
-    transit.Started = SystemClock.Instance.GetCurrentInstant();
+    transit.Start(_clock.GetCurrentInstant());
     await _transitRepository.Save(transit);
   }
 
@@ -495,8 +419,7 @@ public class TransitService : ITransitService
       throw new ArgumentException("Transit does not exist, id = " + transitId);
     }
 
-    transit.DriversRejections.Add(driver);
-    transit.AwaitingDriversResponses = transit.AwaitingDriversResponses - 1;
+    transit.RejectBy(driver);
     await _transitRepository.Save(transit);
   }
 
@@ -522,30 +445,18 @@ public class TransitService : ITransitService
       throw new ArgumentException("Transit does not exist, id = " + transitId);
     }
 
-    if (transit.Status == Transit.Statuses.InTransit)
-    {
-      // TODO FIXME later: add some exceptions handling
-      var geoFrom = _geocodingService.GeocodeAddress(transit.From);
-      var geoTo = _geocodingService.GeocodeAddress(transit.To);
-
-      transit.To = destinationAddress;
-      transit.KmDistance = Distance.OfKm((float)_distanceCalculator.CalculateByMap(geoFrom[0], geoFrom[1], geoTo[0], geoTo[1]));
-      transit.Status = Transit.Statuses.Completed;
-      transit.CalculateFinalCosts();
-      driver.Occupied = false;
-      transit.CompleteTransitAt(_clock.GetCurrentInstant());
-      var driverFee = await _driverFeeService.CalculateDriverFee(transitId);
-      transit.DriversFee = driverFee;
-      await _driverRepository.Save(driver);
-      await _awardsService.RegisterMiles(transit.Client.Id, transitId);
-      await _transitRepository.Save(transit);
-      await _invoiceGenerator.Generate(transit.Price.IntValue,
-        transit.Client.Name + " " + transit.Client.LastName);
-    }
-    else
-    {
-      throw new ArgumentException("Cannot complete Transit, id = " + transitId);
-    }
+    // FIXME later: add some exceptions handling
+    var geoFrom = _geocodingService.GeocodeAddress(transit.From);
+    var geoTo = _geocodingService.GeocodeAddress(transit.To);
+    var distance = Distance.OfKm((float) _distanceCalculator.CalculateByMap(geoFrom[0], geoFrom[1], geoTo[0], geoTo[1]));
+    transit.CompleteTransitAt(_clock.GetCurrentInstant(), destinationAddress, distance);
+    var driverFee = await _driverFeeService.CalculateDriverFee(transitId);
+    transit.DriversFee = driverFee;
+    driver.Occupied = false;
+    await _driverRepository.Save(driver);
+    await _awardsService.RegisterMiles(transit.Client.Id, transitId);
+    await _transitRepository.Save(transit);
+    await _invoiceGenerator.Generate(transit.Price.IntValue, transit.Client.Name + " " + transit.Client.LastName);
   }
 
   public async Task<TransitDto> LoadTransit(long? id)
