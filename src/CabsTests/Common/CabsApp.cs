@@ -1,4 +1,5 @@
-﻿using LegacyFighter.Cabs.Service;
+﻿using LegacyFighter.Cabs.Controllers;
+using LegacyFighter.Cabs.Service;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,4 +47,7 @@ internal class CabsApp : WebApplicationFactory<Program>
 
   public IDriverService DriverService
     => NewRequestScope().ServiceProvider.GetRequiredService<IDriverService>();
+
+  public TransitController TransitController
+    => NewRequestScope().ServiceProvider.GetRequiredService<TransitController>();
 }

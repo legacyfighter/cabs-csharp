@@ -194,6 +194,7 @@ public class SqLiteDbContext : DbContext
     {
       builder.MapBaseEntityProperties();
       builder.Ignore(x => x.KmDistance);
+      builder.Property("Km");
       builder.Property(x => x.AcceptedAt).HasConversion(instantConverter);
       builder.Property(x => x.CompleteAt).HasConversion(instantConverter);
       builder.Property(x => x.DateTime).HasConversion(instantConverter);
