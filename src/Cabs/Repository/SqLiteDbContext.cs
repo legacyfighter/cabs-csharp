@@ -219,6 +219,12 @@ public class SqLiteDbContext : DbContext
       {
         navigation.Property(m => m.IntValue).HasColumnName(nameof(Transit.Price));
       });
+      builder.OwnsOne(t => t.Tariff, navigation =>
+      {
+        navigation.Property(m => m.BaseFee).HasColumnName(nameof(Tariff.BaseFee));
+        navigation.Property(m => m.KmRate).HasColumnName(nameof(Tariff.KmRate));
+        navigation.Property(m => m.Name).HasColumnName(nameof(Tariff.Name));
+      });
     });
   }
 }

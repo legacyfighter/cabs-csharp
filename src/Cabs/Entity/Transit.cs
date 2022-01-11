@@ -44,9 +44,9 @@ public class Transit : BaseEntity
   private ClientPaymentStatuses? ClientPaymentStatus { get; set; }
   private Client.PaymentTypes? PaymentType { get; set; }
   public Instant? Date { get; private set; }
-  public int? Factor { get; set; }
+  public Tariff Tariff { get; set; }
   private float _km;
-  public const int BaseFee = 8;
+  private Instant? _dateTime;
 
   public CarType.CarClasses? CarType { get; set; }
   public virtual Driver Driver { get; set; }
@@ -92,66 +92,21 @@ public class Transit : BaseEntity
 
   private Money CalculateCost()
   {
-    var baseFee = BaseFee;
-    var factorToCalculate = Factor;
-    if (factorToCalculate == null)
-    {
-      factorToCalculate = 1;
-    }
-
-    float kmRate;
-    var day = DateTime.Value.InZone(DateTimeZoneProviders.Bcl.GetSystemDefault()).LocalDateTime;
-    // wprowadzenie nowych cennikow od 1.01.2019
-    if (day.Year <= 2018)
-    {
-      kmRate = 1.0f;
-      baseFee++;
-    }
-    else
-    {
-      if ((day.Month == 12 && day.Day == 31) ||
-          (day.Month == 1 && day.Day == 1 && day.Hour <= 6))
-      {
-        kmRate = 3.50f;
-        baseFee += 3;
-      }
-      else
-      {
-        // piątek i sobota po 17 do 6 następnego dnia
-        if ((day.DayOfWeek == IsoDayOfWeek.Friday && day.Hour >= 17) ||
-            (day.DayOfWeek == IsoDayOfWeek.Saturday && day.Hour <= 6) ||
-            (day.DayOfWeek == IsoDayOfWeek.Saturday && day.Hour >= 17) ||
-            (day.DayOfWeek == IsoDayOfWeek.Sunday && day.Hour <= 6))
-        {
-          kmRate = 2.50f;
-          baseFee += 2;
-        }
-        else
-        {
-          // pozostałe godziny weekendu
-          if ((day.DayOfWeek == IsoDayOfWeek.Saturday && day.Hour > 6 && day.Hour < 17) ||
-              (day.DayOfWeek == IsoDayOfWeek.Sunday && day.Hour > 6))
-          {
-            kmRate = 1.5f;
-          }
-          else
-          {
-            // tydzień roboczy
-            kmRate = 1.0f;
-            baseFee++;
-          }
-        }
-      }
-    }
-
-    var pricedecimal = new decimal(_km * kmRate * factorToCalculate.Value + baseFee);
-    pricedecimal = decimal.Round(pricedecimal, 2, MidpointRounding.ToPositiveInfinity);
-    var finalPrice = new Money(int.Parse(pricedecimal.ToString("0.00", CultureInfo.InvariantCulture).Replace(".", "")));
-    Price = finalPrice;
-    return finalPrice;
+    var money = Tariff.CalculateCost(Distance.OfKm(_km));
+    Price = money;
+    return money;
   }
 
-  public Instant? DateTime { set; get; }
+  public Instant? DateTime
+  {
+    set
+    {
+      Tariff = Tariff.OfTime(
+        value.Value.InZone(DateTimeZoneProviders.Bcl.GetSystemDefault()).LocalDateTime);
+      _dateTime = value;
+    }
+    get => _dateTime;
+  }
 
   public Instant? Published { get; set; }
 

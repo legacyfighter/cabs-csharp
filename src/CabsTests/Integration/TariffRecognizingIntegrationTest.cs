@@ -78,18 +78,4 @@ public class TariffRecognizingIntegrationTest
     Assert.AreEqual("Standard", transitDto.Tariff);
     Assert.AreEqual(1.0f, transitDto.KmRate);
   }
-
-  [Test]
-  public async Task StandardTariffShouldBeDisplayedBefore2019()
-  {
-    //given
-    var transit = await Fixtures.ACompletedTransitAt(60, new LocalDateTime(2018, 12, 31, 8, 30).InUtc().ToInstant());
-
-    //when
-    var transitDto = await TransitController.GetTransit(transit.Id);
-
-    //then
-    Assert.AreEqual("Standard", transitDto.Tariff);
-    Assert.AreEqual(1.0f, transitDto.KmRate);
-  }
 }

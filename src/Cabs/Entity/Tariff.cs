@@ -15,6 +15,10 @@ public class Tariff
 
   public int BaseFee { get; }
 
+  public Tariff()
+  {
+  }
+
   private Tariff(float kmRate, string name, int baseFee)
   {
     KmRate = kmRate;

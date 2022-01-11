@@ -120,21 +120,6 @@ public class CalculateTransitPriceTest
     Assert.AreEqual(new Money(6000), price); //60.00
   }
 
-  [Test]
-  public void ShouldUseStandardPriceBefore2019()
-  {
-    //given
-    var transit = ATransit(Transit.Statuses.Completed, 20);
-
-    //2018
-    TransitWasDoneIn2018(transit);
-    //when
-    var price = transit.CalculateFinalCosts();
-
-    //then
-    Assert.AreEqual(new Money(2900), price); //29.00
-  }
-
   private static Transit ATransit(Transit.Statuses status, int km)
   {
     var transit = new Transit();

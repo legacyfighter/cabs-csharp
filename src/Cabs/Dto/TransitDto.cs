@@ -28,7 +28,7 @@ public class TransitDto
   {
     Id = transit.Id;
     _distance = transit.KmDistance;
-    Factor = transit.Factor;
+    Factor = 1;
     if (transit.Price != null)
     {
       Price = new decimal(transit.Price.IntValue);
@@ -67,78 +67,9 @@ public class TransitDto
 
   private void SetTariff(Transit transit)
   {
-    var day = _date.Value.InZone( DateTimeZoneProviders.Bcl.GetSystemDefault()).LocalDateTime;
-
-    // wprowadzenie nowych cennikow od 1.01.2019
-    if (day.Year <= 2018)
-    {
-      KmRate = 1.0f;
-      Tariff = "Standard";
-      return;
-    }
-
-    var year = day.Year;
-    var leap = ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
-
-    if (((leap && day.DayOfYear == 366) || (!leap && day.DayOfYear == 365)) ||
-        (day.DayOfYear == 1 && day.Hour <= 6))
-    {
-      Tariff = "Sylwester";
-      KmRate = 3.50f;
-    }
-    else
-    {
-      switch (day.DayOfWeek)
-      {
-        case IsoDayOfWeek.Monday:
-        case IsoDayOfWeek.Tuesday:
-        case IsoDayOfWeek.Wednesday:
-        case IsoDayOfWeek.Thursday:
-          KmRate = 1.0f;
-          Tariff = "Standard";
-          break;
-        case IsoDayOfWeek.Friday:
-          if (day.Hour < 17)
-          {
-            Tariff = "Standard";
-            KmRate = 1.0f;
-          }
-          else
-          {
-            Tariff = "Weekend+";
-            KmRate = 2.50f;
-          }
-
-          break;
-        case IsoDayOfWeek.Saturday:
-          if (day.Hour < 6 || day.Hour >= 17)
-          {
-            KmRate = 2.50f;
-            Tariff = "Weekend+";
-          }
-          else if (day.Hour < 17)
-          {
-            KmRate = 1.5f;
-            Tariff = "Weekend";
-          }
-
-          break;
-        case IsoDayOfWeek.Sunday:
-          if (day.Hour < 6)
-          {
-            KmRate = 2.50f;
-            Tariff = "Weekend+";
-          }
-          else
-          {
-            KmRate = 1.5f;
-            Tariff = "Weekend";
-          }
-
-          break;
-      }
-    }
-
+    Tariff = transit.Tariff.Name;
+    KmRate = transit.Tariff.KmRate;
+    _baseFee = new decimal(transit.Tariff.BaseFee);
   }
 
   public string Tariff { get; private set; }
