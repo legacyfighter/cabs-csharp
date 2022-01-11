@@ -115,7 +115,7 @@ public class ClaimService : IClaimService
 
     if (claim.Owner.Type == Client.Types.Vip)
     {
-      if (claim.Transit.Price < _appProperties.AutomaticRefundForVipThreshold)
+      if (claim.Transit.Price.IntValue < _appProperties.AutomaticRefundForVipThreshold)
       {
         claim.Status = Claim.Statuses.Refunded;
         claim.CompletionDate = SystemClock.Instance.GetCurrentInstant();
@@ -139,7 +139,7 @@ public class ClaimService : IClaimService
       if ((await _transitRepository.FindByClient(claim.Owner)).Count >=
            _appProperties.NoOfTransitsForClaimAutomaticRefund)
       {
-        if (claim.Transit.Price < _appProperties.AutomaticRefundForVipThreshold)
+        if (claim.Transit.Price.IntValue < _appProperties.AutomaticRefundForVipThreshold)
         {
           claim.Status = Claim.Statuses.Refunded;
           claim.CompletionDate = SystemClock.Instance.GetCurrentInstant();

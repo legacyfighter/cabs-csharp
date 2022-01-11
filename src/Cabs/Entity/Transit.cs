@@ -1,5 +1,6 @@
 using System.Globalization;
 using LegacyFighter.Cabs.Common;
+using LegacyFighter.Cabs.MoneyValue;
 using NodaTime;
 
 namespace LegacyFighter.Cabs.Entity;
@@ -49,8 +50,7 @@ public class Transit : BaseEntity
   public CarType.CarClasses? CarType { get; set; }
   public virtual Driver Driver { get; set; }
 
-  // https://stackoverflow.com/questions/37107123/sould-i-store-price-as-decimal-or-integer-in-mysql
-  public int? Price
+  public Money Price
   {
     get;
     set; //just for testing
@@ -60,7 +60,7 @@ public class Transit : BaseEntity
 
   public Instant? CompleteAt { get; private set; }
 
-  public int EstimateCost()
+  public Money EstimateCost()
   {
     if (Status == Statuses.Completed)
     {
@@ -77,7 +77,7 @@ public class Transit : BaseEntity
 
   public virtual Client Client { get; set; }
 
-  public int CalculateFinalCosts()
+  public Money CalculateFinalCosts()
   {
     if (Status == Statuses.Completed)
     {
@@ -89,7 +89,7 @@ public class Transit : BaseEntity
     }
   }
 
-  private int CalculateCost()
+  private Money CalculateCost()
   {
     var baseFee = BaseFee;
     var factorToCalculate = Factor;
@@ -145,7 +145,7 @@ public class Transit : BaseEntity
 
     var pricedecimal = new decimal(_km * kmRate * factorToCalculate.Value + baseFee);
     pricedecimal = decimal.Round(pricedecimal, 2, MidpointRounding.ToPositiveInfinity);
-    var finalPrice = int.Parse(pricedecimal.ToString("0.00", CultureInfo.InvariantCulture).Replace(".", ""));
+    var finalPrice = new Money(int.Parse(pricedecimal.ToString("0.00", CultureInfo.InvariantCulture).Replace(".", "")));
     Price = finalPrice;
     return finalPrice;
   }
@@ -195,7 +195,7 @@ public class Transit : BaseEntity
     CompleteAt = when;
   }
 
-  public int? DriversFee { get; set; }
+  public Money DriversFee { get; set; }
 
-  public int? EstimatedPrice { get; set; }
+  public Money EstimatedPrice { get; private set; }
 }

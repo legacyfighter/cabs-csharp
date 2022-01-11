@@ -1,6 +1,8 @@
+using LegacyFighter.Cabs.MoneyValue;
+
 namespace LegacyFighter.Cabs.Service;
 
 public interface IDriverFeeService
 {
-  Task<int> CalculateDriverFee(long? transitId);
+  Task<Money> CalculateDriverFee(long? transitId);
 }

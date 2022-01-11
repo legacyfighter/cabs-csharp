@@ -30,7 +30,7 @@ public class TransitDto
     Factor = transit.Factor;
     if (transit.Price != null)
     {
-      Price = new decimal(transit.Price.Value);
+      Price = new decimal(transit.Price.IntValue);
     }
 
     _date = transit.DateTime;
@@ -46,12 +46,12 @@ public class TransitDto
     ClientDto = new ClientDto(transit.Client);
     if (transit.DriversFee != null)
     {
-      DriverFee = new decimal(transit.DriversFee.Value);
+      DriverFee = new decimal(transit.DriversFee.IntValue);
     }
 
     if (transit.EstimatedPrice != null)
     {
-      EstimatedPrice = new decimal(transit.EstimatedPrice.Value);
+      EstimatedPrice = new decimal(transit.EstimatedPrice.IntValue);
     }
 
     DateTime = transit.DateTime;

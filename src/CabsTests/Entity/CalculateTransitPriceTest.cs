@@ -1,5 +1,6 @@
 ﻿using System;
 using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.MoneyValue;
 using NodaTime;
 
 namespace LegacyFighter.CabsTests.Entity;
@@ -40,7 +41,7 @@ public class CalculateTransitPriceTest
     var price = transit.CalculateFinalCosts();
 
     //then
-    Assert.AreEqual(2900, price); //29.00
+    Assert.AreEqual(new Money(2900), price); //29.00
   }
 
   [Test]
@@ -55,7 +56,7 @@ public class CalculateTransitPriceTest
     var price = transit.EstimateCost();
 
     //then
-    Assert.AreEqual(2900, price); //29.00
+    Assert.AreEqual(new Money(2900), price); //29.00
   }
 
   private static Transit ATransit(Transit.Statuses status, int km)

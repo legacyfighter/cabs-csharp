@@ -538,7 +538,7 @@ public class TransitService : ITransitService
       await _driverRepository.Save(driver);
       await _awardsService.RegisterMiles(transit.Client.Id, transitId);
       await _transitRepository.Save(transit);
-      await _invoiceGenerator.Generate(transit.Price,
+      await _invoiceGenerator.Generate(transit.Price.IntValue,
         transit.Client.Name + " " + transit.Client.LastName);
     }
     else

@@ -1,4 +1,5 @@
 using LegacyFighter.Cabs.Common;
+using LegacyFighter.Cabs.MoneyValue;
 
 namespace LegacyFighter.Cabs.Entity;
 
@@ -21,13 +22,13 @@ public class DriverFee : BaseEntity
     FeeType = feeType;
     Driver = driver;
     Amount = amount;
-    Min = min;
+    Min = new Money(min);
   }
 
   public FeeTypes FeeType { get; set; }
   public virtual Driver Driver { get; set; }
   public int Amount { get; set; }
-  public int? Min { get; set; }
+  public Money Min { get; set; }
 
   public override bool Equals(object obj)
   {

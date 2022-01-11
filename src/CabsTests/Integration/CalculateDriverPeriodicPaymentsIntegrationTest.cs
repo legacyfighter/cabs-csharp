@@ -1,4 +1,5 @@
 ﻿using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.MoneyValue;
 using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.Service;
 using LegacyFighter.CabsTests.Common;
@@ -45,17 +46,17 @@ public class CalculateDriverPeriodicPaymentsIntegrationTest
     //when
     var feeOctober = await DriverService.CalculateDriverMonthlyPayment(driver.Id, 2000, 10);
     //then
-    Assert.AreEqual(180, feeOctober);
+    Assert.AreEqual(new Money(180), feeOctober);
 
     //when
     var feeNovember = await DriverService.CalculateDriverMonthlyPayment(driver.Id, 2000, 11);
     //then
-    Assert.AreEqual(70, feeNovember);
+    Assert.AreEqual(new Money(70), feeNovember);
 
     //when
     var feeDecember = await DriverService.CalculateDriverMonthlyPayment(driver.Id, 2000, 12);
     //then
-    Assert.AreEqual(5, feeDecember);
+    Assert.AreEqual(new Money(5), feeDecember);
   }
 
   [Test]
@@ -77,25 +78,25 @@ public class CalculateDriverPeriodicPaymentsIntegrationTest
     var payments = await DriverService.CalculateDriverYearlyPayment(driver.Id, 2000);
 
     //then
-    Assert.AreEqual(0, payments[Month.January]);
-    Assert.AreEqual(0, payments[Month.February]);
-    Assert.AreEqual(0, payments[Month.March]);
-    Assert.AreEqual(0, payments[Month.April]);
-    Assert.AreEqual(0, payments[Month.May]);
-    Assert.AreEqual(0, payments[Month.June]);
-    Assert.AreEqual(0, payments[Month.July]);
-    Assert.AreEqual(0, payments[Month.August]);
-    Assert.AreEqual(0, payments[Month.September]);
-    Assert.AreEqual(180, payments[Month.October]);
-    Assert.AreEqual(70, payments[Month.November]);
-    Assert.AreEqual(5, payments[Month.December]);
+    Assert.AreEqual(new Money(0), payments[Month.January]);
+    Assert.AreEqual(new Money(0), payments[Month.February]);
+    Assert.AreEqual(new Money(0), payments[Month.March]);
+    Assert.AreEqual(new Money(0), payments[Month.April]);
+    Assert.AreEqual(new Money(0), payments[Month.May]);
+    Assert.AreEqual(new Money(0), payments[Month.June]);
+    Assert.AreEqual(new Money(0), payments[Month.July]);
+    Assert.AreEqual(new Money(0), payments[Month.August]);
+    Assert.AreEqual(new Money(0), payments[Month.September]);
+    Assert.AreEqual(new Money(180), payments[Month.October]);
+    Assert.AreEqual(new Money(70), payments[Month.November]);
+    Assert.AreEqual(new Money(5), payments[Month.December]);
   }
 
   private Task<Transit> ATransit(Driver driver, int price, LocalDateTime when)
   {
     var transit = new Transit
     {
-      Price = price,
+      Price = new Money(price),
       Driver = driver,
       DateTime = when.InUtc().ToInstant()
     };
@@ -109,7 +110,7 @@ public class CalculateDriverPeriodicPaymentsIntegrationTest
       Driver = driver,
       Amount = amount,
       FeeType = feeType,
-      Min = min
+      Min = new Money(min)
     };
     return FeeRepository.Save(driverFee);
   }

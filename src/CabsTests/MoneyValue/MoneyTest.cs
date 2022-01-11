@@ -17,9 +17,9 @@ public class MoneyTest
   public void ShouldProjectMoneyToInteger()
   {
     //expect
-    Assert.AreEqual(10, new Money(10).ToInt());
-    Assert.AreEqual(0, new Money(0).ToInt());
-    Assert.AreEqual(-5, new Money(-5).ToInt());
+    Assert.AreEqual(10, new Money(10).IntValue);
+    Assert.AreEqual(0, new Money(0).IntValue);
+    Assert.AreEqual(-5, new Money(-5).IntValue);
   }
 
   [Test]

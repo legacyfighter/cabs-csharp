@@ -1,4 +1,5 @@
 using LegacyFighter.Cabs.Common;
+using LegacyFighter.Cabs.MoneyValue;
 
 namespace LegacyFighter.Cabs.Service;
 
@@ -13,7 +14,7 @@ public class TransactionalDriverFeeService : IDriverFeeService
     _transactions = transactions;
   }
 
-  public async Task<int> CalculateDriverFee(long? transitId)
+  public async Task<Money> CalculateDriverFee(long? transitId)
   {
     await using var tx = await _transactions.BeginTransaction();
     var driverFee = await _inner.CalculateDriverFee(transitId);

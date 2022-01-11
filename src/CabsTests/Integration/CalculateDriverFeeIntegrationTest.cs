@@ -1,4 +1,5 @@
 ﻿using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.MoneyValue;
 using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.Service;
 using LegacyFighter.CabsTests.Common;
@@ -40,7 +41,7 @@ public class CalculateDriverFeeIntegrationTest
     var fee = await DriverFeeService.CalculateDriverFee(transit.Id);
 
     //then
-    Assert.AreEqual(50, fee);
+    Assert.AreEqual(new Money(50), fee);
   }
 
   [Test]
@@ -57,7 +58,7 @@ public class CalculateDriverFeeIntegrationTest
     var fee = await DriverFeeService.CalculateDriverFee(transit.Id);
 
     //then
-    Assert.AreEqual(40, fee);
+    Assert.AreEqual(new Money(40), fee);
   }
 
   [Test]
@@ -74,7 +75,7 @@ public class CalculateDriverFeeIntegrationTest
     var fee = await DriverFeeService.CalculateDriverFee(transit.Id);
 
     //then
-    Assert.AreEqual(5, fee);
+    Assert.AreEqual(new Money(5), fee);
   }
 
   private Task<DriverFee> DriverHasFee(Driver driver, DriverFee.FeeTypes feeType, int amount, int min)
@@ -84,7 +85,7 @@ public class CalculateDriverFeeIntegrationTest
       Driver = driver,
       Amount = amount,
       FeeType = feeType,
-      Min = min
+      Min = new Money(min)
     };
     return FeeRepository.Save(driverFee);
   }
@@ -104,7 +105,7 @@ public class CalculateDriverFeeIntegrationTest
   {
     var transit = new Transit
     {
-      Price = price,
+      Price = new Money(price),
       Driver = driver,
       DateTime = new LocalDate(2020, 10, 20).AtStartOfDayInZone(DateTimeZone.Utc).ToInstant()
     };

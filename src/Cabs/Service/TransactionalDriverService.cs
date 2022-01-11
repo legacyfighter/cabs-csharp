@@ -1,6 +1,7 @@
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.MoneyValue;
 
 namespace LegacyFighter.Cabs.Service;
 
@@ -39,12 +40,12 @@ public class TransactionalDriverService : IDriverService
     return _inner.ChangePhoto(driverId, photo);
   }
 
-  public async Task<int> CalculateDriverMonthlyPayment(long? driverId, int year, int month)
+  public async Task<Money> CalculateDriverMonthlyPayment(long? driverId, int year, int month)
   {
     return await _inner.CalculateDriverMonthlyPayment(driverId, year, month);
   }
 
-  public async Task<Dictionary<Month, int>> CalculateDriverYearlyPayment(long? driverId, int year)
+  public async Task<Dictionary<Month, Money>> CalculateDriverYearlyPayment(long? driverId, int year)
   {
     return await _inner.CalculateDriverYearlyPayment(driverId, year);
   }

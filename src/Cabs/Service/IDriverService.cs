@@ -1,5 +1,6 @@
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.MoneyValue;
 
 namespace LegacyFighter.Cabs.Service;
 
@@ -11,8 +12,8 @@ public interface IDriverService
   Task ChangeLicenseNumber(string newLicense, long? driverId);
   Task ChangeDriverStatus(long? driverId, Driver.Statuses status);
   Task ChangePhoto(long driverId, string photo);
-  Task<int> CalculateDriverMonthlyPayment(long? driverId, int year, int month);
-  Task<Dictionary<Month, int>> CalculateDriverYearlyPayment(long? driverId, int year);
+  Task<Money> CalculateDriverMonthlyPayment(long? driverId, int year, int month);
+  Task<Dictionary<Month, Money>> CalculateDriverYearlyPayment(long? driverId, int year);
   Task<DriverDto> LoadDriver(long? driverId);
   Task AddAttribute(long driverId, DriverAttribute.DriverAttributeNames attr, string value);
 }

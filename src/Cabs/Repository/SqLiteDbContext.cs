@@ -164,6 +164,10 @@ public class SqLiteDbContext : DbContext
       builder.MapBaseEntityProperties();
       builder.Property(f => f.FeeType).IsRequired();
       builder.Property(f => f.Amount).IsRequired();
+      builder.OwnsOne(f => f.Min, navigation =>
+      {
+        navigation.Property(m => m.IntValue).HasColumnName(nameof(DriverFee.Min));
+      });
     });
     modelBuilder.Entity<DriverPosition>(builder =>
     {
@@ -201,6 +205,18 @@ public class SqLiteDbContext : DbContext
       builder.HasOne(t => t.Driver).WithMany(d => d.Transits);
       builder.HasMany(t => t.ProposedDrivers).WithMany(d => d.ProposingTransits);
       builder.HasMany(t => t.DriversRejections).WithMany(d => d.RejectingTransits);
+      builder.OwnsOne(t => t.DriversFee, navigation =>
+      {
+        navigation.Property(m => m.IntValue).HasColumnName(nameof(Transit.DriversFee));
+      });
+      builder.OwnsOne(t => t.EstimatedPrice, navigation =>
+      {
+        navigation.Property(m => m.IntValue).HasColumnName(nameof(Transit.EstimatedPrice));
+      });
+      builder.OwnsOne(t => t.Price, navigation =>
+      {
+        navigation.Property(m => m.IntValue).HasColumnName(nameof(Transit.Price));
+      });
     });
   }
 }

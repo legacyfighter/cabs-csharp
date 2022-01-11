@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.MoneyValue;
 using LegacyFighter.Cabs.Repository;
 using NodaTime;
 
@@ -124,7 +125,7 @@ public class DriverService : IDriverService
     await _driverRepository.Save(driver);
   }
 
-  public async Task<int> CalculateDriverMonthlyPayment(long? driverId, int year, int month) 
+  public async Task<Money> CalculateDriverMonthlyPayment(long? driverId, int year, int month) 
   {
     var driver = await _driverRepository.Find(driverId);
     if (driver == null)
@@ -143,15 +144,15 @@ public class DriverService : IDriverService
 
     var sum = await transitsList
       .Select(t => _driverFeeService.CalculateDriverFee(t.Id)).Aggregate(
-        Task.FromResult(0), 
-        async (sumSoFar, next) => await  sumSoFar + await next);
+        Task.FromResult(Money.Zero), 
+        async (sumSoFar, next) => (await  sumSoFar) + (await next));
 
     return sum;
   }
 
-  public async Task<Dictionary<Month, int>> CalculateDriverYearlyPayment(long? driverId, int year)
+  public async Task<Dictionary<Month, Money>> CalculateDriverYearlyPayment(long? driverId, int year)
   {
-    var payments = new Dictionary<Month, int>();
+    var payments = new Dictionary<Month, Money>();
     foreach (var m in Month.Values()) 
     {
       payments[m] = await CalculateDriverMonthlyPayment(driverId, year, m.Value);
