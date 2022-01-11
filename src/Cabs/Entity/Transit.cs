@@ -1,5 +1,6 @@
 using System.Globalization;
 using LegacyFighter.Cabs.Common;
+using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.MoneyValue;
 using NodaTime;
 
@@ -154,7 +155,13 @@ public class Transit : BaseEntity
 
   public Instant? Published { get; set; }
 
-  public float Km 
+  public Distance KmDistance 
+  {
+    get => Distance.OfKm(Km);
+    set => Km = value.ToKmInFloat();
+  }
+
+  private float Km 
   {
     get => _km;
     set

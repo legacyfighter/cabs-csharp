@@ -1,3 +1,4 @@
+using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Repository;
@@ -89,7 +90,7 @@ public class TransitService : ITransitService
     transit.CarType = carClass;
     transit.Status = Transit.Statuses.Draft;
     transit.DateTime = _clock.GetCurrentInstant();
-    transit.Km = (float)_distanceCalculator.CalculateByMap(geoFrom[0], geoFrom[1], geoTo[0], geoTo[1]);
+    transit.KmDistance = Distance.OfKm((float)_distanceCalculator.CalculateByMap(geoFrom[0], geoFrom[1], geoTo[0], geoTo[1]));
 
     return await _transitRepository.Save(transit);
   }
@@ -140,7 +141,7 @@ public class TransitService : ITransitService
     }
 
     transit.From = newAddress;
-    transit.Km = (float)_distanceCalculator.CalculateByMap(geoFromNew[0], geoFromNew[1], geoFromOld[0], geoFromOld[1]);
+    transit.KmDistance = Distance.OfKm((float)_distanceCalculator.CalculateByMap(geoFromNew[0], geoFromNew[1], geoFromOld[0], geoFromOld[1]));
     transit.PickupAddressChangeCounter = transit.PickupAddressChangeCounter + 1;
     await _transitRepository.Save(transit);
 
@@ -180,7 +181,7 @@ public class TransitService : ITransitService
     var geoTo = _geocodingService.GeocodeAddress(newAddress);
 
     transit.To = newAddress;
-    transit.Km = (float)_distanceCalculator.CalculateByMap(geoFrom[0], geoFrom[1], geoTo[0], geoTo[1]);
+    transit.KmDistance = Distance.OfKm((float)_distanceCalculator.CalculateByMap(geoFrom[0], geoFrom[1], geoTo[0], geoTo[1]));
 
     if (transit.Driver != null)
     {
@@ -211,7 +212,7 @@ public class TransitService : ITransitService
 
     transit.Status = Transit.Statuses.Cancelled;
     transit.Driver = null;
-    transit.Km = 0;
+    transit.KmDistance = Distance.Zero;
     transit.AwaitingDriversResponses = 0;
     await _transitRepository.Save(transit);
   }
@@ -269,7 +270,7 @@ public class TransitService : ITransitService
           {
             transit.Status = Transit.Statuses.DriverAssignmentFailed;
             transit.Driver = null;
-            transit.Km = 0;
+            transit.KmDistance = Distance.Zero;
             transit.AwaitingDriversResponses = 0;
             await _transitRepository.Save(transit);
             return transit;
@@ -528,7 +529,7 @@ public class TransitService : ITransitService
       var geoTo = _geocodingService.GeocodeAddress(transit.To);
 
       transit.To = destinationAddress;
-      transit.Km = (float)_distanceCalculator.CalculateByMap(geoFrom[0], geoFrom[1], geoTo[0], geoTo[1]);
+      transit.KmDistance = Distance.OfKm((float)_distanceCalculator.CalculateByMap(geoFrom[0], geoFrom[1], geoTo[0], geoTo[1]));
       transit.Status = Transit.Statuses.Completed;
       transit.CalculateFinalCosts();
       driver.Occupied = false;

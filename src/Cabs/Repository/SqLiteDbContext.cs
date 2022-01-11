@@ -193,6 +193,7 @@ public class SqLiteDbContext : DbContext
     modelBuilder.Entity<Transit>(builder =>
     {
       builder.MapBaseEntityProperties();
+      builder.Ignore(x => x.KmDistance);
       builder.Property(x => x.AcceptedAt).HasConversion(instantConverter);
       builder.Property(x => x.CompleteAt).HasConversion(instantConverter);
       builder.Property(x => x.DateTime).HasConversion(instantConverter);

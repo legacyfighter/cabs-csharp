@@ -1,4 +1,5 @@
 ﻿using System;
+using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;
 using NodaTime;
@@ -64,7 +65,7 @@ public class CalculateTransitPriceTest
     var transit = new Transit();
     transit.DateTime = SystemClock.Instance.GetCurrentInstant();
     transit.Status = Transit.Statuses.Draft;
-    transit.Km = km;
+    transit.KmDistance = Distance.OfKm(km);
     transit.Status = status;
     return transit;
   }

@@ -1,4 +1,5 @@
 ﻿using System;
+using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;
@@ -52,7 +53,7 @@ public class CalculateTransitDistanceTest
       To = new Address(),
       From = new Address(),
       Status = Transit.Statuses.Draft,
-      Km = km,
+      KmDistance = Distance.OfKm(km),
       Client = new Client()
     };
     return new TransitDto(t);

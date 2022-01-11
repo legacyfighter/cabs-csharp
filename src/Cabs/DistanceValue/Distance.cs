@@ -8,6 +8,8 @@ public sealed class Distance : IEquatable<Distance>
 
   private readonly float _km;
 
+  public static readonly Distance Zero = OfKm(0);
+
   public static Distance OfKm(float km)
   {
     return new Distance(km);
