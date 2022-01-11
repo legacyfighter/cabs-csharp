@@ -1,4 +1,5 @@
-﻿using LegacyFighter.Cabs.Service;
+﻿using LegacyFighter.Cabs.Repository;
+using LegacyFighter.Cabs.Service;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -32,6 +33,21 @@ internal class CabsApp : WebApplicationFactory<Program>
     return _scope;
   }
 
+  public AddressRepository AddressRepository 
+    => NewRequestScope().ServiceProvider.GetRequiredService<AddressRepository>();
+
+  public ITransitRepository TransitRepository
+    => NewRequestScope().ServiceProvider.GetRequiredService<ITransitRepository>();
+
+  public IDriverFeeService DriverFeeService
+    => NewRequestScope().ServiceProvider.GetRequiredService<IDriverFeeService>();
+
   public IDriverService DriverService
     => NewRequestScope().ServiceProvider.GetRequiredService<IDriverService>();
+
+  public IClientRepository ClientRepository
+    => NewRequestScope().ServiceProvider.GetRequiredService<IClientRepository>();
+
+  public IDriverFeeRepository DriverFeeRepository
+    => NewRequestScope().ServiceProvider.GetRequiredService<IDriverFeeRepository>();
 }
