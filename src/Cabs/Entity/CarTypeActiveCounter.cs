@@ -2,37 +2,22 @@ namespace LegacyFighter.Cabs.Entity;
 
 public class CarTypeActiveCounter
 {
-  private CarType.CarClasses CarClass { get; }
+  private readonly CarType _carType;
 
-  public int ActiveCarsCounter { get; } = 0;
-
-  public CarTypeActiveCounter(CarType.CarClasses carClass)
+  public CarTypeActiveCounter(CarType carType)
   {
-    CarClass = carClass;
+    this._carType = carType;
   }
 
-  public CarTypeActiveCounter()
+  public void RegisterActiveCar()
   {
+    _carType.RegisterActiveCar();
   }
 
-  public override bool Equals(object obj)
+  public void UnregisterActiveCar()
   {
-    if (ReferenceEquals(this, obj)) return true;
-    return obj != null && CarClass != null && CarClass == (obj as CarType)?.CarClass;
+    _carType.UnregisterActiveCar();
   }
 
-  public static bool operator ==(CarTypeActiveCounter left, CarTypeActiveCounter right)
-  {
-    return Equals(left, right);
-  }
-
-  public static bool operator !=(CarTypeActiveCounter left, CarTypeActiveCounter right)
-  {
-    return !Equals(left, right);
-  }
-
-  public override int GetHashCode()
-  {
-    return GetType().GetHashCode();
-  }
+  public int ActiveCarsCounter => _carType.ActiveCarsCounter;
 }

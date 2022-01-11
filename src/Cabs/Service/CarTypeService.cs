@@ -29,8 +29,8 @@ public class CarTypeService : ICarTypeService
 
   public async Task<CarTypeDto> LoadDto(long? id)
   {
-    var loaded = await Load(id);
-    return new CarTypeDto(loaded, (await _carTypeRepository.FindActiveCounter(loaded.CarClass)).ActiveCarsCounter);
+    var carType = await Load(id);
+    return new CarTypeDto(carType, (await _carTypeRepository.FindActiveCounter(carType.CarClass)).ActiveCarsCounter);
   }
 
   public async Task<CarType> Create(CarTypeDto carTypeDto)
@@ -75,12 +75,14 @@ public class CarTypeService : ICarTypeService
 
   public async Task UnregisterActiveCar(CarType.CarClasses carClass)
   {
-    await _carTypeRepository.DecrementCounter(carClass);
+    var carTypeActiveCounter = await _carTypeRepository.FindActiveCounter(carClass);
+    carTypeActiveCounter.UnregisterActiveCar();
   }
 
   public async Task RegisterActiveCar(CarType.CarClasses? carClass)
   {
-    await _carTypeRepository.IncrementCounter(carClass.Value);
+    var carTypeActiveCounter = await _carTypeRepository.FindActiveCounter(carClass.Value);
+    carTypeActiveCounter.RegisterActiveCar();
   }
 
   public async Task<List<CarType.CarClasses>> FindActiveCarClasses()

@@ -16,7 +16,6 @@ public class SqLiteDbContext : DbContext
   public DbSet<AwardedMiles> AwardedMiles { get; set; }
   public DbSet<AwardsAccount> AwardsAccounts { get; set; }
   public DbSet<CarType> CarTypes { get; set; }
-  public DbSet<CarTypeActiveCounter> CarTypeActiveCounters { get; set; }
   public DbSet<Claim> Claims { get; set; }
   public DbSet<ClaimAttachment> ClaimAttachments { get; set; }
   public DbSet<Client> Clients { get; set; }
@@ -89,11 +88,6 @@ public class SqLiteDbContext : DbContext
       builder.Property(t => t.Status).HasConversion<string>().IsRequired();
       builder.Property(t => t.CarsCounter).IsRequired();
       builder.Property(t => t.MinNoOfCarsToActivateClass).IsRequired();
-    });
-    modelBuilder.Entity<CarTypeActiveCounter>(builder =>
-    {
-      builder.HasKey("CarClass");
-      builder.Property("CarClass").HasConversion<string>().IsRequired().ValueGeneratedNever();
       builder.Property(t => t.ActiveCarsCounter).IsRequired();
     });
     modelBuilder.Entity<Claim>(builder =>
