@@ -20,7 +20,7 @@ public class CarTypeController
   public async Task<CarTypeDto> Create([FromBody] CarTypeDto carTypeDto)
   {
     var created = await _carTypeService.Create(carTypeDto);
-    return new CarTypeDto(created);
+    return await _carTypeService.LoadDto(created.Id);
   }
 
   [HttpPost("/cartypes/{carClass}/registerCar")]

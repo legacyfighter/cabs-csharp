@@ -4,14 +4,14 @@ namespace LegacyFighter.Cabs.Dto;
 
 public class CarTypeDto
 {
-  public CarTypeDto(CarType carType)
+  public CarTypeDto(CarType carType, int activeCarsCounter)
   {
     Id = carType.Id;
     CarClass = carType.CarClass;
     Status = carType.Status;
     CarsCounter = carType.CarsCounter;
     Description = carType.Description;
-    ActiveCarsCounter = carType.ActiveCarsCounter;
+    ActiveCarsCounter = activeCarsCounter;
     MinNoOfCarsToActivateClass = carType.MinNoOfCarsToActivateClass;
   }
 
