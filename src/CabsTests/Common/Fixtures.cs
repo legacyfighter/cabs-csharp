@@ -1,3 +1,5 @@
+using System.Linq;
+using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;
 using LegacyFighter.Cabs.Repository;
@@ -14,22 +16,25 @@ public class Fixtures
   private readonly IClientRepository _clientRepository;
   private readonly AddressRepository _addressRepository;
   private readonly IDriverService _driverService;
+  private readonly ICarTypeService _carTypeService;
 
   public Fixtures(
     ITransitRepository transitRepository,
     IDriverFeeRepository feeRepository,
     IClientRepository clientRepository,
     AddressRepository addressRepository,
-    IDriverService driverService)
+    IDriverService driverService,
+    ICarTypeService carTypeService)
   {
     _transitRepository = transitRepository;
     _feeRepository = feeRepository;
     _driverService = driverService;
+    _carTypeService = carTypeService;
     _clientRepository = clientRepository;
     _addressRepository = addressRepository;
   }
 
-  public Task<Client> AClient() 
+  public Task<Client> AClient()
   {
     return _clientRepository.Save(new Client());
   }
@@ -73,7 +78,7 @@ public class Fixtures
       Driver.Statuses.Active, "");
   }
 
-  public async Task<Transit> ACompletedTransitAt(int price, Instant when) 
+  public async Task<Transit> ACompletedTransitAt(int price, Instant when)
   {
     var transit = await ATransit(null, price);
     transit.DateTime = when;
@@ -81,5 +86,38 @@ public class Fixtures
     transit.From = await _addressRepository.Save(new Address("Polska", "Warszawa", "M³ynarska", 20));
     transit.Client = await AClient();
     return await _transitRepository.Save(transit);
+  }
+
+  public async Task<CarType> AnActiveCarCategory(CarType.CarClasses carClass)
+  {
+    var carTypeDto = new CarTypeDto
+    {
+      CarClass = carClass,
+      Description = "opis"
+    };
+    var carType = await _carTypeService.Create(carTypeDto);
+    foreach (var _ in Enumerable.Range(1, carType.MinNoOfCarsToActivateClass))
+    {
+      await _carTypeService.RegisterCar(carType.CarClass);
+    }
+
+    await _carTypeService.Activate(carType.Id);
+    return carType;
+  }
+
+  public TransitDto ATransitDto(Client client, AddressDto from, AddressDto to)
+  {
+    var transitDto = new TransitDto
+    {
+      ClientDto = new ClientDto(client),
+      From = from,
+      To = to
+    };
+    return transitDto;
+  }
+
+  public async Task<TransitDto> ATransitDto(AddressDto from, AddressDto to)
+  {
+    return ATransitDto(await AClient(), from, to);
   }
 }
