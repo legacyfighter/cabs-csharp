@@ -21,7 +21,7 @@ public class DriverLicenseTest
     var license = DriverLicense.WithLicense("FARME100165AB5EW");
 
     //then
-    Assert.AreEqual("FARME100165AB5EW", license.AsString());
+    Assert.AreEqual("FARME100165AB5EW", license.ValueAsString);
   }
 
   [Test]
@@ -31,7 +31,7 @@ public class DriverLicenseTest
     var license = DriverLicense.WithoutValidation("invalid");
 
     //then
-    Assert.AreEqual("invalid", license.AsString());
+    Assert.AreEqual("invalid", license.ValueAsString);
   }
 
 }

@@ -34,7 +34,7 @@ public class Driver : BaseEntity
   public string FirstName { get; set; }
   public string LastName { get; set; }
   public string Photo { get; set; }
-  public string DriverLicense { get; set; }
+  public DriverLicense DriverLicense { get; set; }
   public virtual DriverFee Fee { get; set; }
   public bool Occupied { get; set; }
 

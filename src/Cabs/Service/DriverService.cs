@@ -33,13 +33,13 @@ public class DriverService : IDriverService
     var driver = new Driver();
     if (status == Driver.Statuses.Active)
     {
-      if (license == null || !license.Any() || !Regex.IsMatch(license, DriverLicenseRegex))
-      {
-        throw new ArgumentException("Illegal license no = " + license);
-      }
+      driver.DriverLicense = DriverLicense.WithLicense(license);
+    }
+    else
+    {
+      driver.DriverLicense = DriverLicense.WithoutValidation(license);
     }
 
-    driver.DriverLicense = license;
     driver.LastName = lastName;
     driver.FirstName = firstName;
     driver.Status = status;
@@ -67,19 +67,12 @@ public class DriverService : IDriverService
       throw new ArgumentException("Driver does not exists, id = " + driverId);
     }
 
-    if (newLicense == null || !newLicense.Any() || !Regex.IsMatch(newLicense, DriverLicenseRegex))
-    {
-      throw new ArgumentException("Illegal new license no = " + newLicense);
-    }
+    driver.DriverLicense = DriverLicense.WithLicense(newLicense);
 
     if (driver.Status != Driver.Statuses.Active)
     {
       throw new InvalidOperationException("Driver is not active, cannot change license");
     }
-
-    driver.DriverLicense = newLicense;
-
-
   }
 
 
@@ -93,10 +86,13 @@ public class DriverService : IDriverService
 
     if (status == Driver.Statuses.Active)
     {
-      var license = driver.DriverLicense;
-      if (license == null || !license.Any() || !Regex.IsMatch(license, DriverLicenseRegex))
+      try
       {
-        throw new InvalidOperationException("Status cannot be ACTIVE. Illegal license no = " + license);
+        driver.DriverLicense = DriverLicense.WithLicense(driver.DriverLicense.ValueAsString);
+      }
+      catch (ArgumentException e)
+      {
+        throw new InvalidOperationException(e.Message, e);
       }
     }
 

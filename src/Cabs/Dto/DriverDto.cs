@@ -9,7 +9,7 @@ public class DriverDto
     Id = driver.Id;
     FirstName = driver.FirstName;
     LastName = driver.LastName;
-    DriverLicense = driver.DriverLicense;
+    DriverLicense = driver.DriverLicense.ValueAsString;
     Photo = driver.Photo;
     Status = driver.Status;
     Type = driver.Type;

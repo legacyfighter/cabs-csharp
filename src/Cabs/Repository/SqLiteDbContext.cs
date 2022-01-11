@@ -144,7 +144,10 @@ public class SqLiteDbContext : DbContext
       e.MapBaseEntityProperties();
       e.Property(d => d.Status).HasConversion<string>().IsRequired();
       e.Property(d => d.Type).HasConversion<string>();
-      e.Property(d => d.DriverLicense).IsRequired();
+      e.OwnsOne(driver => driver.DriverLicense, builder =>
+      {
+        builder.Property(dl => dl.ValueAsString).HasColumnName(nameof(Driver.DriverLicense)).IsRequired();
+      });
       e.HasMany(d => d.Attributes).WithOne(d => d.Driver);
       e.HasMany(d => d.Transits).WithOne(t => t.Driver);
       e.HasOne(d => d.Fee).WithOne(f => f.Driver).HasForeignKey<DriverFee>(x => x.Id);

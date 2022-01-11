@@ -6,11 +6,15 @@ public class DriverLicense
 {
   public const string DriverLicenseRegex = "^[A-Z9]{5}\\d{6}[A-Z9]{2}\\d[A-Z]{2}$";
 
-  private readonly string _driverLicense;
+  public string ValueAsString { get; private set; }
 
-  private DriverLicense(string driverLicense)
+  protected DriverLicense()
   {
-    _driverLicense = driverLicense;
+  }
+
+  private DriverLicense(string value)
+  {
+    ValueAsString = value;
   }
 
   public static DriverLicense WithLicense(string driverLicense)
@@ -31,12 +35,7 @@ public class DriverLicense
   public override string ToString()
   {
     return "DriverLicense{" +
-           "driverLicense='" + _driverLicense + '\'' +
+           "driverLicense='" + ValueAsString + '\'' +
            '}';
-  }
-
-  public string AsString()
-  {
-    return _driverLicense;
   }
 }
