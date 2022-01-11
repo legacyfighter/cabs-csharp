@@ -87,4 +87,7 @@ internal class CabsApp : WebApplicationFactory<Program>
 
   public TransitController TransitController
     => RequestScope().ServiceProvider.GetRequiredService<TransitController>();
+
+  public ICarTypeService CarTypeService
+    => RequestScope().ServiceProvider.GetRequiredService<ICarTypeService>();
 }
