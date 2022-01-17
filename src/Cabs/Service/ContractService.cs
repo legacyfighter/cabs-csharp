@@ -7,12 +7,12 @@ namespace LegacyFighter.Cabs.Service;
 public class ContractService : IContractService
 {
   private readonly IContractRepository _contractRepository;
-  private readonly IContractAttachmentRepository _contractAttachmentRepository;
+  private readonly IContractAttachmentDataRepository _contractAttachmentDataRepository;
 
-  public ContractService(IContractRepository contractRepository, IContractAttachmentRepository contractAttachmentRepository)
+  public ContractService(IContractRepository contractRepository, IContractAttachmentDataRepository contractAttachmentDataRepository)
   {
     _contractRepository = contractRepository;
-    _contractAttachmentRepository = contractAttachmentRepository;
+    _contractAttachmentDataRepository = contractAttachmentDataRepository;
   }
 
   public async Task<Contract> CreateContract(ContractDto contractDto)
@@ -37,13 +37,15 @@ public class ContractService : IContractService
   public async Task RejectAttachment(long? attachmentId)
   {
     var contract = await _contractRepository.FindByAttachmentId(attachmentId);
-    contract.RejectAttachment(attachmentId);
+    var contractAttachmentNo = await _contractRepository.FindContractAttachmentNoById(attachmentId);
+    contract.RejectAttachment(contractAttachmentNo);
   }
 
   public async Task AcceptAttachment(long? attachmentId)
   {
     var contract = await _contractRepository.FindByAttachmentId(attachmentId);
-    contract.AcceptAttachment(attachmentId);
+    var contractAttachmentNo = await _contractRepository.FindContractAttachmentNoById(attachmentId);
+    contract.AcceptAttachment(contractAttachmentNo);
   }
 
   public async Task<Contract> Find(long? id)
@@ -59,19 +61,25 @@ public class ContractService : IContractService
 
   public async Task<ContractDto> FindDto(long? id)
   {
-    return new ContractDto(await Find(id), await _contractAttachmentRepository.FindByContractId(id));
+    var contract = await Find(id);
+    return new ContractDto(contract, await _contractAttachmentDataRepository.FindByContractAttachmentNoIn(contract.AttachmentIds));
   }
 
   public async Task<ContractAttachmentDto> ProposeAttachment(long? contractId, ContractAttachmentDto contractAttachmentDto)
   {
     var contract = await Find(contractId);
-    var contractAttachment = contract.ProposeAttachment(contractAttachmentDto.Data);
-    return new ContractAttachmentDto(await _contractAttachmentRepository.Save(contractAttachment));
+    var contractAttachmentId = contract.ProposeAttachment().ContractAttachmentNo;
+    var contractAttachmentData = new ContractAttachmentData(contractAttachmentId, contractAttachmentDto.Data);
+    contract = await _contractRepository.Save(contract);
+    return new ContractAttachmentDto(contract.FindAttachment(contractAttachmentId), await _contractAttachmentDataRepository.Save(contractAttachmentData));
   }
 
   public async Task RemoveAttachment(long? contractId, long? attachmentId)
   {
     //TODO sprawdzenie czy nalezy do kontraktu (JIRA: II-14455)
-    await _contractAttachmentRepository.DeleteById(attachmentId);
+    var contract = await Find(contractId);
+    var contractAttachmentNo = await _contractRepository.FindContractAttachmentNoById(attachmentId);
+    contract.Remove(contractAttachmentNo);
+    await _contractAttachmentDataRepository.DeleteByAttachmentId(attachmentId);
   }
 }

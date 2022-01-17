@@ -14,12 +14,7 @@ public class ContractAttachment : BaseEntity
     Rejected
   }
 
-  public ContractAttachment()
-  {
-  }
-
-  public byte[] Data { get; set; }
-  public Instant CreationDate { get; set; } = SystemClock.Instance.GetCurrentInstant();
+  public Guid ContractAttachmentNo { get; private set; } = Guid.NewGuid();
   public Instant AcceptedAt { get; set; }
   public Instant RejectedAt { get; set; }
   public Instant ChangeDate { get; set; }

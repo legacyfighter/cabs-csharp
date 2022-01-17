@@ -34,13 +34,14 @@ public class Contract : BaseEntity
   public string PartnerName { get; private set; }
   public string Subject { get; private set; }
 
-  public ContractAttachment ProposeAttachment(byte[] data)
+  public List<Guid> AttachmentIds => Attachments
+      .Select(a => a.ContractAttachmentNo)
+      .ToList();
+
+  public ContractAttachment ProposeAttachment()
   {
-    var contractAttachment = new ContractAttachment
-    {
-      Data = data,
-      Contract = this
-    };
+    var contractAttachment = new ContractAttachment();
+    contractAttachment.Contract = this;
     Attachments.Add(contractAttachment);
     return contractAttachment;
   }
@@ -62,9 +63,9 @@ public class Contract : BaseEntity
     Status = Statuses.Rejected;
   }
 
-  public void AcceptAttachment(long? attachmentId)
+  public void AcceptAttachment(Guid contractAttachmentNo)
   {
-    var contractAttachment = FindAttachment(attachmentId);
+    var contractAttachment = FindAttachment(contractAttachmentNo);
     if (contractAttachment.Status
         is ContractAttachment.Statuses.AcceptedByOneSide
         or ContractAttachment.Statuses.AcceptedByBothSides)
@@ -77,15 +78,22 @@ public class Contract : BaseEntity
     }
   }
 
-  public void RejectAttachment(long? attachmentId) 
+  public void RejectAttachment(Guid contractAttachmentNo) 
   {
-    var contractAttachment = FindAttachment(attachmentId);
+    var contractAttachment = FindAttachment(contractAttachmentNo);
     contractAttachment.Status = ContractAttachment.Statuses.Rejected;
   }
 
-  private ContractAttachment FindAttachment(long? attachmentId) 
+  public void Remove(Guid contractAttachmentNo) 
   {
-    return Attachments.FirstOrDefault(a => a.Id == attachmentId);
+    Attachments = Attachments
+      .Where(attachment => attachment.ContractAttachmentNo != contractAttachmentNo)
+      .ToHashSet();
+  }
+
+  public ContractAttachment FindAttachment(Guid? attachmentNo) 
+  {
+    return Attachments.FirstOrDefault(a => a.ContractAttachmentNo == attachmentNo);
   }
 
   public override bool Equals(object obj)

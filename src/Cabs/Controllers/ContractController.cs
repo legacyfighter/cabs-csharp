@@ -20,7 +20,7 @@ public class ContractController
   public async Task<ContractDto> Create([FromBody] ContractDto contractDto)
   {
     var created = await _contractService.CreateContract(contractDto);
-    return new ContractDto(created, new HashSet<ContractAttachment>());
+    return new ContractDto(created, new HashSet<ContractAttachmentData>());
   }
 
 

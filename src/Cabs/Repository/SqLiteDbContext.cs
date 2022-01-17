@@ -23,6 +23,7 @@ public class SqLiteDbContext : DbContext
   public DbSet<Client> Clients { get; set; }
   public DbSet<Contract> Contracts { get; set; }
   public DbSet<ContractAttachment> ContractAttachments { get; set; }
+  public DbSet<ContractAttachmentData> ContractAttachmentsData { get; set; }
   public DbSet<Driver> Drivers { get; set; }
   public DbSet<DriverAttribute> DriverAttributes { get; set; }
   public DbSet<DriverFee> DriverFees { get; set; }
@@ -142,13 +143,19 @@ public class SqLiteDbContext : DbContext
     modelBuilder.Entity<ContractAttachment>(builder =>
     {
       builder.MapBaseEntityProperties();
-      builder.Property(x => x.Data).HasColumnType("BLOB");
-      builder.Property(x => x.CreationDate).HasConversion(instantConverter).IsRequired();
+      builder.Property(x => x.ContractAttachmentNo).IsRequired();
       builder.Property(x => x.AcceptedAt).HasConversion(instantConverter);
       builder.Property(x => x.ChangeDate).HasConversion(instantConverter);
       builder.Property(x => x.RejectedAt).HasConversion(instantConverter);
       builder.Property(x => x.Status).HasConversion<string>();
       builder.HasOne("Contract").WithMany("Attachments");
+    });
+    modelBuilder.Entity<ContractAttachmentData>(builder =>
+    {
+      builder.MapBaseEntityProperties();
+      builder.Property(x => x.Data).HasColumnType("BLOB");
+      builder.Property(x => x.ContractAttachmentNo).IsRequired();
+      builder.Property(x => x.CreationDate).HasConversion(instantConverter).IsRequired();
     });
     modelBuilder.Entity<Driver>(e =>
     {

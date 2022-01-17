@@ -11,12 +11,12 @@ public class ContractAttachmentDto
   }
 
 
-  public ContractAttachmentDto(ContractAttachment attachment)
+  public ContractAttachmentDto(ContractAttachment attachment, ContractAttachmentData data)
   {
     Id = attachment.Id;
-    Data = attachment.Data;
+    Data = data.Data;
     ContractId = attachment.Contract.Id;
-    CreationDate = attachment.CreationDate;
+    CreationDate = data.CreationDate;
     RejectedAt = attachment.RejectedAt;
     AcceptedAt = attachment.AcceptedAt;
     ChangeDate = attachment.ChangeDate;

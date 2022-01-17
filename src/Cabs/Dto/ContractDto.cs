@@ -9,7 +9,7 @@ public class ContractDto
   {
   }
 
-  public ContractDto(Contract contract, ISet<ContractAttachment> attachments) 
+  public ContractDto(Contract contract, ISet<ContractAttachmentData> attachments) 
   {
     ContractNo = contract.ContractNo;
     AcceptedAt = contract.AcceptedAt;
@@ -19,9 +19,11 @@ public class ContractDto
     Status = contract.Status;
     PartnerName = contract.PartnerName;
     Subject = contract.Subject;
-    foreach (var attachment in attachments) 
+    foreach (var attachmentData in attachments) 
     {
-      Attachments.Add(new ContractAttachmentDto(attachment));
+      var contractAttachmentNo = attachmentData.ContractAttachmentNo;
+      var attachment = contract.FindAttachment(contractAttachmentNo);
+      Attachments.Add(new ContractAttachmentDto(attachment, attachmentData));
     }
     Id = contract.Id;
   }
