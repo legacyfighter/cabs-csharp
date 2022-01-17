@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Reflection;
+using System.Text.Json;
 using NodaTime;
 
 namespace LegacyFighter.Cabs.Entity.Miles;
@@ -18,13 +19,14 @@ public static class MilesJsonMapper
   private class MilesData
   {
     private const string ExpiringType = "Expiring";
+    private const string TwoStepType = "TwoStep";
     public string Type { get; set; }
     public int? Amount { get; set; }
     public long ExpiresAt { get; set; }
+    public long WhenFirstHalfExpires { get; set; }
 
     public MilesData()
     {
-
     }
 
     public MilesData(IMiles miles)
@@ -35,10 +37,22 @@ public static class MilesJsonMapper
         Amount = c.GetAmountFor(Instant.MinValue);
         ExpiresAt = c.ExpiresAt().ToUnixTimeTicks();
       }
+      else if (miles is TwoStepExpiringMiles m)
+      {
+        Type = TwoStepType;
+        Amount = GetPrivateFieldValue<int?>(m, "_amount");
+        ExpiresAt = GetPrivateFieldValue<Instant>(m, "_whenExpires").ToUnixTimeTicks();
+        WhenFirstHalfExpires = GetPrivateFieldValue<Instant>(m, "_whenFirstHalfExpires").ToUnixTimeTicks();
+      }
       else
       {
         throw new NotSupportedException(miles.GetType().ToString());
       }
+    }
+
+    private static T GetPrivateFieldValue<T>(TwoStepExpiringMiles m, string amount)
+    {
+      return (T)typeof(TwoStepExpiringMiles).GetField(amount, BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(m);
     }
 
     public IMiles ToMiles()
@@ -46,6 +60,13 @@ public static class MilesJsonMapper
       if (Type == ExpiringType)
       {
         return new ConstantUntil(Amount, Instant.FromUnixTimeTicks(ExpiresAt));
+      }
+      else if(Type == TwoStepType)
+      {
+        return new TwoStepExpiringMiles(
+          Amount, 
+          Instant.FromUnixTimeTicks(WhenFirstHalfExpires),
+          Instant.FromUnixTimeTicks(ExpiresAt));
       }
       else
       {

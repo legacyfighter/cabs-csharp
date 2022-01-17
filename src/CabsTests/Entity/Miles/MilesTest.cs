@@ -74,4 +74,55 @@ public class MilesTest
     expiringMiles.Invoking(m => m.Subtract(8, Tomorrow)).Should().ThrowExactly<ArgumentException>();
     expiringMiles.Invoking(m => m.Subtract(8, Tomorrow)).Should().ThrowExactly<ArgumentException>();
   }
+
+  [Test]
+  public void CannotSubtractFromTwoStepExpiringMiles()
+  {
+    //given
+    IMiles expiringInTwoStepsMiles = new TwoStepExpiringMiles(10, Yesterday, Today);
+
+    //expect
+    expiringInTwoStepsMiles.Invoking(m => m.Subtract(11, Yesterday)).Should().ThrowExactly<ArgumentException>();
+    expiringInTwoStepsMiles.Invoking(m => m.Subtract(11, Today)).Should().ThrowExactly<ArgumentException>();
+    expiringInTwoStepsMiles.Invoking(m => m.Subtract(11, Tomorrow)).Should().ThrowExactly<ArgumentException>();
+    expiringInTwoStepsMiles.Invoking(m => m.Subtract(2, Tomorrow)).Should().ThrowExactly<ArgumentException>();
+
+  }
+
+  [Test]
+  public void TwoStepExpiringMilesShouldLeaveHalfOfAmountAfterOneStep()
+  {
+    //given
+    IMiles twoStepExpiring = new TwoStepExpiringMiles(10, Yesterday, Today);
+
+    //expect
+    Assert.AreEqual(10, twoStepExpiring.GetAmountFor(Yesterday));
+    Assert.AreEqual(5, twoStepExpiring.GetAmountFor(Today));
+    Assert.AreEqual(0, twoStepExpiring.GetAmountFor(Tomorrow));
+
+  }
+
+  [Test]
+  public void CanSubtractFromTwoStepExpiringMilesWhenEnoughMiles()
+  {
+    //given
+    IMiles twoStepExpiringOdd = new TwoStepExpiringMiles(9, Yesterday, Today);
+    IMiles twoStepExpiringEven = new TwoStepExpiringMiles(10, Yesterday, Today);
+
+    //expect
+    Assert.AreEqual(new TwoStepExpiringMiles(4, Yesterday, Today), twoStepExpiringOdd.Subtract(5, Yesterday));
+    Assert.AreEqual(new TwoStepExpiringMiles(1, Yesterday, Today), twoStepExpiringOdd.Subtract(4, Today));
+
+    Assert.AreEqual(new TwoStepExpiringMiles(5, Yesterday, Today), twoStepExpiringEven.Subtract(5, Yesterday));
+    Assert.AreEqual(new TwoStepExpiringMiles(0, Yesterday, Today), twoStepExpiringEven.Subtract(5, Today));
+  }
+
+  [Test]
+  public void TwoStepMilesCanBeSerializedAndDeserializedBack()
+  {
+    var originalMiles = new TwoStepExpiringMiles(20, Instant.FromUnixTimeTicks(20), Instant.FromUnixTimeTicks(30));
+    var serialized = MilesJsonMapper.Serialize(originalMiles);
+    var deserialized = MilesJsonMapper.Deserialize(serialized);
+    deserialized.Should().Be(originalMiles);
+  }
 }
