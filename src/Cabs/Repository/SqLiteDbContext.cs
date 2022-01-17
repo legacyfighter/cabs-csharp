@@ -74,6 +74,7 @@ public class SqLiteDbContext : DbContext
       builder.Property("MilesJson").IsRequired();
       builder.Ignore(m => m.Miles);
       builder.HasOne(m => m.Transit);
+      builder.HasOne<AwardsAccount>("Account").WithMany("Miles");
       builder.Property(x => x.Date).HasConversion(instantConverter).IsRequired();
       builder.Ignore(x => x.ExpirationDate);
     });
@@ -81,6 +82,7 @@ public class SqLiteDbContext : DbContext
     {
       builder.MapBaseEntityProperties();
       builder.HasOne(a => a.Client);
+      builder.HasMany<AwardedMiles>("Miles").WithOne("Account");
       builder.Property(x => x.Date).HasConversion(instantConverter).IsRequired();
       builder.Property(x => x.Transactions).IsRequired();
       builder.Property(x => x.Active).IsRequired();

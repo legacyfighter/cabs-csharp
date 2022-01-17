@@ -9,14 +9,29 @@ public class AwardedMiles : BaseEntity
   {
   }
 
-  public virtual Client Client { get; set; }
+  public AwardedMiles(AwardsAccount awardsAccount, Transit transit, Client client, Instant when, IMiles constantUntil) 
+  {
+    Account = awardsAccount;
+    Transit = transit;
+    Client = client;
+    Date = when;
+    Miles = constantUntil;
+  }
+
+  public void TransferTo(AwardsAccount account) 
+  {
+    Client = account.Client;
+    Account = account;
+  }
+
+  public virtual Client Client { get; protected set; }
 
   private string MilesJson { get; set; }
 
   public IMiles Miles
   {
     get => MilesJsonMapper.Deserialize(MilesJson);
-    set => MilesJson = MilesJsonMapper.Serialize(value);
+    private set => MilesJson = MilesJsonMapper.Serialize(value);
   }
 
   public int? GetMilesAmount(Instant when) 
@@ -24,13 +39,15 @@ public class AwardedMiles : BaseEntity
     return Miles.GetAmountFor(when);
   }
 
-  public Instant Date { get; set; } = SystemClock.Instance.GetCurrentInstant();
+  public Instant Date { get; } = SystemClock.Instance.GetCurrentInstant();
 
   public Instant? ExpirationDate => Miles.ExpiresAt();
 
   public bool CantExpire => ExpirationDate.Value.ToUnixTimeTicks() == Instant.MaxValue.ToUnixTimeTicks();
 
-  public virtual Transit Transit { get; set; }
+  public virtual Transit Transit { get; }
+
+  protected virtual AwardsAccount Account { get; set; }
 
   public override bool Equals(object obj)
   {

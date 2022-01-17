@@ -208,7 +208,10 @@ public class RemovingAwardMilesIntegrationTest
     List<AwardedMiles> allMiles)
   {
     var actual = allMiles
-      .Where(am => firstToExpire.Id == am.Id).Select(am => am.Miles.GetAmountFor(Instant.MinValue));
+      .Where(
+        am => firstToExpire.Date == am.Date &&
+              firstToExpire.ExpirationDate == am.ExpirationDate
+      ).Select(am => am.Miles.GetAmountFor(Instant.MinValue));
     actual.First().Should().Be(milesAfterReduction);
   }
 

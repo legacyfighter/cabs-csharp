@@ -1,6 +1,5 @@
 using LegacyFighter.Cabs.Config;
 using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Entity.Miles;
 using LegacyFighter.Cabs.Repository;
 using NodaTime;
@@ -46,13 +45,7 @@ public class AwardsServiceImpl : IAwardsService
       throw new ArgumentException("Client does not exists, id = " + clientId);
     }
 
-    var account = new AwardsAccount
-    {
-      Client = client,
-      Active = false,
-      Date = _clock.GetCurrentInstant()
-    };
-
+    var account = AwardsAccount.NotActiveAccount(client, _clock.GetCurrentInstant());
     await _accountRepository.Save(account);
   }
 
@@ -65,7 +58,7 @@ public class AwardsServiceImpl : IAwardsService
       throw new ArgumentException("Account does not exists, id = " + clientId);
     }
 
-    account.Active = true;
+    account.Activate();
 
     await _accountRepository.Save(account);
   }
@@ -79,7 +72,7 @@ public class AwardsServiceImpl : IAwardsService
       throw new ArgumentException("Account does not exists, id = " + clientId);
     }
 
-    account.Active = false;
+    account.Deactivate();
 
     await _accountRepository.Save(account);
   }
@@ -93,25 +86,14 @@ public class AwardsServiceImpl : IAwardsService
       throw new ArgumentException("transit does not exists, id = " + transitId);
     }
 
-    var now = _clock.GetCurrentInstant();
     if (account == null || !account.Active)
     {
       return null;
     }
     else
     {
-      var miles = new AwardedMiles
-      {
-        Transit = transit,
-        Date = _clock.GetCurrentInstant(),
-        Client = account.Client,
-        Miles = ConstantUntil.Value(
-          _appProperties.DefaultMilesBonus, 
-          now.Plus(Duration.FromDays(_appProperties.MilesExpirationInDays))),
-      };
-      account.IncreaseTransactions();
-
-      await _milesRepository.Save(miles);
+      var expireAt = _clock.GetCurrentInstant().Plus(Duration.FromDays(_appProperties.MilesExpirationInDays));
+      var miles = account.AddExpiringMiles(_appProperties.DefaultMilesBonus, expireAt, transit, _clock.GetCurrentInstant());
       await _accountRepository.Save(account);
       return miles;
     }
@@ -134,17 +116,9 @@ public class AwardsServiceImpl : IAwardsService
     }
     else
     {
-      var nonExpiringMiles = new AwardedMiles
-      {
-        Transit = null,
-        Client = account.Client,
-        Miles = ConstantUntil.Forever(miles),
-        Date = _clock.GetCurrentInstant(),
-      };
-      account.IncreaseTransactions();
-      await _milesRepository.Save(nonExpiringMiles);
+      var awardedMiles = account.AddNonExpiringMiles(miles, _clock.GetCurrentInstant());
       await _accountRepository.Save(account);
-      return nonExpiringMiles;
+      return awardedMiles;
     }
   }
 
@@ -159,77 +133,20 @@ public class AwardsServiceImpl : IAwardsService
     }
     else
     {
-      if (await CalculateBalance(clientId) >= miles && account.Active)
-      {
-        var milesList = await _milesRepository.FindAllByClient(client);
-        var transitsCounter = (await _transitRepository.FindByClient(client)).Count;
-        if (client.Claims.Count >= 3)
-        {
-          milesList = milesList.OrderBy(m => m.ExpirationDate.HasValue)
-            .ThenByDescending(m => m.ExpirationDate).ToList();
-        }
-        else if (client.Type == Client.Types.Vip)
-        {
-          milesList = milesList.OrderBy(m => m.CantExpire).ThenBy(m => m.ExpirationDate).ToList();
-        }
-        else if (transitsCounter >= 15 && IsSunday())
-        {
-          milesList = milesList.OrderBy(m => m.CantExpire).ThenBy(m => m.ExpirationDate).ToList();
-        }
-        else if (transitsCounter >= 15)
-        {
-          milesList = milesList.OrderBy(m => m.CantExpire).ThenBy(m => m.Date).ToList();
-        }
-        else
-        {
-          milesList = milesList.OrderBy(m => m.Date).ToList();
-        }
-
-        var now = _clock.GetCurrentInstant();
-        foreach (var iter in milesList)
-        {
-          if (miles <= 0)
-          {
-            break;
-          }
-
-          if (iter.CantExpire || iter.ExpirationDate > _clock.GetCurrentInstant())
-          {
-            int? milesAmount = iter.GetMilesAmount(_clock.GetCurrentInstant());
-            if (milesAmount <= miles)
-            {
-              miles -= milesAmount.Value;
-              iter.RemoveAll(now);
-            }
-            else
-            {
-              iter.Subtract(miles, now);
-              miles = 0;
-            }
-
-            await _milesRepository.Save(iter);
-          }
-        }
-      }
-      else
-      {
-        throw new ArgumentException("Insufficient miles, id = " + clientId + ", miles requested = " + miles);
-      }
+      account.Remove(miles,
+        _clock.GetCurrentInstant(),
+        (await _transitRepository.FindByClient(client)).Count,
+        client.Claims.Count,
+        client.Type,
+        IsSunday());
     }
   }
 
   public async Task<int> CalculateBalance(long? clientId)
   {
     var client = await _clientRepository.Find(clientId);
-    var milesList = await _milesRepository.FindAllByClient(client);
-    var now = _clock.GetCurrentInstant();
-    var sum = milesList.Where(t => 
-        t.ExpirationDate != null && 
-        t.ExpirationDate > _clock.GetCurrentInstant() || 
-        t.CantExpire)
-      .Select(t => t.GetMilesAmount(now)).Sum();
-
-    return sum.Value;
+    var account = await _accountRepository.FindByClient(client);
+    return account.CalculateBalance(_clock.GetCurrentInstant()).Value;
   }
 
   public async Task TransferMiles(long? fromClientId, long? toClientId, int miles)
@@ -247,43 +164,9 @@ public class AwardsServiceImpl : IAwardsService
       throw new ArgumentException("Account does not exists, id = " + toClientId);
     }
 
-    if (await CalculateBalance(fromClientId) >= miles && accountFrom.Active)
-    {
-      var now = _clock.GetCurrentInstant();
-      var milesList = await _milesRepository.FindAllByClient(fromClient);
+    accountFrom.MoveMilesTo(accountTo, miles, _clock.GetCurrentInstant());
 
-      foreach(var iter in milesList) 
-      {
-        if (iter.CantExpire || iter.ExpirationDate > _clock.GetCurrentInstant())
-        {
-          var milesAmount = iter.GetMilesAmount(now);
-          if (milesAmount <= miles)
-          {
-            iter.Client = accountTo.Client;
-            miles -= milesAmount.Value;
-          }
-          else
-          {
-            iter.Subtract(miles, now);
-            var awardedMiles = new AwardedMiles();
-
-            awardedMiles.Client = accountTo.Client;
-            awardedMiles.Miles = iter.Miles;
-
-            miles -= milesAmount.Value;
-
-            await _milesRepository.Save(awardedMiles);
-          }
-
-          await _milesRepository.Save(iter);
-        }
-      }
-
-      accountFrom.IncreaseTransactions();
-      accountTo.IncreaseTransactions();
-
-      await _accountRepository.Save(accountFrom);
-      await _accountRepository.Save(accountTo);
-    }
+    await _accountRepository.Save(accountFrom);
+    await _accountRepository.Save(accountTo);
   }
 }
