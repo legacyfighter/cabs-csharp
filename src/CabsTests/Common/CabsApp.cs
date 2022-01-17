@@ -100,4 +100,7 @@ internal class CabsApp : WebApplicationFactory<Program>
 
   public IAwardsAccountRepository AwardsAccountRepository
     => RequestScope().ServiceProvider.GetRequiredService<IAwardsAccountRepository>();
+
+  public IContractService ContractService
+    => RequestScope().ServiceProvider.GetRequiredService<IContractService>();
 }
