@@ -9,7 +9,6 @@ namespace LegacyFighter.Cabs.Service;
 public class AwardsServiceImpl : IAwardsService
 {
   private readonly IAwardsAccountRepository _accountRepository;
-  private readonly IAwardedMilesRepository _milesRepository;
   private readonly IClientRepository _clientRepository;
   private readonly ITransitRepository _transitRepository;
   private readonly IClock _clock;
@@ -17,14 +16,12 @@ public class AwardsServiceImpl : IAwardsService
 
   public AwardsServiceImpl(
     IAwardsAccountRepository accountRepository,
-    IAwardedMilesRepository milesRepository,
     IClientRepository clientRepository,
     ITransitRepository transitRepository,
     IClock clock,
     IAppProperties appProperties)
   {
     _accountRepository = accountRepository;
-    _milesRepository = milesRepository;
     _clientRepository = clientRepository;
     _transitRepository = transitRepository;
     _clock = clock;

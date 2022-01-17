@@ -147,6 +147,11 @@ public class AwardsAccount : BaseEntity
     Active = false;
   }
 
+  public IReadOnlyList<AwardedMiles> GetMiles() 
+  {
+    return Miles.ToList();
+  }
+
   public override bool Equals(object obj)
   {
     if (ReferenceEquals(this, obj)) return true;

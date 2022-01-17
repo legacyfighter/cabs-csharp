@@ -8,6 +8,7 @@ public interface IAwardsAccountRepository
 {
   Task<AwardsAccount> FindByClient(Client client);
   Task<AwardsAccount> Save(AwardsAccount account);
+  Task<IReadOnlyList<AwardedMiles>> FindAllMilesBy(Client client);
 }
 
 internal class EfCoreAwardsAccountRepository : IAwardsAccountRepository
@@ -29,5 +30,10 @@ internal class EfCoreAwardsAccountRepository : IAwardsAccountRepository
     _context.AwardsAccounts.Update(account);
     await _context.SaveChangesAsync();
     return account;
+  }
+
+  public async Task<IReadOnlyList<AwardedMiles>> FindAllMilesBy(Client client) 
+  {
+    return (await FindByClient(client)).GetMiles();
   }
 }

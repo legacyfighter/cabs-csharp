@@ -1,7 +1,6 @@
 ﻿using LegacyFighter.Cabs.Config;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;
-using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.Service;
 using LegacyFighter.CabsTests.Common;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +8,7 @@ using NodaTime;
 using System.Collections.Generic;
 using System.Linq;
 using LegacyFighter.Cabs.Entity.Miles;
+using LegacyFighter.Cabs.Repository;
 
 namespace LegacyFighter.CabsTests.Integration;
 
@@ -22,7 +22,7 @@ public class RemovingAwardMilesIntegrationTest
   private CabsApp _app = default!;
   private Fixtures Fixtures => _app.Fixtures;
   private IAwardsService AwardsService => _app.AwardsService;
-  private IAwardedMilesRepository AwardedMilesRepository => _app.AwardedMilesRepository;
+  private IAwardsAccountRepository AwardsAccountRepository => _app.AwardsAccountRepository;
   private IClock Clock { get; set; } = default!;
   private IAppProperties AppProperties { get; set; } = default!;
 
@@ -60,7 +60,7 @@ public class RemovingAwardMilesIntegrationTest
     await AwardsService.RemoveMiles(client.Id, 16);
 
     //then
-    var awardedMiles = await AwardedMilesRepository.FindAllByClient(client);
+    var awardedMiles = await AwardsAccountRepository.FindAllMilesBy(client);
     AssertThatMilesWereReducedTo(oldestNonExpiringMiles, 0, awardedMiles);
     AssertThatMilesWereReducedTo(middle, 0, awardedMiles);
     AssertThatMilesWereReducedTo(youngest, 9, awardedMiles);
@@ -84,7 +84,7 @@ public class RemovingAwardMilesIntegrationTest
     await AwardsService.RemoveMiles(client.Id, 15);
 
     //then
-    var awardedMiles = await AwardedMilesRepository.FindAllByClient(client);
+    var awardedMiles = await AwardsAccountRepository.FindAllMilesBy(client);
     AssertThatMilesWereReducedTo(oldest, 0, awardedMiles);
     AssertThatMilesWereReducedTo(middle, 5, awardedMiles);
     AssertThatMilesWereReducedTo(youngest, 10, awardedMiles);
@@ -107,7 +107,7 @@ public class RemovingAwardMilesIntegrationTest
     await AwardsService.RemoveMiles(client.Id, 13);
 
     //then
-    var awardedMiles = await AwardedMilesRepository.FindAllByClient(client);
+    var awardedMiles = await AwardsAccountRepository.FindAllMilesBy(client);
     AssertThatMilesWereReducedTo(regularMiles, 0, awardedMiles);
     AssertThatMilesWereReducedTo(oldestNonExpiringMiles, 2, awardedMiles);
   }
@@ -129,7 +129,7 @@ public class RemovingAwardMilesIntegrationTest
     await AwardsService.RemoveMiles(client.Id, 21);
 
     //then
-    var awardedMiles = await AwardedMilesRepository.FindAllByClient(client);
+    var awardedMiles = await AwardsAccountRepository.FindAllMilesBy(client);
     AssertThatMilesWereReducedTo(nonExpiringMiles, 1, awardedMiles);
     AssertThatMilesWereReducedTo(firstToExpire, 0, awardedMiles);
     AssertThatMilesWereReducedTo(secondToExpire, 4, awardedMiles);
@@ -156,7 +156,7 @@ public class RemovingAwardMilesIntegrationTest
     await AwardsService.RemoveMiles(client.Id, 21);
 
     //then
-    var awardedMiles = await AwardedMilesRepository.FindAllByClient(client);
+    var awardedMiles = await AwardsAccountRepository.FindAllMilesBy(client);
     AssertThatMilesWereReducedTo(nonExpiringMiles, 100, awardedMiles);
     AssertThatMilesWereReducedTo(firstToExpire, 0, awardedMiles);
     AssertThatMilesWereReducedTo(secondToExpire, 4, awardedMiles);
@@ -182,7 +182,7 @@ public class RemovingAwardMilesIntegrationTest
     await AwardsService.RemoveMiles(client.Id, 21);
 
     //then
-    var awardedMiles = await AwardedMilesRepository.FindAllByClient(client);
+    var awardedMiles = await AwardsAccountRepository.FindAllMilesBy(client);
     AssertThatMilesWereReducedTo(nonExpiringMiles, 0, awardedMiles);
     AssertThatMilesWereReducedTo(thirdToExpire, 0, awardedMiles);
     AssertThatMilesWereReducedTo(secondToExpire, 3, awardedMiles);
@@ -205,7 +205,7 @@ public class RemovingAwardMilesIntegrationTest
   }
 
   private void AssertThatMilesWereReducedTo(AwardedMiles firstToExpire, int milesAfterReduction,
-    List<AwardedMiles> allMiles)
+    IReadOnlyList<AwardedMiles> allMiles)
   {
     var actual = allMiles
       .Where(

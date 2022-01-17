@@ -21,7 +21,6 @@ builder.Services.AddTransient<IClientRepository, EfCoreClientRepository>();
 builder.Services.AddTransient<ITransitRepository, EfCoreTransitRepository>();
 builder.Services.AddTransient<IClaimRepository, EfCoreClaimRepository>();
 builder.Services.AddTransient<IAwardsAccountRepository, EfCoreAwardsAccountRepository>();
-builder.Services.AddTransient<IAwardedMilesRepository, EfCoreAwardedMilesRepository>();
 builder.Services.AddTransient<IClaimsResolverRepository, EfCoreClaimsResolverRepository>();
 builder.Services.AddTransient<IInvoiceRepository, EfCoreInvoiceRepository>();
 builder.Services.AddTransient<IContractRepository, EfCoreContractRepository>();

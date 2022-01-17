@@ -15,7 +15,7 @@ public class AwardMilesManagementIntegrationTest
   private CabsApp _app = default!;
   private Fixtures Fixtures => _app.Fixtures;
   private IAwardsService AwardsService => _app.AwardsService;
-  private IAwardedMilesRepository AwardedMilesRepository => _app.AwardedMilesRepository;
+  private IAwardsAccountRepository AwardsAccountRepository => _app.AwardsAccountRepository;
   private IClock Clock { get; set; } = default!;
 
   [SetUp]
@@ -98,7 +98,7 @@ public class AwardMilesManagementIntegrationTest
     //then
     var account = await AwardsService.FindBy(client.Id);
     Assert.AreEqual(1, account.Transactions);
-    var awardedMiles = await AwardedMilesRepository.FindAllByClient(client);
+    var awardedMiles = await AwardsAccountRepository.FindAllMilesBy(client);
     Assert.AreEqual(1, awardedMiles.Count);
     Assert.AreEqual(10, awardedMiles[0].Miles.GetAmountFor(Now));
     Assert.False(awardedMiles[0].CantExpire);
@@ -119,7 +119,7 @@ public class AwardMilesManagementIntegrationTest
     //then
     var account = await AwardsService.FindBy(client.Id);
     Assert.AreEqual(1, account.Transactions);
-    var awardedMiles = await AwardedMilesRepository.FindAllByClient(client);
+    var awardedMiles = await AwardsAccountRepository.FindAllMilesBy(client);
     Assert.AreEqual(1, awardedMiles.Count);
     Assert.AreEqual(20, awardedMiles[0].Miles.GetAmountFor(Now));
     Assert.True(awardedMiles[0].CantExpire);
