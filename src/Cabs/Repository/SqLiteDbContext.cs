@@ -131,7 +131,7 @@ public class SqLiteDbContext : DbContext
     modelBuilder.Entity<Contract>(builder =>
     {
       builder.MapBaseEntityProperties();
-      builder.HasMany(c => c.Attachments).WithOne(a => a.Contract);
+      builder.HasMany("Attachments").WithOne("Contract");
       builder.Property(x => x.CreationDate).HasConversion(instantConverter).IsRequired();
       builder.Property(x => x.AcceptedAt).HasConversion(instantConverter);
       builder.Property(x => x.ChangeDate).HasConversion(instantConverter);
@@ -148,7 +148,7 @@ public class SqLiteDbContext : DbContext
       builder.Property(x => x.ChangeDate).HasConversion(instantConverter);
       builder.Property(x => x.RejectedAt).HasConversion(instantConverter);
       builder.Property(x => x.Status).HasConversion<string>();
-      builder.HasOne(a => a.Contract).WithMany(c => c.Attachments);
+      builder.HasOne("Contract").WithMany("Attachments");
     });
     modelBuilder.Entity<Driver>(e =>
     {

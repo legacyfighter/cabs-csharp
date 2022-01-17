@@ -17,52 +17,33 @@ public class ContractService : IContractService
 
   public async Task<Contract> CreateContract(ContractDto contractDto)
   {
-    var contract = new Contract();
-    contract.PartnerName = contractDto.PartnerName;
     var partnerContractsCount = (await _contractRepository.FindByPartnerName(contractDto.PartnerName)).Count + 1;
-    contract.Subject = contractDto.Subject;
-    contract.ContractNo = "C/" + partnerContractsCount + "/" + contractDto.PartnerName;
+    var contract = new Contract(contractDto.PartnerName, contractDto.Subject, "C/" + partnerContractsCount + "/" + contractDto.PartnerName);
     return await _contractRepository.Save(contract);
   }
 
   public async Task AcceptContract(long? id)
   {
     var contract = await Find(id);
-    var attachments = await _contractAttachmentRepository.FindByContract(contract);
-    if (attachments.All(a=>a.Status == ContractAttachment.Statuses.AcceptedByBothSides))
-    {
-      contract.Status = Contract.Statuses.Accepted;
-    }
-    else
-    {
-      throw new InvalidOperationException("Not all attachments accepted by both sides");
-    }
+    contract.Accept();
   }
 
   public async Task RejectContract(long? id)
   {
     var contract = await Find(id);
-    contract.Status = Contract.Statuses.Rejected;
+    contract.Reject();
   }
 
   public async Task RejectAttachment(long? attachmentId)
   {
-    var contractAttachment = await _contractAttachmentRepository.Find(attachmentId);
-    contractAttachment.Status = ContractAttachment.Statuses.Rejected;
+    var contract = await _contractRepository.FindByAttachmentId(attachmentId);
+    contract.RejectAttachment(attachmentId);
   }
 
   public async Task AcceptAttachment(long? attachmentId)
   {
-    var contractAttachment = await _contractAttachmentRepository.Find(attachmentId);
-    if (contractAttachment.Status == ContractAttachment.Statuses.AcceptedByOneSide ||
-        contractAttachment.Status == ContractAttachment.Statuses.AcceptedByBothSides)
-    {
-      contractAttachment.Status = ContractAttachment.Statuses.AcceptedByBothSides;
-    }
-    else
-    {
-      contractAttachment.Status = ContractAttachment.Statuses.AcceptedByOneSide;
-    }
+    var contract = await _contractRepository.FindByAttachmentId(attachmentId);
+    contract.AcceptAttachment(attachmentId);
   }
 
   public async Task<Contract> Find(long? id)
@@ -78,20 +59,14 @@ public class ContractService : IContractService
 
   public async Task<ContractDto> FindDto(long? id)
   {
-    return new ContractDto(await Find(id));
+    return new ContractDto(await Find(id), await _contractAttachmentRepository.FindByContractId(id));
   }
 
   public async Task<ContractAttachmentDto> ProposeAttachment(long? contractId, ContractAttachmentDto contractAttachmentDto)
   {
     var contract = await Find(contractId);
-    var contractAttachment = new ContractAttachment
-    {
-      Contract = contract,
-      Data = contractAttachmentDto.Data
-    };
-    await _contractAttachmentRepository.Save(contractAttachment);
-    contract.Attachments.Add(contractAttachment);
-    return new ContractAttachmentDto(contractAttachment);
+    var contractAttachment = contract.ProposeAttachment(contractAttachmentDto.Data);
+    return new ContractAttachmentDto(await _contractAttachmentRepository.Save(contractAttachment));
   }
 
   public async Task RemoveAttachment(long? contractId, long? attachmentId)

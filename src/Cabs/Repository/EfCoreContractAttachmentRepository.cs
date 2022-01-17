@@ -5,9 +5,9 @@ namespace LegacyFighter.Cabs.Repository;
 
 public interface IContractAttachmentRepository
 {
-  Task<List<ContractAttachment>> FindByContract(Contract contract);
+  Task<ISet<ContractAttachment>> FindByContractId(long? contractId);
   Task<ContractAttachment> Find(long? attachmentId);
-  Task Save(ContractAttachment contractAttachment);
+  Task<ContractAttachment> Save(ContractAttachment contractAttachment);
   Task DeleteById(long? attachmentId);
 }
 
@@ -20,9 +20,10 @@ internal class EfCoreContractAttachmentRepository : IContractAttachmentRepositor
     _context = context;
   }
 
-  public async Task<List<ContractAttachment>> FindByContract(Contract contract)
+  public async Task<ISet<ContractAttachment>> FindByContractId(long? contractId)
   {
-    return await _context.ContractAttachments.Where(a => a.Contract == contract).ToListAsync();
+    return new HashSet<ContractAttachment>(
+      await _context.ContractAttachments.Where(a => a.Contract.Id == contractId).ToListAsync());
   }
 
   public async Task<ContractAttachment> Find(long? attachmentId)
@@ -30,10 +31,11 @@ internal class EfCoreContractAttachmentRepository : IContractAttachmentRepositor
     return await _context.ContractAttachments.FindAsync(attachmentId);
   }
 
-  public async Task Save(ContractAttachment contractAttachment)
+  public async Task<ContractAttachment> Save(ContractAttachment contractAttachment)
   {
     _context.ContractAttachments.Update(contractAttachment);
     await _context.SaveChangesAsync();
+    return contractAttachment;
   }
 
   public async Task DeleteById(long? attachmentId)

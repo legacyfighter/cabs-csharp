@@ -1,4 +1,5 @@
 using LegacyFighter.Cabs.Dto;
+using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Service;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,7 +20,7 @@ public class ContractController
   public async Task<ContractDto> Create([FromBody] ContractDto contractDto)
   {
     var created = await _contractService.CreateContract(contractDto);
-    return new ContractDto(created);
+    return new ContractDto(created, new HashSet<ContractAttachment>());
   }
 
 

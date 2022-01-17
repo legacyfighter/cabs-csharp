@@ -6,6 +6,7 @@ namespace LegacyFighter.Cabs.Repository;
 public interface IContractRepository
 {
   Task<List<Contract>> FindByPartnerName(string partnerName);
+  Task<Contract> FindByAttachmentId(long? attachmentId);
   Task<Contract> Save(Contract contract);
   Task<Contract> Find(long? id);
 }
@@ -22,6 +23,13 @@ internal class EfCoreContractRepository : IContractRepository
   public async Task<List<Contract>> FindByPartnerName(string partnerName)
   {
     return await _context.Contracts.Where(c => c.PartnerName == partnerName).ToListAsync();
+  }
+
+  public async Task<Contract> FindByAttachmentId(long? attachmentId)
+  {
+    return await _context.Contracts.FromSqlInterpolated(
+      $"SELECT * FROM Contracts c JOIN ContractAttachments ca ON ca.ContractId = c.id WHERE ca.Id = {attachmentId}")
+      .SingleOrDefaultAsync();
   }
 
   public async Task<Contract> Save(Contract contract)
