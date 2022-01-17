@@ -53,32 +53,12 @@ public class AwardsAccount : BaseEntity
       .Select(t => t.GetMilesAmount(at)).Sum();
   }
 
-  public void Remove(int miles, Instant when, int transitsCounter, int claimsCounter, Client.Types? type, bool isSunday)
+  public void Remove(int miles, Instant when, Func<List<AwardedMiles>, List<AwardedMiles>> sort)
   {
     if (CalculateBalance(when) >= miles && Active)
     {
       var milesList = Miles.ToList();
-      if (claimsCounter >= 3)
-      {
-        milesList = milesList.OrderBy(m => m.ExpirationDate.HasValue)
-          .ThenByDescending(m => m.ExpirationDate).ToList();
-      }
-      else if (type == Client.Types.Vip)
-      {
-        milesList = milesList.OrderBy(m => m.CantExpire).ThenBy(m => m.ExpirationDate).ToList();
-      }
-      else if (transitsCounter >= 15 && isSunday)
-      {
-        milesList = milesList.OrderBy(m => m.CantExpire).ThenBy(m => m.ExpirationDate).ToList();
-      }
-      else if (transitsCounter >= 15)
-      {
-        milesList = milesList.OrderBy(m => m.CantExpire).ThenBy(m => m.Date).ToList();
-      }
-      else
-      {
-        milesList = milesList.OrderBy(m => m.Date).ToList();
-      }
+      milesList = sort(milesList);
 
       foreach (var iter in milesList)
       {

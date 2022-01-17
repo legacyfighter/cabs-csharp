@@ -255,7 +255,7 @@ public class AwardMilesManagementIntegrationTest
   public async Task CannotRemoveMoreThanClientHasMiles()
   {
     //given
-    var client = await Fixtures.AClient();
+    var client = await Fixtures.AClient(Client.Types.Normal);
     //and
     await Fixtures.ActiveAwardsAccount(client);
     //and

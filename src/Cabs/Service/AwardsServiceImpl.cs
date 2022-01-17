@@ -1,5 +1,6 @@
 using LegacyFighter.Cabs.Config;
 using LegacyFighter.Cabs.Dto;
+using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Entity.Miles;
 using LegacyFighter.Cabs.Repository;
 using NodaTime;
@@ -130,14 +131,45 @@ public class AwardsServiceImpl : IAwardsService
     }
     else
     {
-      account.Remove(miles,
-        _clock.GetCurrentInstant(),
-        (await _transitRepository.FindByClient(client)).Count,
-        client.Claims.Count,
-        client.Type,
-        IsSunday());
+      account.Remove(miles, 
+        _clock.GetCurrentInstant(), 
+        ChooseStrategy(
+          (await _transitRepository.FindByClient(client)).Count, 
+          client.Claims.Count,
+          client.Type, 
+          IsSunday()));
     }
   }
+
+  private static Func<List<AwardedMiles>, List<AwardedMiles>> ChooseStrategy(
+    int transitsCounter,
+    int claimsCounter,
+    Client.Types? type,
+    bool isSunday)
+  {
+    if (claimsCounter >= 3)
+    {
+      return miles => miles.OrderBy(m1 => m1.ExpirationDate.HasValue)
+        .ThenByDescending(m2 => m2.ExpirationDate).ToList();
+    }
+    else if (type == Client.Types.Vip)
+    {
+      return miles => miles.OrderBy(m3 => m3.CantExpire).ThenBy(m4 => m4.ExpirationDate).ToList();
+    }
+    else if (transitsCounter >= 15 && isSunday)
+    {
+      return miles => miles.OrderBy(m5 => m5.CantExpire).ThenBy(m6 => m6.ExpirationDate).ToList();
+    }
+    else if (transitsCounter >= 15)
+    {
+      return miles => miles.OrderBy(m7 => m7.CantExpire).ThenBy(m8 => m8.Date).ToList();
+    }
+    else
+    {
+      return miles => miles.OrderBy(m9 => m9.Date).ToList();
+    }
+  }
+
 
   public async Task<int> CalculateBalance(long? clientId)
   {
