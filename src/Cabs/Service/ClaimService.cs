@@ -17,8 +17,18 @@ public class ClaimService : IClaimService
   private readonly IAwardsService _awardsService;
   private readonly IClientNotificationService _clientNotificationService;
   private readonly IDriverNotificationService _driverNotificationService;
+  private readonly IClaimsResolverRepository _claimsResolverRepository;
 
-  public ClaimService(IClock clock, IClientRepository clientRepository, ITransitRepository transitRepository, IClaimRepository claimRepository, ClaimNumberGenerator claimNumberGenerator, IAppProperties appProperties, IAwardsService awardsService, IClientNotificationService clientNotificationService, IDriverNotificationService driverNotificationService)
+  public ClaimService(IClock clock,
+    IClientRepository clientRepository,
+    ITransitRepository transitRepository,
+    IClaimRepository claimRepository,
+    ClaimNumberGenerator claimNumberGenerator,
+    IAppProperties appProperties,
+    IAwardsService awardsService,
+    IClientNotificationService clientNotificationService,
+    IDriverNotificationService driverNotificationService,
+    IClaimsResolverRepository claimsResolverRepository)
   {
     _clock = clock;
     _clientRepository = clientRepository;
@@ -29,6 +39,7 @@ public class ClaimService : IClaimService
     _awardsService = awardsService;
     _clientNotificationService = clientNotificationService;
     _driverNotificationService = driverNotificationService;
+    _claimsResolverRepository = claimsResolverRepository;
   }
 
   public async Task<Claim> Create(ClaimDto claimDto)
@@ -45,6 +56,7 @@ public class ClaimService : IClaimService
   public async Task<Claim> Find(long? id)
   {
     var claim = await _claimRepository.Find(id);
+
     if (claim == null)
     {
       throw new InvalidOperationException("Claim does not exists");
@@ -94,78 +106,46 @@ public class ClaimService : IClaimService
   public async Task<Claim> TryToResolveAutomatically(long? id)
   {
     var claim = await Find(id);
-    if ((await _claimRepository.FindByOwnerAndTransit(claim.Owner, claim.Transit)).Count > 1)
-    {
-      claim.Status = Claim.Statuses.Escalated;
-      claim.CompletionDate = SystemClock.Instance.GetCurrentInstant();
-      claim.ChangeDate = SystemClock.Instance.GetCurrentInstant();
-      claim.CompletionMode = Claim.CompletionModes.Manual;
-      return claim;
-    }
 
-    if ((await _claimRepository.FindByOwner(claim.Owner)).Count <= 3)
+    var claimsResolver = await FindOrCreateResolver(claim.Owner);
+    var transitsDoneByClient = await _transitRepository.FindByClient(claim.Owner);
+    var result = claimsResolver.Resolve(claim, _appProperties.AutomaticRefundForVipThreshold,
+      transitsDoneByClient.Count, _appProperties.NoOfTransitsForClaimAutomaticRefund);
+
+    if (result.Decision == Claim.Statuses.Refunded)
     {
-      claim.Status = Claim.Statuses.Refunded;
-      claim.CompletionDate = SystemClock.Instance.GetCurrentInstant();
-      claim.ChangeDate = SystemClock.Instance.GetCurrentInstant();
-      claim.CompletionMode = Claim.CompletionModes.Automatic;
+      claim.Refund();
       _clientNotificationService.NotifyClientAboutRefund(claim.ClaimNo, claim.Owner.Id);
-      return claim;
-    }
-
-    if (claim.Owner.Type == Client.Types.Vip)
-    {
-      if (claim.Transit.Price.IntValue < _appProperties.AutomaticRefundForVipThreshold)
+      if (claim.Owner.Type == Client.Types.Vip)
       {
-        claim.Status = Claim.Statuses.Refunded;
-        claim.CompletionDate = SystemClock.Instance.GetCurrentInstant();
-        claim.ChangeDate = SystemClock.Instance.GetCurrentInstant();
-        claim.CompletionMode = Claim.CompletionModes.Automatic;
-        _clientNotificationService.NotifyClientAboutRefund(claim.ClaimNo, claim.Owner.Id);
         await _awardsService.RegisterSpecialMiles(claim.Owner.Id, 10);
       }
-      else
-      {
-        claim.Status = Claim.Statuses.Escalated;
-        claim.CompletionDate = SystemClock.Instance.GetCurrentInstant();
-        claim.ChangeDate = SystemClock.Instance.GetCurrentInstant();
-        claim.CompletionMode = Claim.CompletionModes.Manual;
-        _driverNotificationService.AskDriverForDetailsAboutClaim(claim.ClaimNo,
-          claim.Transit.Driver.Id);
-      }
     }
-    else
+
+    if (result.Decision == Claim.Statuses.Escalated)
     {
-      if ((await _transitRepository.FindByClient(claim.Owner)).Count >=
-           _appProperties.NoOfTransitsForClaimAutomaticRefund)
-      {
-        if (claim.Transit.Price.IntValue < _appProperties.AutomaticRefundForVipThreshold)
-        {
-          claim.Status = Claim.Statuses.Refunded;
-          claim.CompletionDate = SystemClock.Instance.GetCurrentInstant();
-          claim.ChangeDate = SystemClock.Instance.GetCurrentInstant();
-          claim.CompletionMode = Claim.CompletionModes.Automatic;
-          _clientNotificationService.NotifyClientAboutRefund(claim.ClaimNo, claim.Owner.Id);
-        }
-        else
-        {
-          claim.Status = Claim.Statuses.Escalated;
-          claim.CompletionDate = SystemClock.Instance.GetCurrentInstant();
-          claim.ChangeDate = SystemClock.Instance.GetCurrentInstant();
-          claim.CompletionMode = Claim.CompletionModes.Manual;
-          _clientNotificationService.AskForMoreInformation(claim.ClaimNo, claim.Owner.Id);
-        }
-      }
-      else
-      {
-        claim.Status = Claim.Statuses.Escalated;
-        claim.CompletionDate = SystemClock.Instance.GetCurrentInstant();
-        claim.ChangeDate = SystemClock.Instance.GetCurrentInstant();
-        claim.CompletionMode = Claim.CompletionModes.Manual;
-        _driverNotificationService.AskDriverForDetailsAboutClaim(claim.ClaimNo, claim.Transit.Driver.Id);
-      }
+      claim.Escalate();
+    }
+
+    if (result.WhoToAsk == ClaimsResolver.WhoToAsk.AskDriver)
+    {
+      _driverNotificationService.AskDriverForDetailsAboutClaim(claim.ClaimNo, claim.Transit.Driver.Id);
+    }
+
+    if (result.WhoToAsk == ClaimsResolver.WhoToAsk.AskClient)
+    {
+      _clientNotificationService.AskForMoreInformation(claim.ClaimNo, claim.Owner.Id);
     }
 
     return claim;
+  }
+
+  private async Task<ClaimsResolver> FindOrCreateResolver(Client client)
+  {
+    var resolver = 
+      await _claimsResolverRepository.FindByClientId(client.Id) 
+      ?? await _claimsResolverRepository.SaveAsync(new ClaimsResolver(client.Id));
+
+    return resolver;
   }
 }

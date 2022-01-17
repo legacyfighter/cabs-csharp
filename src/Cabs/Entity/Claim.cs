@@ -38,6 +38,22 @@ public class Claim : BaseEntity
   public Instant? ChangeDate { get; set; }
   public string Reason { get; set; }
 
+  public void Escalate() 
+  {
+    Status = Statuses.Escalated;
+    CompletionDate = SystemClock.Instance.GetCurrentInstant();
+    ChangeDate = SystemClock.Instance.GetCurrentInstant();
+    CompletionMode = CompletionModes.Manual;
+  }
+
+  public void Refund()
+  {
+    Status = Statuses.Refunded;
+    CompletionDate = SystemClock.Instance.GetCurrentInstant();
+    ChangeDate = SystemClock.Instance.GetCurrentInstant();
+    CompletionMode = CompletionModes.Automatic;
+  }
+
   public override bool Equals(object obj)
   {
     if (ReferenceEquals(this, obj)) return true;
