@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Service;

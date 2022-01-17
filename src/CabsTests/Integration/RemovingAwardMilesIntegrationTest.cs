@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 using System.Collections.Generic;
 using System.Linq;
+using LegacyFighter.Cabs.Entity.Miles;
 
 namespace LegacyFighter.CabsTests.Integration;
 
@@ -207,7 +208,7 @@ public class RemovingAwardMilesIntegrationTest
     List<AwardedMiles> allMiles)
   {
     var actual = allMiles
-      .Where(am => firstToExpire.Id == am.Id).Select(am => am.Miles);
+      .Where(am => firstToExpire.Id == am.Id).Select(am => am.Miles.GetAmountFor(Instant.MinValue));
     actual.First().Should().Be(milesAfterReduction);
   }
 

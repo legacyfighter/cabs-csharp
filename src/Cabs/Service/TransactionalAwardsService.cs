@@ -1,6 +1,6 @@
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Entity.Miles;
 
 namespace LegacyFighter.Cabs.Service;
 

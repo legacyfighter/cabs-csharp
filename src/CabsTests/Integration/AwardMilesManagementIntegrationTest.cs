@@ -100,7 +100,7 @@ public class AwardMilesManagementIntegrationTest
     Assert.AreEqual(1, account.Transactions);
     var awardedMiles = await AwardedMilesRepository.FindAllByClient(client);
     Assert.AreEqual(1, awardedMiles.Count);
-    Assert.AreEqual(10, awardedMiles[0].Miles);
+    Assert.AreEqual(10, awardedMiles[0].Miles.GetAmountFor(Now));
     Assert.False(awardedMiles[0].CantExpire);
 
   }
@@ -121,7 +121,7 @@ public class AwardMilesManagementIntegrationTest
     Assert.AreEqual(1, account.Transactions);
     var awardedMiles = await AwardedMilesRepository.FindAllByClient(client);
     Assert.AreEqual(1, awardedMiles.Count);
-    Assert.AreEqual(20, awardedMiles[0].Miles);
+    Assert.AreEqual(20, awardedMiles[0].Miles.GetAmountFor(Now));
     Assert.True(awardedMiles[0].CantExpire);
   }
 

@@ -1,6 +1,7 @@
 using LegacyFighter.Cabs.Config;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Entity.Miles;
 using LegacyFighter.Cabs.Repository;
 using NodaTime;
 
@@ -104,9 +105,9 @@ public class AwardsServiceImpl : IAwardsService
         Transit = transit,
         Date = _clock.GetCurrentInstant(),
         Client = account.Client,
-        Miles = _appProperties.DefaultMilesBonus,
-        ExpirationDate = now.Plus(Duration.FromDays(_appProperties.MilesExpirationInDays)),
-        CantExpire = false
+        Miles = ConstantUntil.Value(
+          _appProperties.DefaultMilesBonus, 
+          now.Plus(Duration.FromDays(_appProperties.MilesExpirationInDays))),
       };
       account.IncreaseTransactions();
 
@@ -137,9 +138,8 @@ public class AwardsServiceImpl : IAwardsService
       {
         Transit = null,
         Client = account.Client,
-        Miles = miles,
+        Miles = ConstantUntil.Forever(miles),
         Date = _clock.GetCurrentInstant(),
-        CantExpire = true
       };
       account.IncreaseTransactions();
       await _milesRepository.Save(nonExpiringMiles);
@@ -185,7 +185,8 @@ public class AwardsServiceImpl : IAwardsService
           milesList = milesList.OrderBy(m => m.Date).ToList();
         }
 
-        foreach (var iter in milesList) 
+        var now = _clock.GetCurrentInstant();
+        foreach (var iter in milesList)
         {
           if (miles <= 0)
           {
@@ -194,14 +195,15 @@ public class AwardsServiceImpl : IAwardsService
 
           if (iter.CantExpire || iter.ExpirationDate > _clock.GetCurrentInstant())
           {
-            if (iter.Miles <= miles)
+            int? milesAmount = iter.GetMilesAmount(_clock.GetCurrentInstant());
+            if (milesAmount <= miles)
             {
-              miles -= iter.Miles;
-              iter.Miles = 0;
+              miles -= milesAmount.Value;
+              iter.RemoveAll(now);
             }
             else
             {
-              iter.Miles = iter.Miles - miles;
+              iter.Subtract(miles, now);
               miles = 0;
             }
 
@@ -214,21 +216,20 @@ public class AwardsServiceImpl : IAwardsService
         throw new ArgumentException("Insufficient miles, id = " + clientId + ", miles requested = " + miles);
       }
     }
-
   }
 
   public async Task<int> CalculateBalance(long? clientId)
   {
     var client = await _clientRepository.Find(clientId);
     var milesList = await _milesRepository.FindAllByClient(client);
-
+    var now = _clock.GetCurrentInstant();
     var sum = milesList.Where(t => 
         t.ExpirationDate != null && 
         t.ExpirationDate > _clock.GetCurrentInstant() || 
         t.CantExpire)
-      .Select(t => t.Miles).Sum();
+      .Select(t => t.GetMilesAmount(now)).Sum();
 
-    return sum;
+    return sum.Value;
   }
 
   public async Task TransferMiles(long? fromClientId, long? toClientId, int miles)
@@ -248,32 +249,30 @@ public class AwardsServiceImpl : IAwardsService
 
     if (await CalculateBalance(fromClientId) >= miles && accountFrom.Active)
     {
+      var now = _clock.GetCurrentInstant();
       var milesList = await _milesRepository.FindAllByClient(fromClient);
 
       foreach(var iter in milesList) 
       {
         if (iter.CantExpire || iter.ExpirationDate > _clock.GetCurrentInstant())
         {
-          if (iter.Miles <= miles)
+          var milesAmount = iter.GetMilesAmount(now);
+          if (milesAmount <= miles)
           {
             iter.Client = accountTo.Client;
-            miles -= iter.Miles;
+            miles -= milesAmount.Value;
           }
           else
           {
-            iter.Miles = iter.Miles - miles;
-            var awardedMiles = new AwardedMiles
-            {
-              Client = accountTo.Client,
-              CantExpire = iter.CantExpire,
-              ExpirationDate = iter.ExpirationDate,
-              Miles = miles
-            };
+            iter.Subtract(miles, now);
+            var awardedMiles = new AwardedMiles();
 
-            miles -= iter.Miles;
+            awardedMiles.Client = accountTo.Client;
+            awardedMiles.Miles = iter.Miles;
+
+            miles -= milesAmount.Value;
 
             await _milesRepository.Save(awardedMiles);
-
           }
 
           await _milesRepository.Save(iter);

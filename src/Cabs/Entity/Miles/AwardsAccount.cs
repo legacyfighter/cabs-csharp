@@ -1,7 +1,7 @@
 using LegacyFighter.Cabs.Common;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.Entity;
+namespace LegacyFighter.Cabs.Entity.Miles;
 
 public class AwardsAccount : BaseEntity
 {

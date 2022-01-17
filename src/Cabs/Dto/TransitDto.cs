@@ -1,4 +1,3 @@
-using System.Globalization;
 using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Entity;
 using NodaTime;

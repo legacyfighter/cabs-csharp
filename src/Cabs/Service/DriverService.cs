@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;

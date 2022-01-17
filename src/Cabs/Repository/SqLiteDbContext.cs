@@ -1,6 +1,7 @@
 using System.Data.Common;
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Entity.Miles;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -70,10 +71,11 @@ public class SqLiteDbContext : DbContext
     {
       builder.MapBaseEntityProperties();
       builder.HasOne(m => m.Client);
-      builder.Property(m => m.Miles).IsRequired();
+      builder.Property("MilesJson").IsRequired();
+      builder.Ignore(m => m.Miles);
       builder.HasOne(m => m.Transit);
       builder.Property(x => x.Date).HasConversion(instantConverter).IsRequired();
-      builder.Property(x => x.ExpirationDate).HasConversion(instantConverter);
+      builder.Ignore(x => x.ExpirationDate);
     });
     modelBuilder.Entity<AwardsAccount>(builder =>
     {

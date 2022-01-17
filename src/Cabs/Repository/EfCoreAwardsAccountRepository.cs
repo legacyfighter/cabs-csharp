@@ -1,4 +1,5 @@
 using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Entity.Miles;
 using Microsoft.EntityFrameworkCore;
 
 namespace LegacyFighter.Cabs.Repository;
