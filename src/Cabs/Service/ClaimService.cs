@@ -162,7 +162,7 @@ public class ClaimService : IClaimService
         claim.CompletionDate = SystemClock.Instance.GetCurrentInstant();
         claim.ChangeDate = SystemClock.Instance.GetCurrentInstant();
         claim.CompletionMode = Claim.CompletionModes.Manual;
-        _driverNotificationService.AskDriverForDetailsAboutClaim(claim.ClaimNo, claim.Owner.Id);
+        _driverNotificationService.AskDriverForDetailsAboutClaim(claim.ClaimNo, claim.Transit.Driver.Id);
       }
     }
 
