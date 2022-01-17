@@ -42,9 +42,9 @@ public class TransactionalAwardsService : IAwardsService
     return await _inner.RegisterMiles(clientId, transitId);
   }
 
-  public async Task<AwardedMiles> RegisterSpecialMiles(long? clientId, int miles)
+  public async Task<AwardedMiles> RegisterNonExpiringMiles(long? clientId, int miles)
   {
-    return await _inner.RegisterSpecialMiles(clientId, miles);
+    return await _inner.RegisterNonExpiringMiles(clientId, miles);
   }
 
   public async Task RemoveMiles(long? clientId, int miles)

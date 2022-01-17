@@ -13,7 +13,7 @@ public class AwardedMiles : BaseEntity
   public int Miles { get; set; }
   public Instant Date { get; set; } = SystemClock.Instance.GetCurrentInstant();
   public Instant? ExpirationDate { get; set; }
-  public bool IsSpecial { get; set; }
+  public bool CantExpire { get; set; }
   public virtual Transit Transit { get; set; }
 
   public override bool Equals(object obj)

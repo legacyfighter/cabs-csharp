@@ -101,12 +101,12 @@ public class AwardMilesManagementIntegrationTest
     var awardedMiles = await AwardedMilesRepository.FindAllByClient(client);
     Assert.AreEqual(1, awardedMiles.Count);
     Assert.AreEqual(10, awardedMiles[0].Miles);
-    Assert.False(awardedMiles[0].IsSpecial);
+    Assert.False(awardedMiles[0].CantExpire);
 
   }
 
   [Test]
-  public async Task CanRegisterSpecialMiles()
+  public async Task CanRegisterNonExpiringMiles()
   {
     //given
     var client = await Fixtures.AClient();
@@ -114,7 +114,7 @@ public class AwardMilesManagementIntegrationTest
     await Fixtures.ActiveAwardsAccount(client);
 
     //when
-    await AwardsService.RegisterSpecialMiles(client.Id, 20);
+    await AwardsService.RegisterNonExpiringMiles(client.Id, 20);
 
     //then
     var account = await AwardsService.FindBy(client.Id);
@@ -122,7 +122,7 @@ public class AwardMilesManagementIntegrationTest
     var awardedMiles = await AwardedMilesRepository.FindAllByClient(client);
     Assert.AreEqual(1, awardedMiles.Count);
     Assert.AreEqual(20, awardedMiles[0].Miles);
-    Assert.True(awardedMiles[0].IsSpecial);
+    Assert.True(awardedMiles[0].CantExpire);
   }
 
   [Test]
@@ -136,7 +136,7 @@ public class AwardMilesManagementIntegrationTest
     var transit = await Fixtures.ATransit(new Money(80));
 
     //when
-    await AwardsService.RegisterSpecialMiles(client.Id, 20);
+    await AwardsService.RegisterNonExpiringMiles(client.Id, 20);
     await AwardsService.RegisterMiles(client.Id, transit.Id);
     await AwardsService.RegisterMiles(client.Id, transit.Id);
 
@@ -157,7 +157,7 @@ public class AwardMilesManagementIntegrationTest
     await Fixtures.ActiveAwardsAccount(client);
     await Fixtures.ActiveAwardsAccount(secondClient);
     //and
-    await AwardsService.RegisterSpecialMiles(client.Id, 10);
+    await AwardsService.RegisterNonExpiringMiles(client.Id, 10);
 
     //when
     await AwardsService.TransferMiles(client.Id, secondClient.Id, 10);
@@ -179,7 +179,7 @@ public class AwardMilesManagementIntegrationTest
     await Fixtures.ActiveAwardsAccount(client);
     await Fixtures.ActiveAwardsAccount(secondClient);
     //and
-    await AwardsService.RegisterSpecialMiles(client.Id, 10);
+    await AwardsService.RegisterNonExpiringMiles(client.Id, 10);
     //and
     await AwardsService.DeactivateAccount(client.Id);
 
@@ -200,7 +200,7 @@ public class AwardMilesManagementIntegrationTest
     await Fixtures.ActiveAwardsAccount(client);
     await Fixtures.ActiveAwardsAccount(secondClient);
     //and
-    await AwardsService.RegisterSpecialMiles(client.Id, 10);
+    await AwardsService.RegisterNonExpiringMiles(client.Id, 10);
 
     //when
     await AwardsService.TransferMiles(client.Id, secondClient.Id, 30);
@@ -219,7 +219,7 @@ public class AwardMilesManagementIntegrationTest
     await Fixtures.ActiveAwardsAccount(client);
     await Fixtures.ActiveAwardsAccount(secondClient);
     //and
-    await AwardsService.RegisterSpecialMiles(client.Id, 10);
+    await AwardsService.RegisterNonExpiringMiles(client.Id, 10);
     //and
     await AwardsService.DeactivateAccount(client.Id);
 

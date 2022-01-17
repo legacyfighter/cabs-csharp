@@ -106,7 +106,7 @@ public class AwardsServiceImpl : IAwardsService
         Client = account.Client,
         Miles = _appProperties.DefaultMilesBonus,
         ExpirationDate = now.Plus(Duration.FromDays(_appProperties.MilesExpirationInDays)),
-        IsSpecial = false
+        CantExpire = false
       };
       account.IncreaseTransactions();
 
@@ -123,7 +123,7 @@ public class AwardsServiceImpl : IAwardsService
       .LocalDateTime.DayOfWeek == IsoDayOfWeek.Sunday;
   }
 
-  public async Task<AwardedMiles> RegisterSpecialMiles(long? clientId, int miles)
+  public async Task<AwardedMiles> RegisterNonExpiringMiles(long? clientId, int miles)
   {
     var account = await _accountRepository.FindByClient(await _clientRepository.Find(clientId));
 
@@ -133,18 +133,18 @@ public class AwardsServiceImpl : IAwardsService
     }
     else
     {
-      var specialMiles = new AwardedMiles
+      var nonExpiringMiles = new AwardedMiles
       {
         Transit = null,
         Client = account.Client,
         Miles = miles,
         Date = _clock.GetCurrentInstant(),
-        IsSpecial = true
+        CantExpire = true
       };
       account.IncreaseTransactions();
-      await _milesRepository.Save(specialMiles);
+      await _milesRepository.Save(nonExpiringMiles);
       await _accountRepository.Save(account);
-      return specialMiles;
+      return nonExpiringMiles;
     }
   }
 
@@ -170,15 +170,15 @@ public class AwardsServiceImpl : IAwardsService
         }
         else if (client.Type == Client.Types.Vip)
         {
-          milesList = milesList.OrderBy(m => m.IsSpecial).ThenBy(m => m.ExpirationDate).ToList();
+          milesList = milesList.OrderBy(m => m.CantExpire).ThenBy(m => m.ExpirationDate).ToList();
         }
         else if (transitsCounter >= 15 && IsSunday())
         {
-          milesList = milesList.OrderBy(m => m.IsSpecial).ThenBy(m => m.ExpirationDate).ToList();
+          milesList = milesList.OrderBy(m => m.CantExpire).ThenBy(m => m.ExpirationDate).ToList();
         }
         else if (transitsCounter >= 15)
         {
-          milesList = milesList.OrderBy(m => m.IsSpecial).ThenBy(m => m.Date).ToList();
+          milesList = milesList.OrderBy(m => m.CantExpire).ThenBy(m => m.Date).ToList();
         }
         else
         {
@@ -192,7 +192,7 @@ public class AwardsServiceImpl : IAwardsService
             break;
           }
 
-          if (iter.IsSpecial || iter.ExpirationDate > _clock.GetCurrentInstant())
+          if (iter.CantExpire || iter.ExpirationDate > _clock.GetCurrentInstant())
           {
             if (iter.Miles <= miles)
             {
@@ -225,7 +225,7 @@ public class AwardsServiceImpl : IAwardsService
     var sum = milesList.Where(t => 
         t.ExpirationDate != null && 
         t.ExpirationDate > _clock.GetCurrentInstant() || 
-        t.IsSpecial)
+        t.CantExpire)
       .Select(t => t.Miles).Sum();
 
     return sum;
@@ -252,7 +252,7 @@ public class AwardsServiceImpl : IAwardsService
 
       foreach(var iter in milesList) 
       {
-        if (iter.IsSpecial || iter.ExpirationDate > _clock.GetCurrentInstant())
+        if (iter.CantExpire || iter.ExpirationDate > _clock.GetCurrentInstant())
         {
           if (iter.Miles <= miles)
           {
@@ -265,7 +265,7 @@ public class AwardsServiceImpl : IAwardsService
             var awardedMiles = new AwardedMiles
             {
               Client = accountTo.Client,
-              IsSpecial = iter.IsSpecial,
+              CantExpire = iter.CantExpire,
               ExpirationDate = iter.ExpirationDate,
               Miles = miles
             };

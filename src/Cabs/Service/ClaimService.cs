@@ -118,7 +118,7 @@ public class ClaimService : IClaimService
       _clientNotificationService.NotifyClientAboutRefund(claim.ClaimNo, claim.Owner.Id);
       if (claim.Owner.Type == Client.Types.Vip)
       {
-        await _awardsService.RegisterSpecialMiles(claim.Owner.Id, 10);
+        await _awardsService.RegisterNonExpiringMiles(claim.Owner.Id, 10);
       }
     }
 

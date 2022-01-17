@@ -10,7 +10,7 @@ public interface IAwardsService
   Task ActivateAccount(long? clientId);
   Task DeactivateAccount(long? clientId);
   Task<AwardedMiles> RegisterMiles(long? clientId, long? transitId);
-  Task<AwardedMiles> RegisterSpecialMiles(long? clientId, int miles);
+  Task<AwardedMiles> RegisterNonExpiringMiles(long? clientId, int miles);
   Task RemoveMiles(long? clientId, int miles);
   Task<int> CalculateBalance(long? clientId);
   Task TransferMiles(long? fromClientId, long? toClientId, int miles);

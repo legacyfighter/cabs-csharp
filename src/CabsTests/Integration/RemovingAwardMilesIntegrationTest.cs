@@ -44,7 +44,7 @@ public class RemovingAwardMilesIntegrationTest
   }
 
   [Test]
-  public async Task ByDefaultRemoveOldestFirstEvenWhenTheyAreSpecial()
+  public async Task ByDefaultRemoveOldestFirstEvenWhenTheyAreNonExpiring()
   {
     //given
     var client = await ClientWithAnActiveMilesProgram(Client.Types.Normal);
@@ -53,14 +53,14 @@ public class RemovingAwardMilesIntegrationTest
     //and
     var middle = await GrantedMilesThatWillExpireInDays(10, 365, Yesterday, client, transit);
     var youngest = await GrantedMilesThatWillExpireInDays(10, 365, Today, client, transit);
-    var oldestSpecialMiles = await GrantedSpecialMiles(5, DayBeforeYesterday, client);
+    var oldestNonExpiringMiles = await GrantedNonExpiringMiles(5, DayBeforeYesterday, client);
 
     //when
     await AwardsService.RemoveMiles(client.Id, 16);
 
     //then
     var awardedMiles = await AwardedMilesRepository.FindAllByClient(client);
-    AssertThatMilesWereReducedTo(oldestSpecialMiles, 0, awardedMiles);
+    AssertThatMilesWereReducedTo(oldestNonExpiringMiles, 0, awardedMiles);
     AssertThatMilesWereReducedTo(middle, 0, awardedMiles);
     AssertThatMilesWereReducedTo(youngest, 9, awardedMiles);
   }
@@ -90,7 +90,7 @@ public class RemovingAwardMilesIntegrationTest
   }
 
   [Test]
-  public async Task ShouldRemoveSpecialMilesLastWhenManyTransits()
+  public async Task ShouldRemoveNonExpiringMilesLastWhenManyTransits()
   {
     //given
     var client = await ClientWithAnActiveMilesProgram(Client.Types.Normal);
@@ -100,7 +100,7 @@ public class RemovingAwardMilesIntegrationTest
     var transit = await Fixtures.ATransit(new Money(80));
 
     var regularMiles = await GrantedMilesThatWillExpireInDays(10, 365, Today, client, transit);
-    var oldestSpecialMiles = await GrantedSpecialMiles(5, DayBeforeYesterday, client);
+    var oldestNonExpiringMiles = await GrantedNonExpiringMiles(5, DayBeforeYesterday, client);
 
     //when
     await AwardsService.RemoveMiles(client.Id, 13);
@@ -108,7 +108,7 @@ public class RemovingAwardMilesIntegrationTest
     //then
     var awardedMiles = await AwardedMilesRepository.FindAllByClient(client);
     AssertThatMilesWereReducedTo(regularMiles, 0, awardedMiles);
-    AssertThatMilesWereReducedTo(oldestSpecialMiles, 2, awardedMiles);
+    AssertThatMilesWereReducedTo(oldestNonExpiringMiles, 2, awardedMiles);
   }
 
   [Test]
@@ -122,14 +122,14 @@ public class RemovingAwardMilesIntegrationTest
     var secondToExpire = await GrantedMilesThatWillExpireInDays(10, 60, Yesterday, client, transit);
     var thirdToExpire = await GrantedMilesThatWillExpireInDays(5, 365, DayBeforeYesterday, client, transit);
     var firstToExpire = await GrantedMilesThatWillExpireInDays(15, 30, Today, client, transit);
-    var specialMiles = await GrantedSpecialMiles(1, DayBeforeYesterday, client);
+    var nonExpiringMiles = await GrantedNonExpiringMiles(1, DayBeforeYesterday, client);
 
     //when
     await AwardsService.RemoveMiles(client.Id, 21);
 
     //then
     var awardedMiles = await AwardedMilesRepository.FindAllByClient(client);
-    AssertThatMilesWereReducedTo(specialMiles, 1, awardedMiles);
+    AssertThatMilesWereReducedTo(nonExpiringMiles, 1, awardedMiles);
     AssertThatMilesWereReducedTo(firstToExpire, 0, awardedMiles);
     AssertThatMilesWereReducedTo(secondToExpire, 4, awardedMiles);
     AssertThatMilesWereReducedTo(thirdToExpire, 5, awardedMiles);
@@ -148,7 +148,7 @@ public class RemovingAwardMilesIntegrationTest
     var secondToExpire = await GrantedMilesThatWillExpireInDays(10, 60, Yesterday, client, transit);
     var thirdToExpire = await GrantedMilesThatWillExpireInDays(5, 365, DayBeforeYesterday, client, transit);
     var firstToExpire = await GrantedMilesThatWillExpireInDays(15, 10, Today, client, transit);
-    var specialMiles = await GrantedSpecialMiles(100, Yesterday, client);
+    var nonExpiringMiles = await GrantedNonExpiringMiles(100, Yesterday, client);
 
     //when
     ItIsSunday();
@@ -156,7 +156,7 @@ public class RemovingAwardMilesIntegrationTest
 
     //then
     var awardedMiles = await AwardedMilesRepository.FindAllByClient(client);
-    AssertThatMilesWereReducedTo(specialMiles, 100, awardedMiles);
+    AssertThatMilesWereReducedTo(nonExpiringMiles, 100, awardedMiles);
     AssertThatMilesWereReducedTo(firstToExpire, 0, awardedMiles);
     AssertThatMilesWereReducedTo(secondToExpire, 4, awardedMiles);
     AssertThatMilesWereReducedTo(thirdToExpire, 5, awardedMiles);
@@ -175,14 +175,14 @@ public class RemovingAwardMilesIntegrationTest
     var secondToExpire = await GrantedMilesThatWillExpireInDays(4, 60, Yesterday, client, transit);
     var thirdToExpire = await GrantedMilesThatWillExpireInDays(10, 365, DayBeforeYesterday, client, transit);
     var firstToExpire = await GrantedMilesThatWillExpireInDays(5, 10, Yesterday, client, transit);
-    var specialMiles = await GrantedSpecialMiles(10, Yesterday, client);
+    var nonExpiringMiles = await GrantedNonExpiringMiles(10, Yesterday, client);
 
     //when
     await AwardsService.RemoveMiles(client.Id, 21);
 
     //then
     var awardedMiles = await AwardedMilesRepository.FindAllByClient(client);
-    AssertThatMilesWereReducedTo(specialMiles, 0, awardedMiles);
+    AssertThatMilesWereReducedTo(nonExpiringMiles, 0, awardedMiles);
     AssertThatMilesWereReducedTo(thirdToExpire, 0, awardedMiles);
     AssertThatMilesWereReducedTo(secondToExpire, 3, awardedMiles);
     AssertThatMilesWereReducedTo(firstToExpire, 5, awardedMiles);
@@ -196,11 +196,11 @@ public class RemovingAwardMilesIntegrationTest
     return await MilesRegisteredAt(when, client, transit);
   }
 
-  private async Task<AwardedMiles> GrantedSpecialMiles(int miles, Instant when, Client client)
+  private async Task<AwardedMiles> GrantedNonExpiringMiles(int miles, Instant when, Client client)
   {
     DefaultMilesBonusIs(miles);
     Clock.GetCurrentInstant().Returns(when);
-    return await AwardsService.RegisterSpecialMiles(client.Id, miles);
+    return await AwardsService.RegisterNonExpiringMiles(client.Id, miles);
   }
 
   private void AssertThatMilesWereReducedTo(AwardedMiles firstToExpire, int milesAfterReduction,
