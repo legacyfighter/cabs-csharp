@@ -1,5 +1,6 @@
 ﻿using System;
 using LegacyFighter.Cabs.Controllers;
+using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.Service;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -93,4 +94,10 @@ internal class CabsApp : WebApplicationFactory<Program>
 
   public IClaimService ClaimService
     => RequestScope().ServiceProvider.GetRequiredService<IClaimService>();
+
+  public IAwardsService AwardsService
+    => RequestScope().ServiceProvider.GetRequiredService<IAwardsService>();
+
+  public IAwardedMilesRepository AwardedMilesRepository
+    => RequestScope().ServiceProvider.GetRequiredService<IAwardedMilesRepository>();
 }

@@ -19,6 +19,7 @@ public class Fixtures
   private readonly IDriverService _driverService;
   private readonly ICarTypeService _carTypeService;
   private readonly IClaimService _claimService;
+  private readonly IAwardsService _awardsService;
 
   public Fixtures(
     ITransitRepository transitRepository,
@@ -27,13 +28,15 @@ public class Fixtures
     AddressRepository addressRepository,
     IDriverService driverService,
     ICarTypeService carTypeService,
-    IClaimService claimService)
+    IClaimService claimService, 
+    IAwardsService awardsService)
   {
     _transitRepository = transitRepository;
     _feeRepository = feeRepository;
     _driverService = driverService;
     _carTypeService = carTypeService;
     _claimService = claimService;
+    _awardsService = awardsService;
     _clientRepository = clientRepository;
     _addressRepository = addressRepository;
   }
@@ -61,6 +64,11 @@ public class Fixtures
     transit.ProposeTo(driver);
     transit.AcceptBy(driver, SystemClock.Instance.GetCurrentInstant());
     return await _transitRepository.Save(transit);
+  }
+
+  public async Task<Transit> ATransit(Money price) 
+  {
+    return await ATransit(await ADriver(), price.IntValue);
   }
 
   public async Task<Transit> ATransit(Driver driver, int price, LocalDateTime when)
@@ -208,5 +216,16 @@ public class Fixtures
     var client = await AClient(type);
     await ClientHasDoneClaims(client, howManyClaims);
     return client;
+  }
+
+  public async Task AwardsAccount(Client client) 
+  {
+    await _awardsService.RegisterToProgram(client.Id);
+  }
+
+  public async Task ActiveAwardsAccount(Client client)
+  {
+    await AwardsAccount(client);
+    await _awardsService.ActivateAccount(client.Id);
   }
 }

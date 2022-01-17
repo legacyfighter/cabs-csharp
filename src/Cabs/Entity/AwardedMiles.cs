@@ -5,13 +5,6 @@ namespace LegacyFighter.Cabs.Entity;
 
 public class AwardedMiles : BaseEntity
 {
-  // Aggregate
-  // 1. mile celowo są osobno, aby się mogło rozjechać na ich wydawaniu -> docelowo: kolekcja VOs w agregacie
-
-  // VO
-  // 1. miles + expirationDate -> VO przykrywające logikę walidacji, czy nie przekroczono daty ważności punktów
-  // 2. wydzielenie interfejsu Miles -> różne VO z różną logiką, np. ExpirableMiles, NonExpirableMiles, LinearExpirableMiles
-
   public AwardedMiles()
   {
   }
