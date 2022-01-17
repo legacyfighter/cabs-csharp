@@ -48,6 +48,11 @@ public class Transit : BaseEntity
   {
   }
 
+  public Transit(long? id) 
+  {
+    Id = id;
+  }
+
   public Transit(Address from, Address to, Client client, CarType.CarClasses? carClass, Instant when, Distance distance)
     : this(Statuses.Draft, from, to, client, carClass, when, distance)
   {

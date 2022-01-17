@@ -29,6 +29,7 @@ public class SqLiteDbContext : DbContext
   public DbSet<DriverSession> DriverSessions { get; set; }
   public DbSet<Invoice> Invoices { get; set; }
   public DbSet<Transit> Transits { get; set; }
+  public DbSet<ClaimsResolver> ClaimsResolvers { get; set; }
 
   public static DbConnection CreateInMemoryDatabase()
   {
@@ -232,6 +233,12 @@ public class SqLiteDbContext : DbContext
         navigation.Property(m => m.KmRate).HasColumnName(nameof(Tariff.KmRate));
         navigation.Property(m => m.Name).HasColumnName(nameof(Tariff.Name));
       });
+    });
+    modelBuilder.Entity<ClaimsResolver>(builder =>
+    {
+      builder.MapBaseEntityProperties();
+      builder.Property("ClientId");
+      builder.Property("ClaimedTransitsIds");
     });
   }
 }

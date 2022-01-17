@@ -9,5 +9,5 @@ public class BaseEntity
     return GetType().GetHashCode();
   }
 
-  public long? Id { get; }
+  public long? Id { get; protected set; }
 }
