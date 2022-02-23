@@ -9,6 +9,14 @@ public class DriverPosition : BaseEntity
   {
   }
 
+  public DriverPosition(Driver driver, Instant seenAt, double latitude, double longitude) 
+  {
+    Driver = driver;
+    SeenAt = seenAt;
+    Latitude = latitude;
+    Longitude = longitude;
+  }
+
   public virtual Driver Driver { set; get; }
   public double Latitude { get; set; }
   public double Longitude { get; set; }
