@@ -30,13 +30,6 @@ builder.Services.AddTransient<IContractAttachmentDataRepository, EfCoreContractA
 builder.Services.AddTransient<ICarTypeEntityRepository, EfCoreCarTypeRepository>();
 builder.Services.AddTransient<ICarTypeRepository, CarTypeRepository>();
 builder.Services.AddTransient<ICarTypeActiveCounterRepository, EfCoreCarTypeActiveCounterRepository>();
-builder.Services.AddTransient<IDriverReportReconciliation, TestDummyReconciliation>();
-builder.Services.AddTransient(ctx => new DriverReportCreator(
-  ctx.GetRequiredService<SqlBasedDriverReportCreator>(),
-  ctx.GetRequiredService<OldDriverReportCreator>(),
-  ctx.GetRequiredService<FeatureFlags>(),
-  ctx.GetRequiredService<IDriverReportReconciliation>()));
-builder.Services.AddTransient<OldDriverReportCreator>();
 builder.Services.AddTransient<SqlBasedDriverReportCreator>();
 builder.Services.AddTransient<ClaimService>();
 builder.Services.AddTransient<IClaimService>(ctx => 
@@ -102,7 +95,6 @@ builder.Services.AddTransient<ClaimNumberGenerator>();
 builder.Services.AddSingleton<IAppProperties, AppProperties>();
 builder.Services.AddSingleton<IClock>(_ => SystemClock.Instance);
 builder.Services.AddTransient<AddressRepository>();
-builder.Services.AddSingleton<FeatureFlags>();
 builder.Services.AddFeatureManagement();
 builder.Services.AddControllers().AddControllersAsServices();
 

@@ -11,7 +11,7 @@ using NodaTime.TimeZones;
 
 namespace LegacyFighter.Cabs.DriverReports;
 
-internal class SqlBasedDriverReportCreator : IDriverReportCreator
+public class SqlBasedDriverReportCreator : IDriverReportCreator
 {
   private static readonly string QueryForDriverWithAttrs =
     "SELECT d.id, d.FirstName, d.LastName, d.DriverLicense, " +

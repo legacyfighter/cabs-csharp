@@ -7,11 +7,11 @@ namespace LegacyFighter.Cabs.DriverReports;
 [Route("[controller]")]
 public class DriverReportController
 {
-  private readonly DriverReportCreator _driverReportCreator;
+  private readonly SqlBasedDriverReportCreator _driverReportCreator;
   private readonly ITransactions _transactions; 
 
   public DriverReportController(
-    DriverReportCreator driverReportCreator, 
+    SqlBasedDriverReportCreator driverReportCreator, 
     ITransactions transactions)
   {
     _driverReportCreator = driverReportCreator;
@@ -22,7 +22,7 @@ public class DriverReportController
   public async Task<Dto.DriverReport> LoadReportForDriver(long? driverId, [FromQuery] int lastDays)
   {
     await using var tx = await _transactions.BeginTransaction();
-    var driverReport = await _driverReportCreator.Create(driverId, lastDays);
+    var driverReport = await _driverReportCreator.CreateReport(driverId, lastDays);
     await tx.Commit();
 
     return driverReport;
