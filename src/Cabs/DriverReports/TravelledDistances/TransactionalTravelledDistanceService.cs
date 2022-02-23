@@ -1,6 +1,5 @@
 ﻿using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.DistanceValue;
-using LegacyFighter.Cabs.Entity;
 using NodaTime;
 
 namespace LegacyFighter.Cabs.DriverReports.TravelledDistances;
@@ -21,10 +20,10 @@ public class TransactionalTravelledDistanceService : ITravelledDistanceService
     return await _next.CalculateDistance(driverId, from, to);
   }
 
-  public async Task AddPosition(DriverPosition driverPosition)
+  public async Task AddPosition(long driverId, double latitude, double longitude, Instant seenAt)
   {
     await using var transaction = await _transactions.BeginTransaction();
-    await _next.AddPosition(driverPosition);
+    await _next.AddPosition(driverId, latitude, longitude, seenAt);
     await transaction.Commit();
   }
 }

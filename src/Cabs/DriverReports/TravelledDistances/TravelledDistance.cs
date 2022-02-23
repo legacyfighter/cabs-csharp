@@ -1,5 +1,4 @@
 ﻿using LegacyFighter.Cabs.DistanceValue;
-using LegacyFighter.Cabs.Entity;
 using NodaTime;
 using NodaTime.TimeZones;
 
@@ -19,12 +18,12 @@ public class TravelledDistance
   {
   }
 
-  public TravelledDistance(long driverId, TimeSlot timeSlot, DriverPosition driverPosition)
+  public TravelledDistance(long driverId, TimeSlot timeSlot, double lastLatitude, double lastLongitude)
   {
     _driverId = driverId;
     TimeSlot = timeSlot;
-    LastLatitude = driverPosition.Latitude;
-    LastLongitude = driverPosition.Longitude;
+    LastLatitude = lastLatitude;
+    LastLongitude = lastLongitude;
     Distance = Distance.Zero;
   }
 

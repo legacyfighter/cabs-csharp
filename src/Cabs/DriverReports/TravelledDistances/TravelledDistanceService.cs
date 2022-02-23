@@ -1,5 +1,4 @@
 ﻿using LegacyFighter.Cabs.DistanceValue;
-using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Service;
 using NodaTime;
 
@@ -8,7 +7,7 @@ namespace LegacyFighter.Cabs.DriverReports.TravelledDistances;
 public interface ITravelledDistanceService
 {
   Task<Distance> CalculateDistance(long driverId, Instant from, Instant to);
-  Task AddPosition(DriverPosition driverPosition);
+  Task AddPosition(long driverId, double latitude, double longitude, Instant seenAt);
 }
 
 public class TravelledDistanceService : ITravelledDistanceService
@@ -32,17 +31,16 @@ public class TravelledDistanceService : ITravelledDistanceService
     return Distance.OfKm(await _travelledDistanceRepository.CalculateDistance(left.Beginning, right.End, driverId));
   }
 
-  public async Task AddPosition(DriverPosition driverPosition)
+  public async Task AddPosition(long driverId, double latitude, double longitude, Instant seenAt)
   {
-    var driverId = driverPosition.Driver.Id.Value;
     var matchedSlot = await _travelledDistanceRepository
-      .FindTravelledDistanceTimeSlotByTime(driverPosition.SeenAt, driverId);
+      .FindTravelledDistanceTimeSlotByTime(seenAt, driverId);
     var now = _clock.GetCurrentInstant();
     if (matchedSlot != null)
     {
       if (matchedSlot.Contains(now))
       {
-        AddDistanceToSlot(driverPosition, matchedSlot);
+        AddDistanceToSlot(matchedSlot, latitude, longitude);
       }
       else if (matchedSlot.IsBefore(now))
       {
@@ -56,24 +54,24 @@ public class TravelledDistanceService : ITravelledDistanceService
       var prevTravelledDistance = await _travelledDistanceRepository.FindTravelledDistanceByTimeSlotAndDriverId(prev, driverId);
       if (prevTravelledDistance != null)
       {
-        if (prevTravelledDistance.EndsAt(driverPosition.SeenAt))
+        if (prevTravelledDistance.EndsAt(seenAt))
         {
-          AddDistanceToSlot(driverPosition, prevTravelledDistance);
+          AddDistanceToSlot(prevTravelledDistance, latitude, longitude);
         }
       }
 
-      await CreateSlotForNow(driverPosition, driverId, currentTimeSlot);
+      await CreateSlotForNow(driverId, currentTimeSlot, latitude, longitude);
     }
   }
 
-  private void AddDistanceToSlot(DriverPosition driverPosition, TravelledDistance aggregatedDistance)
+  private void AddDistanceToSlot(TravelledDistance aggregatedDistance, double latitude, double longitude)
   {
     var travelled = Distance.OfKm(_distanceCalculator.CalculateByGeo(
-      driverPosition.Latitude,
-      driverPosition.Longitude,
+      latitude,
+      longitude,
       aggregatedDistance.LastLatitude,
       aggregatedDistance.LastLongitude));
-    aggregatedDistance.AddDistance(travelled, driverPosition.Latitude, driverPosition.Longitude);
+    aggregatedDistance.AddDistance(travelled, latitude, longitude);
   }
 
   private void RecalculateDistanceFor(TravelledDistance aggregatedDistance, long driverId)
@@ -81,8 +79,8 @@ public class TravelledDistanceService : ITravelledDistanceService
     //TODO
   }
 
-  private async Task CreateSlotForNow(DriverPosition driverPosition, long driverId, TimeSlot timeSlot)
+  private async Task CreateSlotForNow(long driverId, TimeSlot timeSlot, double latitude, double longitude)
   {
-    await _travelledDistanceRepository.Save(new TravelledDistance(driverId, timeSlot, driverPosition));
+    await _travelledDistanceRepository.Save(new TravelledDistance(driverId, timeSlot, latitude, longitude));
   }
 }

@@ -1,5 +1,4 @@
 ﻿using LegacyFighter.Cabs.DriverReports.TravelledDistances;
-using LegacyFighter.Cabs.Entity;
 using LegacyFighter.CabsTests.Common;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
@@ -51,7 +50,7 @@ public class CalculateDriverTravelledDistanceIntegrationTest
     //and
     ItIsNoon();
     //and
-    await RegisterPosition(driver, Noon, 53.32055555555556, -1.7297222222222221);
+    await TravelledDistanceService.AddPosition(driver.Id.Value, 53.32055555555556, -1.7297222222222221, Noon);
 
     //when
     var distance = await TravelledDistanceService.CalculateDistance(driver.Id.Value, Noon, NoonFive);
@@ -68,9 +67,9 @@ public class CalculateDriverTravelledDistanceIntegrationTest
     //and
     ItIsNoon();
     //and
-    await RegisterPosition(driver, Noon, 53.32055555555556, -1.7297222222222221);
-    await RegisterPosition(driver, Noon, 53.31861111111111, -1.6997222222222223);
-    await RegisterPosition(driver, Noon, 53.32055555555556, -1.7297222222222221);
+    await TravelledDistanceService.AddPosition(driver.Id.Value, 53.32055555555556, -1.7297222222222221, Noon);
+    await TravelledDistanceService.AddPosition(driver.Id.Value, 53.31861111111111, -1.6997222222222223, Noon);
+    await TravelledDistanceService.AddPosition(driver.Id.Value, 53.32055555555556, -1.7297222222222221, Noon);
 
     //when
     var distance = await TravelledDistanceService.CalculateDistance(driver.Id.Value, Noon, NoonFive);
@@ -87,15 +86,15 @@ public class CalculateDriverTravelledDistanceIntegrationTest
     //and
     ItIsNoon();
     //and
-    await RegisterPosition(driver, Noon, 53.32055555555556, -1.7297222222222221);
-    await RegisterPosition(driver, Noon, 53.31861111111111, -1.6997222222222223);
-    await RegisterPosition(driver, Noon, 53.32055555555556, -1.7297222222222221);
+    await TravelledDistanceService.AddPosition(driver.Id.Value, 53.32055555555556, -1.7297222222222221, Noon);
+    await TravelledDistanceService.AddPosition(driver.Id.Value, 53.31861111111111, -1.6997222222222223, Noon);
+    await TravelledDistanceService.AddPosition(driver.Id.Value, 53.32055555555556, -1.7297222222222221, Noon);
     //and
     ItIsNoonFive();
     //and
-    await RegisterPosition(driver, NoonFive, 53.32055555555556, -1.7297222222222221);
-    await RegisterPosition(driver, NoonFive, 53.31861111111111, -1.6997222222222223);
-    await RegisterPosition(driver, NoonFive, 53.32055555555556, -1.7297222222222221);
+    await TravelledDistanceService.AddPosition(driver.Id.Value, 53.32055555555556, -1.7297222222222221, NoonFive);
+    await TravelledDistanceService.AddPosition(driver.Id.Value, 53.31861111111111, -1.6997222222222223, NoonFive);
+    await TravelledDistanceService.AddPosition(driver.Id.Value, 53.32055555555556, -1.7297222222222221, NoonFive);
 
     //when
     var distance = await TravelledDistanceService.CalculateDistance(driver.Id.Value, Noon, NoonFive);
@@ -112,33 +111,27 @@ public class CalculateDriverTravelledDistanceIntegrationTest
     //and
     ItIsNoon();
     //and
-    await RegisterPosition(driver, Noon, 53.32055555555556, -1.7297222222222221);
-    await RegisterPosition(driver, Noon, 53.31861111111111, -1.6997222222222223);
-    await RegisterPosition(driver, Noon, 53.32055555555556, -1.7297222222222221);
+    await TravelledDistanceService.AddPosition(driver.Id.Value, 53.32055555555556, -1.7297222222222221, Noon);
+    await TravelledDistanceService.AddPosition(driver.Id.Value, 53.31861111111111, -1.6997222222222223, Noon);
+    await TravelledDistanceService.AddPosition(driver.Id.Value, 53.32055555555556, -1.7297222222222221, Noon);
     //and
     ItIsNoonFive();
     //and
-    await RegisterPosition(driver, NoonFive, 53.32055555555556, -1.7297222222222221);
-    await RegisterPosition(driver, NoonFive, 53.31861111111111, -1.6997222222222223);
-    await RegisterPosition(driver, NoonFive, 53.32055555555556, -1.7297222222222221);
+    await TravelledDistanceService.AddPosition(driver.Id.Value, 53.32055555555556, -1.7297222222222221, NoonFive);
+    await TravelledDistanceService.AddPosition(driver.Id.Value, 53.31861111111111, -1.6997222222222223, NoonFive);
+    await TravelledDistanceService.AddPosition(driver.Id.Value, 53.32055555555556, -1.7297222222222221, NoonFive);
     //and
     ItIsNoonTen();
     //and
-    await RegisterPosition(driver, NoonTen, 53.32055555555556, -1.7297222222222221);
-    await RegisterPosition(driver, NoonTen, 53.31861111111111, -1.6997222222222223);
-    await RegisterPosition(driver, NoonTen, 53.32055555555556, -1.7297222222222221);
+    await TravelledDistanceService.AddPosition(driver.Id.Value, 53.32055555555556, -1.7297222222222221, NoonTen);
+    await TravelledDistanceService.AddPosition(driver.Id.Value, 53.31861111111111, -1.6997222222222223, NoonTen);
+    await TravelledDistanceService.AddPosition(driver.Id.Value, 53.32055555555556, -1.7297222222222221, NoonTen);
 
     //when
     var distance = await TravelledDistanceService.CalculateDistance(driver.Id.Value, Noon, NoonTen);
 
     //then
     Assert.AreEqual("12.026km", distance.PrintIn("km"));
-  }
-
-  private async Task RegisterPosition(Driver driver, Instant seenAt, double latitude, double longitude) 
-  {
-    var driverPosition = new DriverPosition(driver, seenAt, latitude, longitude);
-    await TravelledDistanceService.AddPosition(driverPosition);
   }
 
   private void ItIsNoon()

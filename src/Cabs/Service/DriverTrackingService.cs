@@ -40,7 +40,7 @@ public class DriverTrackingService : IDriverTrackingService
       Longitude = longitude
     };
     var driverPosition = await _positionRepository.Save(position);
-    await _travelledDistanceService.AddPosition(position);
+    await _travelledDistanceService.AddPosition(driverId.Value, latitude, longitude, seenAt);
     return driverPosition;
   }
 
