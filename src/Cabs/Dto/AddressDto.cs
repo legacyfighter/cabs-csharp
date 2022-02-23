@@ -22,7 +22,7 @@ public class AddressDto
     Name = a.Name;
   }
 
-  public AddressDto(string country, string city, string street, int buildingNumber)
+  public AddressDto(string country, string city, string street, int? buildingNumber)
   {
     Country = country;
     City = city;
@@ -38,7 +38,7 @@ public class AddressDto
 
   public string Street { get; set; }
 
-  public int BuildingNumber { get; set; }
+  public int? BuildingNumber { get; set; }
 
   public int? AdditionalNumber { get; set; }
 

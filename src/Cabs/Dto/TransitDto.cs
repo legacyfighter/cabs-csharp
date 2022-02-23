@@ -7,15 +7,10 @@ namespace LegacyFighter.Cabs.Dto;
 public class TransitDto
 {
   public DriverDto Driver;
-
   public int? Factor;
-
   private Distance _distance;
-
   private string _distanceUnit;
-
   private decimal _baseFee;
-
   private Instant? _date;
 
   public TransitDto()
@@ -24,53 +19,82 @@ public class TransitDto
   }
 
   public TransitDto(Transit transit)
-  {
-    Id = transit.Id;
-    _distance = transit.KmDistance;
-    Factor = 1;
-    if (transit.Price != null)
-    {
-      Price = new decimal(transit.Price.IntValue);
-    }
 
-    _date = transit.DateTime;
-    Status = transit.Status;
-    SetTariff(transit);
-    foreach (var d in transit.ProposedDrivers) 
+    : this(transit.Id, transit.Tariff.Name,
+      transit.Status, 
+      transit.Driver == null ? null : new DriverDto(transit.Driver),
+      transit.KmDistance, 
+      transit.Tariff.KmRate,
+      transit.Price != null ? new decimal(transit.Price.IntValue) : null,
+      transit.DriversFee != null ? new decimal(transit.DriversFee.IntValue) : null,
+      transit.EstimatedPrice != null ? new decimal(transit.EstimatedPrice.IntValue) : null,
+      new decimal(transit.Tariff.BaseFee),
+      transit.DateTime, 
+      transit.Published,
+      transit.AcceptedAt, 
+      transit.Started, 
+      transit.CompleteAt,
+      null, 
+      new List<DriverDto>(), 
+      new AddressDto(transit.From),
+      new AddressDto(transit.To), 
+      transit.CarType, 
+      new ClientDto(transit.Client))
+  {
+    foreach (var d in transit.ProposedDrivers)
     {
       ProposedDrivers.Add(new DriverDto(d));
     }
-    To = new AddressDto(transit.To);
-    From = new AddressDto(transit.From);
-    CarClass = transit.CarType;
-    ClientDto = new ClientDto(transit.Client);
-    if (transit.DriversFee != null)
-    {
-      DriverFee = new decimal(transit.DriversFee.IntValue);
-    }
+  }
 
-    if (transit.EstimatedPrice != null)
-    {
-      EstimatedPrice = new decimal(transit.EstimatedPrice.IntValue);
-    }
-
-    DateTime = transit.DateTime;
-    Published = transit.Published;
-    AcceptedAt = transit.AcceptedAt;
-    Started = transit.Started;
-    CompleteAt = transit.CompleteAt;
-
+  public TransitDto(
+    long? id,
+    string tariff,
+    Transit.Statuses? status,
+    DriverDto driver,
+    Distance distance,
+    float kmRate,
+    decimal? price,
+    decimal? driverFee,
+    decimal? estimatedPrice,
+    decimal baseFee,
+    Instant? dateTime,
+    Instant? published,
+    Instant? acceptedAt,
+    Instant? started,
+    Instant? completeAt,
+    ClaimDto claimDto,
+    List<DriverDto> proposedDrivers,
+    AddressDto from,
+    AddressDto to,
+    CarType.CarClasses? carClass,
+    ClientDto clientDto)
+  {
+    Id = id;
+    Factor = 1;
+    Tariff = tariff;
+    Status = status;
+    Driver = driver;
+    _distance = distance;
+    KmRate = kmRate;
+    Price = price;
+    DriverFee = driverFee;
+    EstimatedPrice = estimatedPrice;
+    _baseFee = baseFee;
+    DateTime = dateTime;
+    Published = published;
+    AcceptedAt = acceptedAt;
+    Started = started;
+    CompleteAt = completeAt;
+    ClaimDto = claimDto;
+    ProposedDrivers = proposedDrivers;
+    To = to;
+    From = from;
+    CarClass = carClass;
+    ClientDto = clientDto;
   }
 
   public float KmRate { get; private set; }
-
-  private void SetTariff(Transit transit)
-  {
-    Tariff = transit.Tariff.Name;
-    KmRate = transit.Tariff.KmRate;
-    _baseFee = new decimal(transit.Tariff.BaseFee);
-  }
-
   public string Tariff { get; private set; }
 
   public string GetDistance(string unit)
@@ -94,5 +118,5 @@ public class TransitDto
   public Instant? AcceptedAt { get; set; }
   public Instant? Started { get; set; }
   public Instant? CompleteAt { get; set; }
-  public decimal EstimatedPrice { get; set; }
+  public decimal? EstimatedPrice { get; set; }
 }

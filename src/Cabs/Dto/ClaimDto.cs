@@ -5,28 +5,46 @@ namespace LegacyFighter.Cabs.Dto;
 
 public class ClaimDto
 {
-  public ClaimDto(Claim claim)
+  public ClaimDto(
+    long? claimId,
+    long? clientId,
+    long? transitId,
+    string reason,
+    string incidentDescription,
+    Instant creationDate,
+    Instant? completionDate,
+    Instant? changeDate,
+    Claim.CompletionModes? completionMode,
+    Claim.Statuses? status,
+    string claimNo)
   {
-    if (claim.Status == Claim.Statuses.Draft)
-    {
-      IsDraft = true;
-    }
-    else
-    {
-      IsDraft = false;
-    }
+    ClaimId = claimId;
+    ClientId = clientId;
+    TransitId = transitId;
+    Reason = reason;
+    IncidentDescription = incidentDescription;
+    IsDraft = status == Claim.Statuses.Draft;
+    CreationDate = creationDate;
+    CompletionDate = completionDate;
+    ChangeDate = changeDate;
+    CompletionMode = completionMode;
+    Status = status;
+    ClaimNo = claimNo;
+  }
 
-    ClaimId = claim.Id;
-    Reason = claim.Reason;
-    IncidentDescription = claim.IncidentDescription;
-    TransitId = claim.Transit.Id;
-    ClientId = claim.Owner.Id;
-    CompletionDate = claim.CompletionDate;
-    ChangeDate = claim.ChangeDate;
-    ClaimNo = claim.ClaimNo;
-    Status = claim.Status;
-    CompletionMode = claim.CompletionMode;
-    CreationDate = claim.CreationDate;
+  public ClaimDto(Claim claim) : this(
+    claim.Id,
+    claim.Owner.Id,
+    claim.Transit.Id,
+    claim.Reason,
+    claim.IncidentDescription,
+    claim.CreationDate,
+    claim.CompletionDate,
+    claim.ChangeDate,
+    claim.CompletionMode,
+    claim.Status,
+    claim.ClaimNo)
+  {
   }
 
   public ClaimDto()

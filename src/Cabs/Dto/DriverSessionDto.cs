@@ -5,6 +5,20 @@ namespace LegacyFighter.Cabs.Dto;
 
 public class DriverSessionDto
 {
+  public DriverSessionDto(
+    Instant loggedAt,
+    Instant? loggedOutAt,
+    string platesNumber,
+    CarType.CarClasses carClass,
+    string carBrand)
+  {
+    LoggedAt = loggedAt;
+    LoggedOutAt = loggedOutAt;
+    PlatesNumber = platesNumber;
+    CarClass = carClass;
+    CarBrand = carBrand;
+  }
+
   public DriverSessionDto()
   {
 

@@ -1,5 +1,6 @@
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Config;
+using LegacyFighter.Cabs.Controllers;
 using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.Service;
 using NodaTime;
@@ -28,6 +29,7 @@ builder.Services.AddTransient<IContractAttachmentDataRepository, EfCoreContractA
 builder.Services.AddTransient<ICarTypeEntityRepository, EfCoreCarTypeRepository>();
 builder.Services.AddTransient<ICarTypeRepository, CarTypeRepository>();
 builder.Services.AddTransient<ICarTypeActiveCounterRepository, EfCoreCarTypeActiveCounterRepository>();
+builder.Services.AddTransient<SqlBasedDriverReportCreator>();
 builder.Services.AddTransient<ClaimService>();
 builder.Services.AddTransient<IClaimService>(ctx => 
   new TransactionalClaimService(

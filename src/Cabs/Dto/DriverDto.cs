@@ -4,6 +4,24 @@ namespace LegacyFighter.Cabs.Dto;
 
 public class DriverDto
 {
+  public DriverDto(
+    long? id,
+    string firstName,
+    string lastName,
+    string driverLicense,
+    string photo,
+    Driver.Statuses status,
+    Driver.Types? type) 
+  {
+    Id = id;
+    FirstName = firstName;
+    LastName = lastName;
+    DriverLicense = driverLicense;
+    Photo = photo;
+    Status = status;
+    Type = type;
+  }
+
   public DriverDto(Driver driver)
   {
     Id = driver.Id;
