@@ -4,9 +4,9 @@ namespace LegacyFighter.Cabs.DistanceValue;
 
 public sealed class Distance : IEquatable<Distance>
 {
-  private const float MilesToKilometersRatio = 1.609344f;
+  private const double MilesToKilometersRatio = 1.609344f;
 
-  private readonly float _km;
+  private readonly double _km;
 
   public static readonly Distance Zero = OfKm(0);
 
@@ -15,14 +15,19 @@ public sealed class Distance : IEquatable<Distance>
     return new Distance(km);
   }
 
-  private Distance(float km)
+  public static Distance OfKm(double km)
+  {
+    return new Distance(km);
+  }
+
+  private Distance(double km)
   {
     _km = km;
   }
 
   public float ToKmInFloat()
   {
-    return _km;
+    return (float)_km;
   }
 
   public string PrintIn(string unit)
@@ -83,5 +88,17 @@ public sealed class Distance : IEquatable<Distance>
   public static bool operator !=(Distance left, Distance right)
   {
     return !Equals(left, right);
+  }
+
+  public double ToKmInDouble() 
+  {
+    return _km;
+  }
+
+  public override string ToString() 
+  {
+    return "Distance{" +
+           "km=" + _km +
+           '}';
   }
 }

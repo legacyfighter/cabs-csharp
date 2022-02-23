@@ -24,6 +24,16 @@ public class DistanceTest
   }
 
   [Test]
+  public void CanConvertToDouble()
+  {
+    //expect
+    Assert.AreEqual(2000d, Distance.OfKm(2000).ToKmInDouble());
+    Assert.AreEqual(0d, Distance.OfKm(0).ToKmInDouble());
+    Assert.AreEqual(312.22d, Distance.OfKm(312.22d).ToKmInDouble());
+    Assert.AreEqual(2d, Distance.OfKm(2).ToKmInDouble());
+  }
+
+  [Test]
   public void CanRepresentDistanceAsMeters()
   {
     //expect
