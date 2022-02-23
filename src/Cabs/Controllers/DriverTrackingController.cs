@@ -26,10 +26,9 @@ public class DriverTrackingController
   }
 
   [HttpGet("/driverPositions/{id}/total")]
-  public async Task<double> CalculateTravelledDistance( long? id, [FromQuery]
-    Instant from, [FromQuery] Instant to)
+  public async Task<double> CalculateTravelledDistance(long? id, [FromQuery] Instant from, [FromQuery] Instant to)
   {
-    return await _trackingService.CalculateTravelledDistance(id, @from, to);
+    return (await _trackingService.CalculateTravelledDistance(id, from, to)).ToKmInDouble();
   }
 
 

@@ -1,4 +1,5 @@
 using LegacyFighter.Cabs.Common;
+using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Entity;
 using NodaTime;
 
@@ -23,8 +24,8 @@ public class TransactionalDriverTrackingService : IDriverTrackingService
     return position;
   }
 
-  public Task<double> CalculateTravelledDistance(long? driverId, Instant @from, Instant to)
+  public async Task<Distance> CalculateTravelledDistance(long? driverId, Instant from, Instant to)
   {
-    return _inner.CalculateTravelledDistance(driverId, @from, to);
+    return await _inner.CalculateTravelledDistance(driverId, from, to);
   }
 }

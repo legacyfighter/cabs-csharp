@@ -1,5 +1,4 @@
 ﻿using System;
-using LegacyFighter.Cabs;
 using LegacyFighter.Cabs.Controllers;
 using LegacyFighter.Cabs.DriverReports;
 using LegacyFighter.Cabs.Repository;

@@ -1,3 +1,4 @@
+using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Repository;
 using NodaTime;
@@ -35,14 +36,14 @@ public class DriverTrackingService : IDriverTrackingService
     var position = new DriverPosition
     {
       Driver = driver,
-      SeenAt = SystemClock.Instance.GetCurrentInstant(),
+      SeenAt = _clock.GetCurrentInstant(),
       Latitude = latitude,
       Longitude = longitude
     };
     return await _positionRepository.Save(position);
   }
 
-  public async Task<double> CalculateTravelledDistance(long? driverId, Instant @from, Instant to)
+  public async Task<Distance> CalculateTravelledDistance(long? driverId, Instant @from, Instant to)
   {
     var driver = await _driverRepository.Find(driverId);
     if (driver == null)
@@ -71,6 +72,6 @@ public class DriverTrackingService : IDriverTrackingService
       }
     }
 
-    return distanceTravelled;
+    return Distance.OfKm(distanceTravelled);
   }
 }
