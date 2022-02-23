@@ -9,18 +9,18 @@ using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using NodaTime.TimeZones;
 
-namespace LegacyFighter.Cabs.Controllers;
+namespace LegacyFighter.Cabs.DriverReports;
 
-public class SqlBasedDriverReportCreator
+internal class SqlBasedDriverReportCreator : IDriverReportCreator
 {
-  public static readonly string QueryForDriverWithAttrs =
+  private static readonly string QueryForDriverWithAttrs =
     "SELECT d.id, d.FirstName, d.LastName, d.DriverLicense, " +
     "d.Photo, d.Status, d.Type, attr.Name, attr.Value " +
     "FROM Drivers d " +
     "LEFT JOIN DriverAttributes attr ON d.id = attr.DriverId " +
     "WHERE d.id = :driverId AND attr.name <> :filteredAttr";
 
-  public static readonly string QueryForSessions =
+  private static readonly string QueryForSessions =
     "SELECT ds.LoggedAt, ds.LoggedOutAt, ds.PlatesNumber, ds.CarClass, ds.CarBrand, " +
     "t.Id as TransitId, t.name as TariffName, t.status as TransitStatus, t.Km, t.KmRate, " +
     "t.Price, t.DriversFee, t.EstimatedPrice, t.BaseFee, " +

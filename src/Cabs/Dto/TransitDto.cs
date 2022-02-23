@@ -8,7 +8,7 @@ public class TransitDto
 {
   public DriverDto Driver;
   public int? Factor;
-  private Distance _distance;
+  private readonly Distance _distance;
   private string _distanceUnit;
   private decimal _baseFee;
   private Instant? _date;

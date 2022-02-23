@@ -1,8 +1,9 @@
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Config;
-using LegacyFighter.Cabs.Controllers;
+using LegacyFighter.Cabs.DriverReports;
 using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.Service;
+using Microsoft.FeatureManagement;
 using NodaTime;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +30,11 @@ builder.Services.AddTransient<IContractAttachmentDataRepository, EfCoreContractA
 builder.Services.AddTransient<ICarTypeEntityRepository, EfCoreCarTypeRepository>();
 builder.Services.AddTransient<ICarTypeRepository, CarTypeRepository>();
 builder.Services.AddTransient<ICarTypeActiveCounterRepository, EfCoreCarTypeActiveCounterRepository>();
+builder.Services.AddTransient(ctx => new DriverReportCreator(
+  ctx.GetRequiredService<SqlBasedDriverReportCreator>(),
+  ctx.GetRequiredService<OldDriverReportCreator>(),
+  ctx.GetRequiredService<FeatureFlags>()));
+builder.Services.AddTransient<OldDriverReportCreator>();
 builder.Services.AddTransient<SqlBasedDriverReportCreator>();
 builder.Services.AddTransient<ClaimService>();
 builder.Services.AddTransient<IClaimService>(ctx => 
@@ -94,6 +100,8 @@ builder.Services.AddTransient<ClaimNumberGenerator>();
 builder.Services.AddSingleton<IAppProperties, AppProperties>();
 builder.Services.AddSingleton<IClock>(_ => SystemClock.Instance);
 builder.Services.AddTransient<AddressRepository>();
+builder.Services.AddSingleton<FeatureFlags>();
+builder.Services.AddFeatureManagement();
 builder.Services.AddControllers().AddControllersAsServices();
 
 var app = builder.Build();
