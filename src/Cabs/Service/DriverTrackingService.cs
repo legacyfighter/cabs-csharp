@@ -1,4 +1,5 @@
 using LegacyFighter.Cabs.DistanceValue;
+using LegacyFighter.Cabs.DriverReports.TravelledDistances;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Repository;
 using NodaTime;
@@ -9,13 +10,13 @@ public class DriverTrackingService : IDriverTrackingService
 {
   private readonly IDriverPositionRepository _positionRepository;
   private readonly IDriverRepository _driverRepository;
-  private readonly DistanceCalculator _distanceCalculator;
+  private readonly ITravelledDistanceService _travelledDistanceService;
 
-  public DriverTrackingService(IDriverPositionRepository positionRepository, IDriverRepository driverRepository, DistanceCalculator distanceCalculator)
+  public DriverTrackingService(IDriverPositionRepository positionRepository, IDriverRepository driverRepository, ITravelledDistanceService travelledDistanceService)
   {
     _positionRepository = positionRepository;
     _driverRepository = driverRepository;
-    _distanceCalculator = distanceCalculator;
+    _travelledDistanceService = travelledDistanceService;
   }
 
   public async Task<DriverPosition> RegisterPosition(long? driverId, double latitude, double longitude, Instant seenAt)
@@ -38,10 +39,12 @@ public class DriverTrackingService : IDriverTrackingService
       Latitude = latitude,
       Longitude = longitude
     };
-    return await _positionRepository.Save(position);
+    var driverPosition = await _positionRepository.Save(position);
+    await _travelledDistanceService.AddPosition(position);
+    return driverPosition;
   }
 
-  public async Task<Distance> CalculateTravelledDistance(long? driverId, Instant @from, Instant to)
+  public async Task<Distance> CalculateTravelledDistance(long? driverId, Instant from, Instant to)
   {
     var driver = await _driverRepository.Find(driverId);
     if (driver == null)
@@ -49,27 +52,6 @@ public class DriverTrackingService : IDriverTrackingService
       throw new ArgumentException("Driver does not exists, id = " + driverId);
     }
 
-    var positions =
-      await _positionRepository.FindByDriverAndSeenAtBetweenOrderBySeenAtAsc(driver, @from, to);
-    double distanceTravelled = 0;
-
-    if (positions.Count > 1)
-    {
-      var previousPosition = positions[0];
-
-      foreach (var position in positions.Skip(1)) 
-      {
-        distanceTravelled += _distanceCalculator.CalculateByGeo(
-          previousPosition.Latitude,
-          previousPosition.Longitude,
-          position.Latitude,
-          position.Longitude
-        );
-
-        previousPosition = position;
-      }
-    }
-
-    return Distance.OfKm(distanceTravelled);
+    return await _travelledDistanceService.CalculateDistance(driverId.Value, from, to);
   }
 }

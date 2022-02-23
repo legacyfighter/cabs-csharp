@@ -64,4 +64,14 @@ public class DistanceTest
     Assert.AreEqual("194.005miles", Distance.OfKm(312.221111232313f).PrintIn("miles"));
     Assert.AreEqual("1.243miles", Distance.OfKm(2).PrintIn("miles"));
   }
+
+  [Test]
+  public void CanAddDistances()
+  {
+    //expect
+    Assert.AreEqual(Distance.OfKm(1000f), Distance.OfKm(500f).Add(Distance.OfKm(500f)));
+    Assert.AreEqual(Distance.OfKm(1042f), Distance.OfKm(1020f).Add(Distance.OfKm(22f)));
+    Assert.AreEqual(Distance.OfKm(0f), Distance.OfKm(0f).Add(Distance.OfKm(0f)));
+    Assert.AreEqual(Distance.OfKm(3.7f), Distance.OfKm(1.5f).Add(Distance.OfKm(2.2f)));
+  }
 }

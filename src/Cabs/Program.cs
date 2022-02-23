@@ -1,6 +1,7 @@
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Config;
 using LegacyFighter.Cabs.DriverReports;
+using LegacyFighter.Cabs.DriverReports.TravelledDistances;
 using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.Service;
 using Microsoft.FeatureManagement;
@@ -30,6 +31,7 @@ builder.Services.AddTransient<IContractAttachmentDataRepository, EfCoreContractA
 builder.Services.AddTransient<ICarTypeEntityRepository, EfCoreCarTypeRepository>();
 builder.Services.AddTransient<ICarTypeRepository, CarTypeRepository>();
 builder.Services.AddTransient<ICarTypeActiveCounterRepository, EfCoreCarTypeActiveCounterRepository>();
+builder.Services.AddTransient<ITravelledDistanceRepository, EfCoreTravelledDistanceRepository>();
 builder.Services.AddTransient<SqlBasedDriverReportCreator>();
 builder.Services.AddTransient<ClaimService>();
 builder.Services.AddTransient<IClaimService>(ctx => 
@@ -84,6 +86,11 @@ builder.Services.AddTransient<ITransitService>(ctx =>
   new TransactionalTransitService(
     ctx.GetRequiredService<TransitService>(),
     ctx.GetRequiredService<ITransactions>()));
+builder.Services.AddTransient<TravelledDistanceService>();
+builder.Services.AddTransient<ITravelledDistanceService>(ctx =>
+  new TransactionalTravelledDistanceService(
+    ctx.GetRequiredService<TravelledDistanceService>(),
+    ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddTransient<TransitAnalyzer>();
 builder.Services.AddTransient<ITransitAnalyzer>(ctx =>
   new TransactionalTransitAnalyzer(
@@ -117,3 +124,4 @@ app.Run();
 public partial class Program
 {
 }
+

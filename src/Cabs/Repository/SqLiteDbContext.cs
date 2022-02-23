@@ -1,5 +1,7 @@
 using System.Data.Common;
 using LegacyFighter.Cabs.Common;
+using LegacyFighter.Cabs.DistanceValue;
+using LegacyFighter.Cabs.DriverReports.TravelledDistances;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Entity.Miles;
 using Microsoft.Data.Sqlite;
@@ -32,6 +34,7 @@ public class SqLiteDbContext : DbContext
   public DbSet<Invoice> Invoices { get; set; }
   public DbSet<Transit> Transits { get; set; }
   public DbSet<ClaimsResolver> ClaimsResolvers { get; set; }
+  public DbSet<TravelledDistance> TravelledDistances { get; set; }
 
   public static DbConnection CreateInMemoryDatabase()
   {
@@ -250,6 +253,22 @@ public class SqLiteDbContext : DbContext
       builder.MapBaseEntityProperties();
       builder.Property("ClientId");
       builder.Property("ClaimedTransitsIds");
+    });
+    modelBuilder.Entity<TravelledDistance>(builder =>
+    {
+      builder.HasKey("IntervalId");
+      builder.Property<long>("_driverId").HasColumnName("DriverId").IsRequired();
+      builder.Property(e => e.LastLatitude).IsRequired();
+      builder.Property(e => e.LastLongitude).IsRequired();
+      builder.OwnsOne<TimeSlot>("TimeSlot", navigation =>
+      {
+        navigation.Property(s => s.Beginning).HasColumnName("Beginning").HasConversion(instantConverter);
+        navigation.Property(s => s.End).HasColumnName("End").HasConversion(instantConverter);
+      });
+      builder.OwnsOne<Distance>("Distance", navigation =>
+      {
+        navigation.Property("_km").HasColumnName("Km").IsRequired();
+      });
     });
   }
 }

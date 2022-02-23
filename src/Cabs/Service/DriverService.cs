@@ -139,7 +139,7 @@ public class DriverService : IDriverService
 
       .AtEndOfMonth().PlusDays(1).AtStartOfDayInZone(DateTimeZoneProviders.Bcl.GetSystemDefault()).ToInstant();
 
-    var transitsList = await _transitRepository.FindAllByDriverAndDateTimeBetween(driver, @from, to);
+    var transitsList = await _transitRepository.FindAllByDriverAndDateTimeBetween(driver, from, to);
 
     var sum = await transitsList
       .Select(t => _driverFeeService.CalculateDriverFee(t.Id)).Aggregate(

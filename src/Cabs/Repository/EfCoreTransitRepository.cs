@@ -6,12 +6,12 @@ namespace LegacyFighter.Cabs.Repository;
 
 public interface ITransitRepository
 {
-  Task<List<Transit>> FindAllByDriverAndDateTimeBetween(Driver driver, Instant @from, Instant to);
+  Task<List<Transit>> FindAllByDriverAndDateTimeBetween(Driver driver, Instant from, Instant to);
 
-  Task<List<Transit>> FindAllByClientAndFromAndStatusOrderByDateTimeDesc(Client client, Address @from,
+  Task<List<Transit>> FindAllByClientAndFromAndStatusOrderByDateTimeDesc(Client client, Address from,
     Transit.Statuses status);
 
-  Task<List<Transit>> FindAllByClientAndFromAndPublishedAfterAndStatusOrderByDateTimeDesc(Client client, Address @from,
+  Task<List<Transit>> FindAllByClientAndFromAndPublishedAfterAndStatusOrderByDateTimeDesc(Client client, Address from,
     Instant? when, Transit.Statuses status);
 
   Task<List<Transit>> FindByClient(Client client);
@@ -28,7 +28,7 @@ internal class EfCoreTransitRepository : ITransitRepository
     _context = context;
   }
 
-  public async Task<List<Transit>> FindAllByDriverAndDateTimeBetween(Driver driver, Instant @from, Instant to)
+  public async Task<List<Transit>> FindAllByDriverAndDateTimeBetween(Driver driver, Instant from, Instant to)
   {
     return await _context.Transits.Where(t => 
         t.Driver == driver && 
@@ -37,20 +37,20 @@ internal class EfCoreTransitRepository : ITransitRepository
       .ToListAsync();
   }
 
-  public async Task<List<Transit>> FindAllByClientAndFromAndStatusOrderByDateTimeDesc(Client client, Address @from,
+  public async Task<List<Transit>> FindAllByClientAndFromAndStatusOrderByDateTimeDesc(Client client, Address from,
     Transit.Statuses status)
   {
-    return await _context.Transits.Where(t => t.Client == client && t.From == @from && t.Status == status)
+    return await _context.Transits.Where(t => t.Client == client && t.From == from && t.Status == status)
       .OrderByDescending(transit => transit.DateTime).ToListAsync();
   }
 
   public async Task<List<Transit>> FindAllByClientAndFromAndPublishedAfterAndStatusOrderByDateTimeDesc(Client client,
-    Address @from,
+    Address from,
     Instant? when,
     Transit.Statuses status)
   {
     return await _context.Transits
-      .Where(t => t.Client == client && t.From == @from && t.Published > when && t.Status == status)
+      .Where(t => t.Client == client && t.From == from && t.Published > when && t.Status == status)
       .OrderByDescending(t => t.DateTime).ToListAsync();
   }
 

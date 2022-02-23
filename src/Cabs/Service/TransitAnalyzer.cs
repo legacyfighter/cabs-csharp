@@ -42,12 +42,12 @@ public class TransitAnalyzer : ITransitAnalyzer
 
     if (t == null)
     {
-      ts = await _transitRepository.FindAllByClientAndFromAndStatusOrderByDateTimeDesc(client, @from,
+      ts = await _transitRepository.FindAllByClientAndFromAndStatusOrderByDateTimeDesc(client, from,
         Transit.Statuses.Completed);
     }
     else
     {
-      ts = await _transitRepository.FindAllByClientAndFromAndPublishedAfterAndStatusOrderByDateTimeDesc(client, @from,
+      ts = await _transitRepository.FindAllByClientAndFromAndPublishedAfterAndStatusOrderByDateTimeDesc(client, from,
         t.Published, Transit.Statuses.Completed);
       ;
     }

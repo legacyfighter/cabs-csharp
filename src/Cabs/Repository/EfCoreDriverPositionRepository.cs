@@ -10,7 +10,7 @@ public interface IDriverPositionRepository
   Task<List<DriverPositionDtoV2>> FindAverageDriverPositionSince(double latitudeMin, double latitudeMax,
     double longitudeMin, double longitudeMax, Instant date);
 
-  Task<List<DriverPosition>> FindByDriverAndSeenAtBetweenOrderBySeenAtAsc(Driver driver, Instant @from, Instant to);
+  Task<List<DriverPosition>> FindByDriverAndSeenAtBetweenOrderBySeenAtAsc(Driver driver, Instant from, Instant to);
   Task<DriverPosition> Save(DriverPosition position);
 }
 
@@ -44,7 +44,7 @@ internal class EfCoreDriverPositionRepository : IDriverPositionRepository
       )).ToListAsync();
   }
 
-  public async Task<List<DriverPosition>> FindByDriverAndSeenAtBetweenOrderBySeenAtAsc(Driver driver, Instant @from,
+  public async Task<List<DriverPosition>> FindByDriverAndSeenAtBetweenOrderBySeenAtAsc(Driver driver, Instant from,
     Instant to)
   {
     return await _context.DriverPositions.Where(

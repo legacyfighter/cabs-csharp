@@ -2,7 +2,7 @@
 
 namespace LegacyFighter.Cabs.DistanceValue;
 
-public sealed class Distance : IEquatable<Distance>
+public class Distance : IEquatable<Distance>
 {
   private const double MilesToKilometersRatio = 1.609344f;
 
@@ -18,6 +18,10 @@ public sealed class Distance : IEquatable<Distance>
   public static Distance OfKm(double km)
   {
     return new Distance(km);
+  }
+
+  protected Distance()
+  {
   }
 
   private Distance(double km)
@@ -100,5 +104,10 @@ public sealed class Distance : IEquatable<Distance>
     return "Distance{" +
            "km=" + _km +
            '}';
+  }
+
+  public Distance Add(Distance travelled)
+  {
+    return OfKm(_km + travelled._km);
   }
 }
