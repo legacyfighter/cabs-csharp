@@ -20,6 +20,7 @@ public class Fixtures
   private readonly ICarTypeService _carTypeService;
   private readonly IClaimService _claimService;
   private readonly IAwardsService _awardsService;
+  private readonly IDriverAttributeRepository _driverAttributeRepository;
 
   public Fixtures(
     ITransitRepository transitRepository,
@@ -29,7 +30,8 @@ public class Fixtures
     IDriverService driverService,
     ICarTypeService carTypeService,
     IClaimService claimService, 
-    IAwardsService awardsService)
+    IAwardsService awardsService, 
+    IDriverAttributeRepository driverAttributeRepository)
   {
     _transitRepository = transitRepository;
     _feeRepository = feeRepository;
@@ -39,6 +41,7 @@ public class Fixtures
     _awardsService = awardsService;
     _clientRepository = clientRepository;
     _addressRepository = addressRepository;
+    _driverAttributeRepository = driverAttributeRepository;
   }
 
   public Task<Client> AClient()
@@ -98,11 +101,17 @@ public class Fixtures
     return DriverHasFee(driver, feeType, amount, 0);
   }
 
-  public Task<Driver> ADriver()
+  public async Task<Driver> ADriver()
   {
-    return _driverService.CreateDriver("FARME100165AB5EW", "Kowalsi", "Janusz", Driver.Types.Regular,
-      Driver.Statuses.Active, "");
+    return await ADriver(Driver.Statuses.Active, "Janusz", "Kowalsi", "FARME100165AB5EW");
   }
+
+  public async Task<Driver> ADriver(Driver.Statuses status, string name, string lastName, string driverLicense)
+  {
+    return await _driverService.CreateDriver(driverLicense, lastName, name, Driver.Types.Regular,
+      status, "");
+  }
+
 
   public async Task<Transit> ACompletedTransitAt(int price, Instant when)
   {
@@ -181,6 +190,13 @@ public class Fixtures
     return await _claimService.Create(claimDto);
   }
 
+  public async Task<Claim> CreateClaim(Client client, Transit transit, string reason) 
+  {
+    var claimDto = ClaimDto("Okradli mnie na hajs", reason, client.Id, transit.Id);
+    claimDto.IsDraft = false;
+    return await _claimService.Create(claimDto);
+  }
+
   public async Task<Claim> CreateAndResolveClaim(Client client, Transit transit) 
   {
     var claim = await CreateClaim(client, transit);
@@ -227,5 +243,10 @@ public class Fixtures
   {
     await AwardsAccount(client);
     await _awardsService.ActivateAccount(client.Id);
+  }
+
+  public async Task DriverHasAttribute(Driver driver, DriverAttribute.DriverAttributeNames name, string value)
+  {
+    await _driverAttributeRepository.Save(new DriverAttribute(driver, name, value));
   }
 }
