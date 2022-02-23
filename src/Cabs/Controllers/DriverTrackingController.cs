@@ -20,8 +20,11 @@ public class DriverTrackingController
   [HttpPost("/driverPositions/")]
   public async Task<DriverPositionDto> Create(DriverPositionDto driverPositionDto)
   {
-    var driverPosition = await _trackingService.RegisterPosition(driverPositionDto.DriverId,
-      driverPositionDto.Latitude, driverPositionDto.Longitude);
+    var driverPosition = await _trackingService.RegisterPosition(
+      driverPositionDto.DriverId,
+      driverPositionDto.Latitude, 
+      driverPositionDto.Longitude,
+      driverPositionDto.SeenAt);
     return ToDto(driverPosition);
   }
 

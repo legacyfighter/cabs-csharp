@@ -16,10 +16,10 @@ public class TransactionalDriverTrackingService : IDriverTrackingService
     _transactions = transactions;
   }
   
-  public async Task<DriverPosition> RegisterPosition(long? driverId, double latitude, double longitude)
+  public async Task<DriverPosition> RegisterPosition(long? driverId, double latitude, double longitude, Instant seenAt)
   {
     await using var tx = await _transactions.BeginTransaction();
-    var position = await _inner.RegisterPosition(driverId, latitude, longitude);
+    var position = await _inner.RegisterPosition(driverId, latitude, longitude, seenAt);
     await tx.Commit();
     return position;
   }

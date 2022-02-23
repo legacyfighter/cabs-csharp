@@ -6,6 +6,6 @@ namespace LegacyFighter.Cabs.Service;
 
 public interface IDriverTrackingService
 {
-  Task<DriverPosition> RegisterPosition(long? driverId, double latitude, double longitude);
+  Task<DriverPosition> RegisterPosition(long? driverId, double latitude, double longitude, Instant seenAt);
   Task<Distance> CalculateTravelledDistance(long? driverId, Instant from, Instant to);
 }

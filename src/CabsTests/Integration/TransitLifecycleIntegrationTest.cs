@@ -4,6 +4,7 @@ using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Service;
 using LegacyFighter.CabsTests.Common;
 using Microsoft.Extensions.DependencyInjection;
+using NodaTime;
 
 namespace LegacyFighter.CabsTests.Integration;
 
@@ -453,7 +454,7 @@ public class TransitLifeCycleIntegrationTest
     var driver = await Fixtures.ADriver();
     await Fixtures.DriverHasFee(driver, DriverFee.FeeTypes.Flat, 10);
     await DriverSessionService.LogIn(driver.Id, plateNumber, CarType.CarClasses.Van, "BRAND");
-    await DriverTrackingService.RegisterPosition(driver.Id, 1, 1);
+    await DriverTrackingService.RegisterPosition(driver.Id, 1, 1, SystemClock.Instance.GetCurrentInstant());
     return driver.Id;
   }
 
@@ -462,7 +463,7 @@ public class TransitLifeCycleIntegrationTest
     var driver = await Fixtures.ADriver();
     await Fixtures.DriverHasFee(driver, DriverFee.FeeTypes.Flat, 10);
     await DriverSessionService.LogIn(driver.Id, plateNumber, CarType.CarClasses.Van, "BRAND");
-    await DriverTrackingService.RegisterPosition(driver.Id, 1000, 1000);
+    await DriverTrackingService.RegisterPosition(driver.Id, 1000, 1000, SystemClock.Instance.GetCurrentInstant());
     return driver.Id;
   }
 

@@ -126,7 +126,7 @@ public class CreateDriverReportIntegrationTest
     Clock.GetCurrentInstant().Returns(when);
     var driverId = driver.Id;
     await DriverSessionService.LogIn(driverId, plateNumber, carClass, carBrand);
-    await DriverTrackingService.RegisterPosition(driverId, 10, 20);
+    await DriverTrackingService.RegisterPosition(driverId, 10, 20, SystemClock.Instance.GetCurrentInstant());
     var from = await Address("PL", "MAZ", "WAW", "STREET", 1, 10, 20);
     var destination = await Address("PL", "MAZ", "WAW", "STREET", 100, 10.01, 20.01);
     var transit = await TransitService.CreateTransit(client.Id, from, destination, carClass);
