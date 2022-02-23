@@ -5,6 +5,7 @@ namespace LegacyFighter.Cabs.Config;
 public class FeatureFlags
 {
   public const string DriverReportSql = "DriverReportSql";
+  public const string DriverReportCreationReconciliation = "DriverReportCreationReconciliation";
   private readonly IFeatureManager _featureManager;
 
   public FeatureFlags(IFeatureManager featureManager)
@@ -15,5 +16,10 @@ public class FeatureFlags
   public async Task<bool> IsDriverReportSqlActive()
   {
     return await _featureManager.IsEnabledAsync(DriverReportSql);
+  }
+
+  public async Task<bool> IsDriverReportCreationReconciliationActive()
+  {
+    return await _featureManager.IsEnabledAsync(DriverReportCreationReconciliation);
   }
 }
