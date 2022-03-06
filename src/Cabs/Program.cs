@@ -24,7 +24,12 @@ builder.Services.AddSingleton(_ => SqLiteDbContext.CreateInMemoryDatabase());
 builder.Services.AddSingleton(ctx => GraphDatabase.Driver(
   ctx.GetRequiredService<IOptions<GraphDatabaseOptions>>().Value.Uri, 
   AuthTokens.None));
-builder.Services.AddSingleton<GraphTransitAnalyzer>();
+builder.Services.AddTransient<GraphTransitAnalyzer>();
+builder.Services.AddTransient<PopulateGraphService>();
+builder.Services.AddTransient<IPopulateGraphService>(ctx => 
+  new TransactionalPopulateGraphService(
+    ctx.GetRequiredService<PopulateGraphService>(),
+    ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddDbContext<SqLiteDbContext>();
 builder.Services.AddScoped<EventsPublisher>();
 builder.Services.AddTransient<ITransactions, Transactions>();

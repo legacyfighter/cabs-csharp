@@ -142,4 +142,10 @@ internal class CabsApp : WebApplicationFactory<Program>
 
   public GraphTransitAnalyzer GraphTransitAnalyzer
     => RequestScope().ServiceProvider.GetRequiredService<GraphTransitAnalyzer>();
+
+  public ITransitRepository TransitRepository
+    => RequestScope().ServiceProvider.GetRequiredService<ITransitRepository>();
+
+  public IPopulateGraphService PopulateGraphService
+    => RequestScope().ServiceProvider.GetRequiredService<IPopulateGraphService>();
 }

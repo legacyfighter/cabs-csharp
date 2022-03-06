@@ -10,17 +10,14 @@ namespace LegacyFighter.Cabs.TransitAnalyzer;
 public class GraphTransitAnalyzer : INotificationHandler<TransitCompleted>
 {
   private readonly IDriver _driver;
-  private readonly ILogger<GraphTransitAnalyzer> _logger;
   private readonly string _addressNodeName;
   private readonly string _transitNodeName;
 
   public GraphTransitAnalyzer(
     IDriver driver, 
-    IOptions<GraphDatabaseOptions> options,
-    ILogger<GraphTransitAnalyzer> logger)
+    IOptions<GraphDatabaseOptions> options)
   {
     _driver = driver;
-    _logger = logger;
     _addressNodeName = options.Value.AddressNodeName ?? "Address";
     _transitNodeName = options.Value.TransitNodeName ?? "Transit";
   }
@@ -45,20 +42,13 @@ public class GraphTransitAnalyzer : INotificationHandler<TransitCompleted>
     TransitCompleted transitCompleted, 
     CancellationToken cancellationToken)
   {
-    try
-    {
-      await AddTransitBetweenAddresses(
-        transitCompleted.ClientId,
-        transitCompleted.TransitId,
-        transitCompleted.AddressFromHash,
-        transitCompleted.AddressToHash,
-        transitCompleted.Started,
-        transitCompleted.CompleteAt);
-    }
-    catch (Exception e)
-    {
-      _logger.LogError(e, $"Error while sending {nameof(TransitCompleted)} event.");
-    }
+    await AddTransitBetweenAddresses(
+      transitCompleted.ClientId,
+      transitCompleted.TransitId,
+      transitCompleted.AddressFromHash,
+      transitCompleted.AddressToHash,
+      transitCompleted.Started,
+      transitCompleted.CompleteAt);
   }
 
   public async Task AddTransitBetweenAddresses(

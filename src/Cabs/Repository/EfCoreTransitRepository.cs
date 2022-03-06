@@ -14,6 +14,8 @@ public interface ITransitRepository
   Task<List<Transit>> FindAllByClientAndFromAndPublishedAfterAndStatusOrderByDateTimeDesc(Client client, Address from,
     Instant? when, Transit.Statuses status);
 
+  Task<List<Transit>> FindAllByStatus(Transit.Statuses status);
+
   Task<List<Transit>> FindByClient(Client client);
   Task<Transit> Find(long? transitId);
   Task<Transit> Save(Transit transit);
@@ -52,6 +54,11 @@ internal class EfCoreTransitRepository : ITransitRepository
     return await _context.Transits
       .Where(t => t.Client == client && t.From == from && t.Published > when && t.Status == status)
       .OrderByDescending(t => t.DateTime).ToListAsync();
+  }
+
+  public async Task<List<Transit>> FindAllByStatus(Transit.Statuses status)
+  {
+    return await _context.Transits.Where(t => t.Status == status).ToListAsync();
   }
 
   public async Task<List<Transit>> FindByClient(Client client)
