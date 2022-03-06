@@ -6,6 +6,7 @@ using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Entity.Miles;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
@@ -15,6 +16,7 @@ namespace LegacyFighter.Cabs.Repository;
 public class SqLiteDbContext : DbContext
 {
   private readonly DbConnection _connection;
+  private readonly EventsPublisher _eventsPublisher;
   public DbSet<Address> Addresses { get; set; }
   public DbSet<AwardedMiles> AwardedMiles { get; set; }
   public DbSet<AwardsAccount> AwardsAccounts { get; set; }
@@ -43,14 +45,19 @@ public class SqLiteDbContext : DbContext
     return connection;
   }
 
-  public SqLiteDbContext(DbConnection connection)
+  public SqLiteDbContext(DbConnection connection, EventsPublisher eventsPublisher)
   {
     _connection = connection;
+    _eventsPublisher = eventsPublisher;
   }
 
   protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
   {
     optionsBuilder.UseLazyLoadingProxies().UseSqlite(_connection);
+    optionsBuilder.AddInterceptors(new List<IInterceptor>
+    {
+      new EventFlushInterceptor(_eventsPublisher)
+    });
     optionsBuilder
       .LogTo(Console.WriteLine)
       .EnableSensitiveDataLogging()

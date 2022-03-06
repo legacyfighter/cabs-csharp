@@ -15,7 +15,7 @@ public class Fixtures
   private readonly ITransitRepository _transitRepository;
   private readonly IDriverFeeRepository _feeRepository;
   private readonly IClientRepository _clientRepository;
-  private readonly AddressRepository _addressRepository;
+  private readonly IAddressRepository _addressRepository;
   private readonly IDriverService _driverService;
   private readonly ICarTypeService _carTypeService;
   private readonly IClaimService _claimService;
@@ -29,7 +29,7 @@ public class Fixtures
     ITransitRepository transitRepository,
     IDriverFeeRepository feeRepository,
     IClientRepository clientRepository,
-    AddressRepository addressRepository,
+    IAddressRepository addressRepository,
     IDriverService driverService,
     ICarTypeService carTypeService,
     IClaimService claimService,

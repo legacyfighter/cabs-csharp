@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using LegacyFighter.Cabs.TransitAnalyzer;
+﻿using LegacyFighter.Cabs.TransitAnalyzer;
 using LegacyFighter.CabsTests.Common;
 using NodaTime;
 
@@ -13,10 +12,7 @@ public class GraphTransitAnalyzerIntegrationTest : TestWithGraphDb
   [SetUp]
   public void InitializeApp()
   {
-    _app = CabsApp.CreateInstance(new Dictionary<string, string>
-    {
-      ["GraphDatabase:Uri"] = Neo4JBoltUri
-    });
+    _app = CabsApp.CreateInstance(ConfigurationOverridingGraphDatabaseUri());
   }
 
   [TearDown]

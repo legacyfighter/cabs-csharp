@@ -8,9 +8,9 @@ public class TransitAnalyzer : ITransitAnalyzer
 {
   private readonly ITransitRepository _transitRepository;
   private readonly IClientRepository _clientRepository;
-  private readonly AddressRepository _addressRepository;
+  private readonly IAddressRepository _addressRepository;
 
-  public TransitAnalyzer(ITransitRepository transitRepository, IClientRepository clientRepository, AddressRepository addressRepository)
+  public TransitAnalyzer(ITransitRepository transitRepository, IClientRepository clientRepository, IAddressRepository addressRepository)
   {
     _transitRepository = transitRepository;
     _clientRepository = clientRepository;

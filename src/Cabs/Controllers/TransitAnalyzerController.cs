@@ -1,5 +1,6 @@
 using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Service;
+using LegacyFighter.Cabs.Repository;
+using LegacyFighter.Cabs.TransitAnalyzer;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LegacyFighter.Cabs.Controllers;
@@ -8,21 +9,30 @@ namespace LegacyFighter.Cabs.Controllers;
 [Route("[controller]")]
 public class TransitAnalyzerController
 {
-  private readonly ITransitAnalyzer _transitAnalyzer;
+  private readonly GraphTransitAnalyzer _graphTransitAnalyzer;
+  private readonly IAddressRepository _addressRepository;
 
-  public TransitAnalyzerController(ITransitAnalyzer transitAnalyzer)
+  public TransitAnalyzerController(
+    GraphTransitAnalyzer graphTransitAnalyzer,
+    IAddressRepository addressRepository)
   {
-    _transitAnalyzer = transitAnalyzer;
+    _graphTransitAnalyzer = graphTransitAnalyzer;
+    _addressRepository = addressRepository;
   }
 
   [HttpGet("/transitAnalyze/{clientId}/{addressId}")]
-  public async Task<AnalyzedAddressesDto> Analyze( long? clientId, long? addressId)
+  public async Task<AnalyzedAddressesDto> Analyze(long? clientId, long? addressId)
   {
-    var addresses = await _transitAnalyzer.Analyze(clientId, addressId);
-    var addressDtOs = addresses
-      .Select(a=> new AddressDto(a))
-      .ToList();
+    
+    var hashes = await _graphTransitAnalyzer.Analyze(clientId, await _addressRepository.FindHashById(addressId));
+    var addressDtOs = (await Task.WhenAll(
+      hashes.Select(async hash => await MapToAddressDto(hash)))).ToList();
 
     return new AnalyzedAddressesDto(addressDtOs);
+  }
+
+  private async Task<AddressDto> MapToAddressDto(long? hash) 
+  {
+    return new AddressDto(await _addressRepository.GetByHash((int)hash.Value));
   }
 }

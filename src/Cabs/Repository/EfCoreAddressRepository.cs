@@ -8,6 +8,7 @@ public interface IAddressRepositoryInterface
   Task<Address?> FindByHash(int hash);
   Task<Address> Find(long? id);
   Task<Address> Save(Address address);
+  async Task<int?> FindHashById(long? id) => (await Find(id)).Hash;
 }
 
 public class EfCoreAddressRepository : IAddressRepositoryInterface

@@ -25,7 +25,7 @@ public class CreateDriverReportIntegrationTest
   private IDriverSessionService DriverSessionService => _app.DriverSessionService;
   private ICarTypeService CarTypeService => _app.CarTypeService;
   private DriverReportController DriverReportController => _app.DriverReportController;
-  private AddressRepository AddressRepository => _app.AddressRepository;
+  private IAddressRepository AddressRepository => _app.AddressRepository;
   private IClaimService ClaimService => _app.ClaimService;
 
   [SetUp]

@@ -1,6 +1,8 @@
+using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Entity.Events;
 using LegacyFighter.Cabs.Repository;
 using NodaTime;
 
@@ -19,10 +21,11 @@ public class TransitService : ITransitService
   private readonly IDriverSessionRepository _driverSessionRepository;
   private readonly ICarTypeService _carTypeService;
   private readonly IGeocodingService _geocodingService;
-  private readonly AddressRepository _addressRepository;
+  private readonly IAddressRepository _addressRepository;
   private readonly IDriverFeeService _driverFeeService;
   private readonly IClock _clock;
   private readonly IAwardsService _awardsService;
+  private readonly EventsPublisher _eventsPublisher;
 
   public TransitService(
     IDriverRepository driverRepository,
@@ -35,10 +38,11 @@ public class TransitService : ITransitService
     IDriverSessionRepository driverSessionRepository,
     ICarTypeService carTypeService,
     IGeocodingService geocodingService,
-    AddressRepository addressRepository,
+    IAddressRepository addressRepository,
     IDriverFeeService driverFeeService,
     IClock clock,
-    IAwardsService awardsService)
+    IAwardsService awardsService,
+    EventsPublisher eventsPublisher)
   {
     _driverRepository = driverRepository;
     _transitRepository = transitRepository;
@@ -54,6 +58,7 @@ public class TransitService : ITransitService
     _driverFeeService = driverFeeService;
     _clock = clock;
     _awardsService = awardsService;
+    _eventsPublisher = eventsPublisher;
   }
 
   public async Task<Transit> CreateTransit(TransitDto transitDto)
@@ -445,7 +450,7 @@ public class TransitService : ITransitService
       throw new ArgumentException("Transit does not exist, id = " + transitId);
     }
 
-    // FIXME later: add some exceptions handling
+    // TODO FIXME later: add some exceptions handling
     var geoFrom = _geocodingService.GeocodeAddress(transit.From);
     var geoTo = _geocodingService.GeocodeAddress(transit.To);
     var distance = Distance.OfKm((float) _distanceCalculator.CalculateByMap(geoFrom[0], geoFrom[1], geoTo[0], geoTo[1]));
@@ -457,6 +462,15 @@ public class TransitService : ITransitService
     await _awardsService.RegisterMiles(transit.Client.Id, transitId);
     await _transitRepository.Save(transit);
     await _invoiceGenerator.Generate(transit.Price.IntValue, transit.Client.Name + " " + transit.Client.LastName);
+    await _eventsPublisher.Publish(
+      new TransitCompleted(
+        transit.Client.Id,
+        transitId,
+        transit.From.Hash,
+        transit.To.Hash,
+        transit.Started.Value,
+        transit.CompleteAt.Value,
+        _clock.GetCurrentInstant()));
   }
 
   public async Task<TransitDto> LoadTransit(long? id)

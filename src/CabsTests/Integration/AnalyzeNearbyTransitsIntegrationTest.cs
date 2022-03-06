@@ -1,5 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using FluentAssertions.Extensions;
 using LegacyFighter.Cabs.Controllers;
+using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Service;
 using LegacyFighter.CabsTests.Common;
@@ -8,7 +11,7 @@ using NodaTime;
 
 namespace LegacyFighter.CabsTests.Integration;
 
-public class AnalyzeNearbyTransitsIntegrationTest
+public class AnalyzeNearbyTransitsIntegrationTest : TestWithGraphDb
 {
   private CabsApp _app = default!;
   private Fixtures Fixtures => _app.Fixtures;
@@ -25,7 +28,7 @@ public class AnalyzeNearbyTransitsIntegrationTest
     {
       collection.AddSingleton(Clock);
       collection.AddSingleton(GeocodingService);
-    });
+    }, ConfigurationOverridingGraphDatabaseUri());
     await Fixtures.AnActiveCarCategory(CarType.CarClasses.Van);
     GeocodingService.GeocodeAddress(Arg.Any<Address>()).Returns(new double[] { 1, 1 });
   }
@@ -78,13 +81,12 @@ public class AnalyzeNearbyTransitsIntegrationTest
     await Fixtures.ARequestedAndCompletedTransit(50, Instant.FromUtc(2021, 2, 1, 0, 50),
       Instant.FromUtc(2021, 2, 1, 0, 55), client, driver, address4, address5, Clock);
 
-    //when
-    var analyzedAddressesDto = await TransitAnalyzerController.Analyze(client.Id, address1.Id);
-
-    //then
-    // 1-2-5-4-5
-    analyzedAddressesDto.Addresses.Select(dto => dto.Hash).ToList()
-      .Should().Equal(address1.Hash, address2.Hash, address5.Hash, address4.Hash, address5.Hash);
+    await AddressesContainExactly(
+      //when
+      async() => await TransitAnalyzerController.Analyze(client.Id, address1.Id), 
+      //then
+      // 1-2-5-4-5
+      address1, address2, address5, address4, address5);
   }
 
   [Test]
@@ -132,13 +134,12 @@ public class AnalyzeNearbyTransitsIntegrationTest
     await Fixtures.ARequestedAndCompletedTransit(50, Instant.FromUtc(2021, 2, 1, 0, 50),
       Instant.FromUtc(2021, 2, 1, 0, 55), client4, driver, address4, address5, Clock);
 
-    //when
-    var analyzedAddressesDto = await TransitAnalyzerController.Analyze(client1.Id, address1.Id);
-
-    //then
-    // 1-2-3-4
-    analyzedAddressesDto.Addresses.Select(dto => dto.Hash).ToList()
-      .Should().Equal(address1.Hash, address2.Hash, address3.Hash, address4.Hash);
+    await AddressesContainExactly(
+      //when
+      async() => await TransitAnalyzerController.Analyze(client1.Id, address1.Id), 
+      //then
+      // 1-2-3-4
+      address1, address2, address3, address4);
   }
 
   [Test]
@@ -168,13 +169,12 @@ public class AnalyzeNearbyTransitsIntegrationTest
     await Fixtures.ARequestedAndCompletedTransit(50, Instant.FromUtc(2021, 1, 1, 1, 10),
       Instant.FromUtc(2021, 1, 1, 1, 15), client, driver, address5, address1, Clock);
 
-    //when
-    var analyzedAddressesDto = await TransitAnalyzerController.Analyze(client.Id, address1.Id);
-
-    //then
-    // 1-2-3-4
-    analyzedAddressesDto.Addresses.Select(dto => dto.Hash).ToList()
-      .Should().Equal(address1.Hash, address2.Hash, address3.Hash, address4.Hash);
+    await AddressesContainExactly(
+      //when
+      async() => await TransitAnalyzerController.Analyze(client.Id, address1.Id), 
+      //then
+      // 1-2-3-4
+      address1, address2, address3, address4);
   }
 
   [Test]
@@ -219,17 +219,15 @@ public class AnalyzeNearbyTransitsIntegrationTest
     await Fixtures.ARequestedAndCompletedTransit(50, Instant.FromUtc(2020, 2, 1, 0, 50),
       Instant.FromUtc(2020, 2, 1, 0, 55), client, driver, address4, address5, Clock);
 
-    //when
-    var analyzedAddressesDto = await TransitAnalyzerController.Analyze(client.Id, address5.Id);
-
-    //then
-    // 5-1-2-3
-    analyzedAddressesDto.Addresses.Select(dto => dto.Hash).ToList()
-      .Should().Equal(address5.Hash, address1.Hash, address2.Hash, address3.Hash);
+    await AddressesContainExactly(
+      //when
+      async() => await TransitAnalyzerController.Analyze(client.Id, address5.Id), 
+      //then
+      // 5-1-2-3
+      address5, address1, address2, address3);
   }
 
   [Test]
-  // pytanie za 100 punktów, czy ten test będzie działał na grafie, bo tam jest warunek na ścieżkę o długości przynajmniej 1...
   public async Task CanFindLongTravelBetweenOthers()
   {
     //given
@@ -253,12 +251,22 @@ public class AnalyzeNearbyTransitsIntegrationTest
     await Fixtures.ARequestedAndCompletedTransit(50, Instant.FromUtc(2021, 1, 1, 0, 20),
       Instant.FromUtc(2021, 1, 1, 0, 25), client, driver, address4, address5, Clock);
 
-    //when
-    var analyzedAddressesDto = await TransitAnalyzerController.Analyze(client.Id, address1.Id);
+    await AddressesContainExactly(
+      //when
+      async() => await TransitAnalyzerController.Analyze(client.Id, address1.Id), 
+      //then
+      //1-2
+      address1, address2, address3);
+  }
 
-    //then
-    //1-2
-    analyzedAddressesDto.Addresses.Select(dto => dto.Hash).ToList()
-      .Should().Equal(address1.Hash, address2.Hash, address3.Hash);
+  private async Task AddressesContainExactly(Func<Task<AnalyzedAddressesDto>> actualSource, params Address[] addresses)
+  {
+    await TransitAnalyzerController.Awaiting(new Func<TransitAnalyzerController, Task>(async _ =>
+    {
+      var analyzedAddressesDto = await actualSource();
+
+      var expectedHashes = addresses.Select(a => a.Hash).ToList();
+      analyzedAddressesDto.Addresses.Select(a => a.Hash).ToList().Should().Equal(expectedHashes);
+    })).Should().NotThrowAfterAsync(5.Seconds(), 1.Seconds());
   }
 }

@@ -49,6 +49,12 @@ internal class CabsApp : WebApplicationFactory<Program>
     return cabsApp;
   }
 
+  public static CabsApp CreateInstance(Action<IServiceCollection> customization, Dictionary<string, string> configurationOverrides)
+  {
+    var cabsApp = new CabsApp(customization, configurationOverrides);
+    return cabsApp;
+  }
+
   protected override void ConfigureWebHost(IWebHostBuilder builder)
   {
     base.ConfigureWebHost(builder);
@@ -125,8 +131,8 @@ internal class CabsApp : WebApplicationFactory<Program>
   public DriverReportController DriverReportController 
     => RequestScope().ServiceProvider.GetRequiredService<DriverReportController>();
 
-  public AddressRepository AddressRepository
-    => RequestScope().ServiceProvider.GetRequiredService<AddressRepository>();
+  public IAddressRepository AddressRepository
+    => RequestScope().ServiceProvider.GetRequiredService<IAddressRepository>();
 
   public ITravelledDistanceService TravelledDistanceService
     => RequestScope().ServiceProvider.GetRequiredService<ITravelledDistanceService>();

@@ -1,15 +1,28 @@
-﻿using Neo4j.Driver;
+﻿using LegacyFighter.Cabs.Config;
+using LegacyFighter.Cabs.Entity.Events;
+using MediatR;
+using Microsoft.Extensions.Options;
+using Neo4j.Driver;
 using NodaTime;
 
 namespace LegacyFighter.Cabs.TransitAnalyzer;
 
-public class GraphTransitAnalyzer
+public class GraphTransitAnalyzer : INotificationHandler<TransitCompleted>
 {
   private readonly IDriver _driver;
+  private readonly ILogger<GraphTransitAnalyzer> _logger;
+  private readonly string _addressNodeName;
+  private readonly string _transitNodeName;
 
-  public GraphTransitAnalyzer(IDriver driver)
+  public GraphTransitAnalyzer(
+    IDriver driver, 
+    IOptions<GraphDatabaseOptions> options,
+    ILogger<GraphTransitAnalyzer> logger)
   {
     _driver = driver;
+    _logger = logger;
+    _addressNodeName = options.Value.AddressNodeName ?? "Address";
+    _transitNodeName = options.Value.TransitNodeName ?? "Transit";
   }
 
   public async Task<List<long?>> Analyze(long? clientId, int? addressHash)
@@ -17,7 +30,7 @@ public class GraphTransitAnalyzer
     await using var session = _driver.AsyncSession();
     await using var t = await session.BeginTransactionAsync();
     var result = await t.RunAsync(
-      $"MATCH p=(a:Address)-[:Transit*]->(:Address) WHERE a.hash = {addressHash} " +
+      $"MATCH p=(a:{_addressNodeName})-[:{_transitNodeName}*]->(:{_addressNodeName}) WHERE a.hash = {addressHash} " +
       $"AND (ALL(x IN range(1, length(p)-1) WHERE ((relationships(p)[x]).clientId = {clientId}) " +
       "AND 0 <= duration.inSeconds( (relationships(p)[x-1]).completeAt, (relationships(p)[x]).started).minutes <= 15)) " +
       "AND length(p) >= 1 " +
@@ -26,6 +39,26 @@ public class GraphTransitAnalyzer
     var hashes = ((List<object>)(await result.ToListAsync())[0].Values["hashes"]).Cast<long?>().ToList();
     await t.CommitAsync();
     return hashes;
+  }
+
+  async Task INotificationHandler<TransitCompleted>.Handle(
+    TransitCompleted transitCompleted, 
+    CancellationToken cancellationToken)
+  {
+    try
+    {
+      await AddTransitBetweenAddresses(
+        transitCompleted.ClientId,
+        transitCompleted.TransitId,
+        transitCompleted.AddressFromHash,
+        transitCompleted.AddressToHash,
+        transitCompleted.Started,
+        transitCompleted.CompleteAt);
+    }
+    catch (Exception e)
+    {
+      _logger.LogError(e, $"Error while sending {nameof(TransitCompleted)} event.");
+    }
   }
 
   public async Task AddTransitBetweenAddresses(
@@ -38,12 +71,12 @@ public class GraphTransitAnalyzer
   {
     await using var session = _driver.AsyncSession();
     await using var t = await session.BeginTransactionAsync();
-    await t.RunAsync($"MERGE (from:Address {{hash: {addressFromHash}}})");
-    await t.RunAsync($"MERGE (to:Address {{hash: {addressToHash}}})");
+    await t.RunAsync($"MERGE (from:{_addressNodeName} {{hash: {addressFromHash}}})");
+    await t.RunAsync($"MERGE (to:{_addressNodeName} {{hash: {addressToHash}}})");
     await t.RunAsync("MATCH " +
-                     $"(from:Address {{hash: {addressFromHash}}}), " +
-                     $"(to:Address {{hash: {addressToHash}}}) " +
-                     "CREATE (from)-[:Transit {" +
+                     $"(from:{_addressNodeName} {{hash: {addressFromHash}}}), " +
+                     $"(to:{_addressNodeName} {{hash: {addressToHash}}}) " +
+                     $"CREATE (from)-[:{_transitNodeName} {{" +
                      $"clientId: {clientId}, " +
                      $"transitId: {transitId}, " +
                      $"started: datetime(\"{started}\"), " +

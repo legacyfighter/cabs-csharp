@@ -5,6 +5,7 @@ using LegacyFighter.Cabs.DriverReports.TravelledDistances;
 using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.Service;
 using LegacyFighter.Cabs.TransitAnalyzer;
+using MediatR;
 using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
 using Neo4j.Driver;
@@ -14,6 +15,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddOptions();
+builder.Services.AddSingleton<EventLoop>();
+builder.Services.AddHostedService(ctx => ctx.GetRequiredService<EventLoop>());
+builder.Services.AddMediatR(typeof(Program));
 builder.Services.Configure<GraphDatabaseOptions>(
   builder.Configuration.GetSection("GraphDatabase"));
 builder.Services.AddSingleton(_ => SqLiteDbContext.CreateInMemoryDatabase());
@@ -22,6 +26,7 @@ builder.Services.AddSingleton(ctx => GraphDatabase.Driver(
   AuthTokens.None));
 builder.Services.AddSingleton<GraphTransitAnalyzer>();
 builder.Services.AddDbContext<SqLiteDbContext>();
+builder.Services.AddScoped<EventsPublisher>();
 builder.Services.AddTransient<ITransactions, Transactions>();
 builder.Services.AddTransient<IAddressRepositoryInterface, EfCoreAddressRepository>();
 builder.Services.AddTransient<IDriverRepository, EfCoreDriverRepository>();
@@ -111,6 +116,10 @@ builder.Services.AddTransient<ClaimNumberGenerator>();
 builder.Services.AddSingleton<IAppProperties, AppProperties>();
 builder.Services.AddSingleton<IClock>(_ => SystemClock.Instance);
 builder.Services.AddTransient<AddressRepository>();
+builder.Services.AddTransient<IAddressRepository>(ctx => 
+  new TransactionalAddressRepository(
+    ctx.GetRequiredService<AddressRepository>(),
+    ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddFeatureManagement();
 builder.Services.AddControllers().AddControllersAsServices();
 

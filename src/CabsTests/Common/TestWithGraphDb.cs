@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using DotNet.Testcontainers.Containers.Builders;
 using DotNet.Testcontainers.Containers.Modules;
 using DotNet.Testcontainers.Containers.OutputConsumers;
@@ -12,9 +14,9 @@ public class TestWithGraphDb
   private NUnitConsumer _outputConsumer = default!;
   private const int InternalHttpPort = 7474;
   private const int InternalBoltPort = 7687;
-  protected string Neo4JBoltUri => $"neo4j://{_neo4J.Hostname}:{_neo4J.GetMappedPublicPort(InternalBoltPort)}";
+  private string Neo4JBoltUri => $"neo4j://{_neo4J.Hostname}:{_neo4J.GetMappedPublicPort(InternalBoltPort)}";
 
-  [SetUp]
+  [OneTimeSetUp]
   public async Task SetUp()
   {
     _outputConsumer = new NUnitConsumer();
@@ -32,11 +34,21 @@ public class TestWithGraphDb
     await _neo4J.StartAsync();
   }
 
-  [TearDown]
+  [OneTimeTearDown]
   public async Task TearDown()
   {
     _outputConsumer.Dispose();
     await _neo4J.DisposeAsync();
+  }
+
+  protected Dictionary<string, string> ConfigurationOverridingGraphDatabaseUri()
+  {
+    return new Dictionary<string, string>
+    {
+      ["GraphDatabase:Uri"] = Neo4JBoltUri,
+      ["GraphDatabase:AddressNodeName"] = $"Address{Guid.NewGuid():N}",
+      ["GraphDatabase:TransitNodeName"] = $"Transit{Guid.NewGuid():N}"
+    };
   }
 
   private class NUnitConsumer : IOutputConsumer
@@ -61,5 +73,4 @@ public class TestWithGraphDb
     public Stream Stdout { get; }
     public Stream Stderr { get; }
   }
-
 }
