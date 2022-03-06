@@ -7,7 +7,6 @@ namespace LegacyFighter.Cabs.Service;
 
 public class ClaimNumberGenerator
 {
-
   private readonly IClaimRepository _claimRepository;
 
   public ClaimNumberGenerator(IClaimRepository claimRepository)

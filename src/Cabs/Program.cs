@@ -4,14 +4,23 @@ using LegacyFighter.Cabs.DriverReports;
 using LegacyFighter.Cabs.DriverReports.TravelledDistances;
 using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.Service;
+using LegacyFighter.Cabs.TransitAnalyzer;
+using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
+using Neo4j.Driver;
 using NodaTime;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+builder.Services.AddOptions();
+builder.Services.Configure<GraphDatabaseOptions>(
+  builder.Configuration.GetSection("GraphDatabase"));
 builder.Services.AddSingleton(_ => SqLiteDbContext.CreateInMemoryDatabase());
+builder.Services.AddSingleton(ctx => GraphDatabase.Driver(
+  ctx.GetRequiredService<IOptions<GraphDatabaseOptions>>().Value.Uri, 
+  AuthTokens.None));
+builder.Services.AddSingleton<GraphTransitAnalyzer>();
 builder.Services.AddDbContext<SqLiteDbContext>();
 builder.Services.AddTransient<ITransactions, Transactions>();
 builder.Services.AddTransient<IAddressRepositoryInterface, EfCoreAddressRepository>();
@@ -124,4 +133,3 @@ app.Run();
 public partial class Program
 {
 }
-
