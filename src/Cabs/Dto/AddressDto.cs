@@ -20,6 +20,7 @@ public class AddressDto
     AdditionalNumber = a.AdditionalNumber;
     PostalCode = a.PostalCode;
     Name = a.Name;
+    Hash = a.Hash;
   }
 
   public AddressDto(string country, string city, string street, int? buildingNumber)
@@ -45,6 +46,8 @@ public class AddressDto
   public string PostalCode { get; set; }
 
   public string Name { get; set; }
+
+  public int Hash { get; set; }
 
   public Address ToAddressEntity()
   {

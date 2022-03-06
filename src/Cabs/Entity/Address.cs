@@ -17,6 +17,15 @@ public class Address : BaseEntity
     BuildingNumber = buildingNumber;
   }
 
+  public Address(string country, string district, string city, string street, int buildingNumber) 
+  {
+    Country = country;
+    District = district;
+    City = city;
+    Street = street;
+    BuildingNumber = buildingNumber;
+  }
+
   public string Country { set; get; }
   public string District { get; set; }
   public string City { get; set; }

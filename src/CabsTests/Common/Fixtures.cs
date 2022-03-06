@@ -20,6 +20,9 @@ public class Fixtures
   private readonly ICarTypeService _carTypeService;
   private readonly IClaimService _claimService;
   private readonly IAwardsService _awardsService;
+  private readonly ITransitService _transitService;
+  private readonly IDriverSessionService _driverSessionService;
+  private readonly IDriverTrackingService _driverTrackingService;
   private readonly IDriverAttributeRepository _driverAttributeRepository;
 
   public Fixtures(
@@ -29,8 +32,11 @@ public class Fixtures
     AddressRepository addressRepository,
     IDriverService driverService,
     ICarTypeService carTypeService,
-    IClaimService claimService, 
-    IAwardsService awardsService, 
+    IClaimService claimService,
+    IAwardsService awardsService,
+    ITransitService transitService,
+    IDriverSessionService driverSessionService,
+    IDriverTrackingService driverTrackingService,
     IDriverAttributeRepository driverAttributeRepository)
   {
     _transitRepository = transitRepository;
@@ -42,6 +48,9 @@ public class Fixtures
     _clientRepository = clientRepository;
     _addressRepository = addressRepository;
     _driverAttributeRepository = driverAttributeRepository;
+    _transitService = transitService;
+    _driverSessionService = driverSessionService;
+    _driverTrackingService = driverTrackingService;
   }
 
   public Task<Client> AClient()
@@ -112,6 +121,41 @@ public class Fixtures
       status, "");
   }
 
+  public async Task<Driver> ANearbyDriver(string plateNumber) 
+  {
+    var driver = await ADriver();
+    await DriverHasFee(driver, DriverFee.FeeTypes.Flat, 10);
+    await _driverSessionService.LogIn(driver.Id, plateNumber, CarType.CarClasses.Van, "BRAND");
+    await _driverTrackingService.RegisterPosition(driver.Id, 1, 1, SystemClock.Instance.GetCurrentInstant());
+    return driver;
+  }
+
+  public async Task<Transit> ARequestedAndCompletedTransit(
+    int price,
+    Instant publishedAt,
+    Instant completedAt,
+    Client client,
+    Driver driver,
+    Address from,
+    Address destination)
+  {
+    from = await _addressRepository.Save(from);
+    destination = await _addressRepository.Save(destination);
+    var transit = new Transit(
+      from,
+      destination,
+      client,
+      null,
+      publishedAt,
+      Distance.Zero);
+    transit.PublishAt(publishedAt);
+    transit.ProposeTo(driver);
+    transit.AcceptBy(driver, publishedAt);
+    transit.Start(publishedAt);
+    transit.CompleteTransitAt(completedAt, destination, Distance.OfKm(1));
+    transit.Price = new Money(price);
+    return await _transitRepository.Save(transit);
+  }
 
   public async Task<Transit> ACompletedTransitAt(int price, Instant when)
   {
@@ -120,23 +164,42 @@ public class Fixtures
     return await ACompletedTransitAt(price, when, client, driver);
   }
 
-  public async Task<Transit> ACompletedTransitAt(int price, Instant when, Client client, Driver driver) 
+  public async Task<Transit> ACompletedTransitAt(int price, Instant publishedAt, Instant completedAt, Client client, Driver driver)
   {
-    var destination = await _addressRepository.Save(new Address("Polska", "Warszawa", "Zytnia", 20));
-    var transit = new Transit(
-      await _addressRepository.Save(new Address("Polska", "Warszawa", "M³ynarska", 20)),
-      destination,
-      client,
-      null,
-      when,
-      Distance.Zero);
-    transit.PublishAt(when);
-    transit.ProposeTo(driver);
-    transit.AcceptBy(driver, SystemClock.Instance.GetCurrentInstant());
-    transit.Start(SystemClock.Instance.GetCurrentInstant());
-    transit.CompleteTransitAt(SystemClock.Instance.GetCurrentInstant(), destination, Distance.OfKm(20));
-    transit.Price = new Money(price);
-    return await _transitRepository.Save(transit);
+    var destination = new Address("Polska", "Warszawa", "Zytnia", 20);
+    var from = new Address("Polska", "Warszawa", "M³ynarska", 20);
+    
+    return await ARequestedAndCompletedTransit(price, publishedAt, completedAt, client, driver, from, destination);
+  }
+
+  public async Task<Transit> ACompletedTransitAt(int price, Instant publishedAt, Client client, Driver driver) 
+  {
+    return await ACompletedTransitAt(price, publishedAt, publishedAt.Plus(Duration.FromMinutes(10)), client, driver);
+  }
+
+  public async Task<Transit> ARequestedAndCompletedTransit(
+    int price,
+    Instant publishedAt,
+    Instant completedAt,
+    Client client,
+    Driver driver,
+    Address from,
+    Address destination,
+    IClock clock)
+  {
+    from = await _addressRepository.Save(from);
+    destination = await _addressRepository.Save(destination);
+
+    clock.GetCurrentInstant().Returns(publishedAt);
+    var transit = await _transitService.CreateTransit(client.Id, from, destination, CarType.CarClasses.Van);
+    await _transitService.PublishTransit(transit.Id);
+    await _transitService.FindDriversForTransit(transit.Id);
+    await _transitService.AcceptTransit(driver.Id, transit.Id);
+    await _transitService.StartTransit(driver.Id, transit.Id);
+    clock.GetCurrentInstant().Returns(completedAt);
+    await _transitService.CompleteTransit(driver.Id, transit.Id, destination);
+
+    return await _transitRepository.Find(transit.Id);
   }
 
   public async Task<CarType> AnActiveCarCategory(CarType.CarClasses carClass)
