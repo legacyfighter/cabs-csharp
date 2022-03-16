@@ -4,6 +4,7 @@ using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.DriverReports.TravelledDistances;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Entity.Miles;
+using LegacyFighter.Cabs.Parties.Model.Parties;
 using LegacyFighter.Cabs.Repair.Legacy.Parts;
 using LegacyFighter.Cabs.Repair.Legacy.User;
 using Microsoft.Data.Sqlite;
@@ -39,6 +40,9 @@ public class SqLiteDbContext : DbContext
   public DbSet<Transit> Transits { get; set; }
   public DbSet<ClaimsResolver> ClaimsResolvers { get; set; }
   public DbSet<TravelledDistance> TravelledDistances { get; set; }
+  public DbSet<Party> Parties { get; set; }
+  public DbSet<PartyRelationship> PartyRelationships { get; set; }
+  public DbSet<PartyRole> PartyRoles { get; set; }
 
   public static DbConnection CreateInMemoryDatabase()
   {
@@ -298,7 +302,25 @@ public class SqLiteDbContext : DbContext
           parts => string.Join(",", parts.Select(p => p.ToString())),
           str => str.Split(",", StringSplitOptions.None).Select(Enum.Parse<Part>).ToHashSet());
     });
-
+    modelBuilder.Entity<Party>(builder =>
+    {
+      builder.HasKey(p => p.Id);
+      builder.Property(p => p.Id).ValueGeneratedNever();
+    });
+    modelBuilder.Entity<PartyRelationship>(builder =>
+    {
+      builder.HasKey(p => p.Id);
+      builder.Property(p => p.Name);
+      builder.Property(p => p.RoleA);
+      builder.Property(p => p.RoleB);
+      builder.HasOne(p => p.PartyA);
+      builder.HasOne(p => p.PartyB);
+    });
+    modelBuilder.Entity<PartyRole>(builder =>
+    {
+      builder.HasKey(p => p.Id);
+      builder.Property(p => p.Name);
+    });
   }
 }
 

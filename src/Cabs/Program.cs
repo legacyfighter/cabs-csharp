@@ -2,6 +2,10 @@ using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Config;
 using LegacyFighter.Cabs.DriverReports;
 using LegacyFighter.Cabs.DriverReports.TravelledDistances;
+using LegacyFighter.Cabs.Parties.Api;
+using LegacyFighter.Cabs.Parties.Infra;
+using LegacyFighter.Cabs.Parties.Model.Parties;
+using LegacyFighter.Cabs.Repair.Api;
 using LegacyFighter.Cabs.Repair.Legacy.Dao;
 using LegacyFighter.Cabs.Repair.Legacy.Service;
 using LegacyFighter.Cabs.Repository;
@@ -133,6 +137,14 @@ builder.Services.AddTransient<JobDoer>();
 builder.Services.AddTransient<IJobDoer>(ctx => new TransactionalJobDoer(
   ctx.GetRequiredService<JobDoer>(),
   ctx.GetRequiredService<ITransactions>()));
+builder.Services.AddTransient<ContractManager>();
+builder.Services.AddTransient<IContractManager>(ctx => new TransactionalContractManager(
+  ctx.GetRequiredService<ContractManager>(),
+  ctx.GetRequiredService<ITransactions>()));
+builder.Services.AddTransient<RepairProcess>();
+builder.Services.AddTransient<PartyMapper>();
+builder.Services.AddTransient<IPartyRepository, EfCorePartyRepository>();
+builder.Services.AddTransient<IPartyRelationshipRepository, EfCorePartyRelationshipRepository>();
 
 builder.Services.AddFeatureManagement();
 builder.Services.AddControllers().AddControllersAsServices();
