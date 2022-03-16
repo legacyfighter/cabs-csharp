@@ -31,6 +31,11 @@ public class Money : IEquatable<Money>
     return new Money((int)Math.Round(percentage * IntValue / 100.0));
   }
 
+  public Money Percentage(double percentage)
+  {
+    return new Money((int)Math.Round(percentage * IntValue / 100));
+  }
+
   public bool Equals(Money other)
   {
     if (ReferenceEquals(null, other)) return false;

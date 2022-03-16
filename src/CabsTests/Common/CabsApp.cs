@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using LegacyFighter.Cabs.Controllers;
 using LegacyFighter.Cabs.DriverReports;
 using LegacyFighter.Cabs.DriverReports.TravelledDistances;
+using LegacyFighter.Cabs.Repair.Legacy.Service;
 using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.Service;
 using LegacyFighter.Cabs.TransitAnalyzer;
@@ -148,4 +149,7 @@ internal class CabsApp : WebApplicationFactory<Program>
 
   public IPopulateGraphService PopulateGraphService
     => RequestScope().ServiceProvider.GetRequiredService<IPopulateGraphService>();
+
+  public IJobDoer JobDoer
+    => RequestScope().ServiceProvider.GetRequiredService<IJobDoer>();
 }

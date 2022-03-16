@@ -2,6 +2,8 @@ using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Config;
 using LegacyFighter.Cabs.DriverReports;
 using LegacyFighter.Cabs.DriverReports.TravelledDistances;
+using LegacyFighter.Cabs.Repair.Legacy.Dao;
+using LegacyFighter.Cabs.Repair.Legacy.Service;
 using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.Service;
 using LegacyFighter.Cabs.TransitAnalyzer;
@@ -125,6 +127,13 @@ builder.Services.AddTransient<IAddressRepository>(ctx =>
   new TransactionalAddressRepository(
     ctx.GetRequiredService<AddressRepository>(),
     ctx.GetRequiredService<ITransactions>()));
+
+builder.Services.AddTransient<UserDao>();
+builder.Services.AddTransient<JobDoer>();
+builder.Services.AddTransient<IJobDoer>(ctx => new TransactionalJobDoer(
+  ctx.GetRequiredService<JobDoer>(),
+  ctx.GetRequiredService<ITransactions>()));
+
 builder.Services.AddFeatureManagement();
 builder.Services.AddControllers().AddControllersAsServices();
 
