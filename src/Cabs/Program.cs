@@ -1,5 +1,6 @@
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Config;
+using LegacyFighter.Cabs.Contracts.Legacy;
 using LegacyFighter.Cabs.DriverReports;
 using LegacyFighter.Cabs.DriverReports.TravelledDistances;
 using LegacyFighter.Cabs.Parties.Api;
@@ -145,6 +146,8 @@ builder.Services.AddTransient<RepairProcess>();
 builder.Services.AddTransient<PartyMapper>();
 builder.Services.AddTransient<IPartyRepository, EfCorePartyRepository>();
 builder.Services.AddTransient<IPartyRelationshipRepository, EfCorePartyRelationshipRepository>();
+
+builder.Services.AddTransient<IUserRepository, EfCoreUserRepository>();
 
 builder.Services.AddFeatureManagement();
 builder.Services.AddControllers().AddControllersAsServices();

@@ -1,5 +1,6 @@
 using System.Data.Common;
 using LegacyFighter.Cabs.Common;
+using LegacyFighter.Cabs.Contracts.Legacy;
 using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.DriverReports.TravelledDistances;
 using LegacyFighter.Cabs.Entity;
@@ -285,6 +286,7 @@ public class SqLiteDbContext : DbContext
     });
 
     MapRepairEntities(modelBuilder);
+    MapContractEntities(modelBuilder);
   }
 
   private void MapRepairEntities(ModelBuilder modelBuilder)
@@ -320,6 +322,27 @@ public class SqLiteDbContext : DbContext
     {
       builder.HasKey(p => p.Id);
       builder.Property(p => p.Name);
+    });
+  }
+
+  private void MapContractEntities(ModelBuilder modelBuilder)
+  {
+    modelBuilder.Entity<Document>(builder =>
+    {
+      builder.MapBaseEntityProperties();
+      builder.HasMany<User>("AssignedUsers").WithMany("AssignedDocuments");
+      builder.HasOne<User>("Creator").WithMany("CreatedDocuments");
+      builder.HasOne<User>("Verifier").WithMany("VerifiedDocuments");
+      builder.Property("Content");
+      builder.Property("Number");
+      builder.Property(x => x.Status).HasConversion<string>();
+    });
+    modelBuilder.Entity<User>(builder =>
+    {
+      builder.MapBaseEntityProperties();
+      builder.HasMany<Document>("AssignedDocuments").WithMany("AssignedUsers");
+      builder.HasMany<Document>("CreatedDocuments").WithOne("Creator");
+      builder.HasMany<Document>("VerifiedDocuments").WithOne("Verifier");
     });
   }
 }
