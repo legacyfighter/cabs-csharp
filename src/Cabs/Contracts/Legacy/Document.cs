@@ -23,9 +23,14 @@ public class Document : BaseAggregateRoot, IPrintable
   public void VerifyBy(User verifier)
   {
     if (Status != DocumentStatus.Draft)
+    {
       throw new InvalidOperationException("Can not verify in status: " + Status);
+    }
+
     if (Creator.Equals(verifier))
+    {
       throw new ArgumentException("Verifier can not verify documents by himself");
+    }
     Verifier = verifier;
     Status = DocumentStatus.Verified;
   }
@@ -33,7 +38,9 @@ public class Document : BaseAggregateRoot, IPrintable
   public virtual void Publish()
   {
     if (Status != DocumentStatus.Verified)
+    {
       throw new InvalidOperationException("Can not publish in status: " + Status);
+    }
     Status = DocumentStatus.Published;
   }
 
@@ -47,10 +54,14 @@ public class Document : BaseAggregateRoot, IPrintable
   public virtual void ChangeTitle(string title)
   {
     if (Status == DocumentStatus.Archived || Status == DocumentStatus.Published)
+    {
       throw new InvalidOperationException("Can not change title in status: " + Status);
+    }
     Title = title;
     if (Status == DocumentStatus.Verified)
+    {
       Status = DocumentStatus.Draft;
+    }
   }
 
   protected bool OverridePublished;
@@ -64,12 +75,15 @@ public class Document : BaseAggregateRoot, IPrintable
     }
 
     if (Status == DocumentStatus.Archived || Status == DocumentStatus.Published)
+    {
       throw new InvalidOperationException("Can not change content in status: " + Status);
+    }
     Content = content;
     if (Status == DocumentStatus.Verified)
+    {
       Status = DocumentStatus.Draft;
+    }
   }
 
   //===============================================================
-
 }

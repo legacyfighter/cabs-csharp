@@ -14,8 +14,8 @@ public class AddressRepository : IAddressRepository
 {
   private readonly IAddressRepositoryInterface _addressRepositoryInterface;
 
-  // FIX ME: To replace with getOrCreate method instead of that?
-  // Actual workaround for address uniqueness problem: assign result from repo.save to variable for later usage
+  // TODO FIX ME: To replace with GetOrCreate method instead of that?
+  // Actual workaround for address uniqueness problem: assign result from repo.Save to variable for later usage
   public AddressRepository(IAddressRepositoryInterface addressRepositoryInterface)
   {
     _addressRepositoryInterface = addressRepositoryInterface;

@@ -43,7 +43,7 @@ public class CalculateTransitDistanceTest
     Assert.AreEqual("0miles", TransitForDistance(0).GetDistance("miles"));
   }
 
-  TransitDto TransitForDistance(float km)
+  private TransitDto TransitForDistance(float km)
   {
     var t = new Transit(new Address(), new Address(), new Client(), null, SystemClock.Instance.GetCurrentInstant(), Distance.OfKm(km))
     {

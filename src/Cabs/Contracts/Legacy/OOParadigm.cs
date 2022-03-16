@@ -20,6 +20,5 @@ internal class ConcreteType : OoParadigm
 {
   protected override void AbstractStep()
   {
-
   }
 }

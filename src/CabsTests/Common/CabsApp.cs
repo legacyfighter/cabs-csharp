@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using LegacyFighter.Cabs.Contracts.Application.Acme.Dynamic;
+using LegacyFighter.Cabs.Contracts.Application.Acme.Straightforward;
+using LegacyFighter.Cabs.Contracts.Application.Editor;
+using LegacyFighter.Cabs.Contracts.Legacy;
 using LegacyFighter.Cabs.Controllers;
 using LegacyFighter.Cabs.DriverReports;
 using LegacyFighter.Cabs.DriverReports.TravelledDistances;
@@ -159,4 +163,16 @@ internal class CabsApp : WebApplicationFactory<Program>
 
   public IContractManager ContractManager
     => RequestScope().ServiceProvider.GetRequiredService<IContractManager>();
+
+  public IDocumentEditor DocumentEditor
+    => RequestScope().ServiceProvider.GetRequiredService<IDocumentEditor>();
+
+  public IDocumentResourceManager DocumentResourceManager
+    => RequestScope().ServiceProvider.GetRequiredService<IDocumentResourceManager>();
+
+  public IUserRepository UserRepository
+    => RequestScope().ServiceProvider.GetRequiredService<IUserRepository>();
+
+  public IAcmeContractProcessBasedOnStraightforwardDocumentModel AcmeContractProcessBasedOnStraightforwardDocumentModel
+    => RequestScope().ServiceProvider.GetRequiredService<IAcmeContractProcessBasedOnStraightforwardDocumentModel>();
 }
