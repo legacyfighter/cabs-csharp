@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Data.Common;
+using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
@@ -187,7 +188,7 @@ public class SqlBasedDriverReportCreator : IDriverReportCreator
       row.IsNull("CompletionDate") ? null : row["CompletionDate"].ToInstant(),
       row.IsNull("ChangeDate") ? null : row["ChangeDate"].ToInstant(),
       row.IsNull("CompletionMode") ? null : Enum.Parse<Claim.CompletionModes>(row["CompletionMode"].ToString()),
-      Enum.Parse<Claim.Statuses>(row["ClaimStatus"].ToString()),
+      Enum.Parse<Statuses>(row["ClaimStatus"].ToString()),
       row["ClaimNo"].ToString());
   }
 

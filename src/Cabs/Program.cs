@@ -9,6 +9,7 @@ using LegacyFighter.Cabs.Contracts.Legacy;
 using LegacyFighter.Cabs.Contracts.Model;
 using LegacyFighter.Cabs.Contracts.Model.Content;
 using LegacyFighter.Cabs.Contracts.Model.State.Dynamic.Acme;
+using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.DriverReports;
 using LegacyFighter.Cabs.DriverReports.TravelledDistances;
 using LegacyFighter.Cabs.Parties.Api;
@@ -22,6 +23,7 @@ using LegacyFighter.Cabs.Service;
 using LegacyFighter.Cabs.TransitAnalyzer;
 using LegacyFighter.Cabs.TransitDetail;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
 using Neo4j.Driver;
@@ -52,6 +54,7 @@ builder.Services.AddTransient<ITransitDetailsFacade>(ctx =>
     ctx.GetRequiredService<TransitDetailsFacade>(),
     ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddDbContext<SqLiteDbContext>();
+builder.Services.AddTransient<DbContext>(ctx => ctx.GetRequiredService<SqLiteDbContext>());
 builder.Services.AddScoped<EventsPublisher>();
 builder.Services.AddTransient<ITransactions, Transactions>();
 builder.Services.AddTransient<IAddressRepositoryInterface, EfCoreAddressRepository>();
@@ -63,9 +66,7 @@ builder.Services.AddTransient<IDriverPositionRepository, EfCoreDriverPositionRep
 builder.Services.AddTransient<IClientRepository, EfCoreClientRepository>();
 builder.Services.AddTransient<ITransitRepository, EfCoreTransitRepository>();
 builder.Services.AddTransient<ITransitDetailsRepository, EfCoreTransitDetailsRepository>();
-builder.Services.AddTransient<IClaimRepository, EfCoreClaimRepository>();
 builder.Services.AddTransient<IAwardsAccountRepository, EfCoreAwardsAccountRepository>();
-builder.Services.AddTransient<IClaimsResolverRepository, EfCoreClaimsResolverRepository>();
 builder.Services.AddTransient<IInvoiceRepository, EfCoreInvoiceRepository>();
 builder.Services.AddTransient<IContractRepository, EfCoreContractRepository>();
 builder.Services.AddTransient<IContractAttachmentDataRepository, EfCoreContractAttachmentDataRepository>();
@@ -74,11 +75,6 @@ builder.Services.AddTransient<ICarTypeRepository, CarTypeRepository>();
 builder.Services.AddTransient<ICarTypeActiveCounterRepository, EfCoreCarTypeActiveCounterRepository>();
 builder.Services.AddTransient<ITravelledDistanceRepository, EfCoreTravelledDistanceRepository>();
 builder.Services.AddTransient<SqlBasedDriverReportCreator>();
-builder.Services.AddTransient<ClaimService>();
-builder.Services.AddTransient<IClaimService>(ctx => 
-  new TransactionalClaimService(
-    ctx.GetRequiredService<ClaimService>(), 
-    ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddTransient<AwardsServiceImpl>();
 builder.Services.AddTransient<IAwardsService>(ctx =>
   new TransactionalAwardsService(
@@ -134,7 +130,6 @@ builder.Services.AddTransient<ITravelledDistanceService>(ctx =>
     ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddTransient<InvoiceGenerator>();
 builder.Services.AddTransient<DistanceCalculator>();
-builder.Services.AddTransient<ClaimNumberGenerator>();
 builder.Services.AddSingleton<IAppProperties, AppProperties>();
 builder.Services.AddSingleton<IClock>(_ => SystemClock.Instance);
 builder.Services.AddTransient<AddressRepository>();
@@ -180,6 +175,8 @@ builder.Services.AddTransient<AcmeStateFactory>();
 
 builder.Services.AddFeatureManagement();
 builder.Services.AddControllers().AddControllersAsServices();
+
+ClaimDependencies.AddTo(builder);
 
 var app = builder.Build();
 

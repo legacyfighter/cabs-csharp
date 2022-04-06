@@ -1,11 +1,11 @@
 using LegacyFighter.Cabs.Config;
-using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Repository;
+using LegacyFighter.Cabs.Service;
 using LegacyFighter.Cabs.TransitDetail;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.Service;
+namespace LegacyFighter.Cabs.Crm.Claims;
 
 public class ClaimService : IClaimService
 {
@@ -82,14 +82,14 @@ public class ClaimService : IClaimService
 
     if (claimDto.IsDraft)
     {
-      claim.Status = Claim.Statuses.Draft;
+      claim.Status = Statuses.Draft;
     }
     else
     {
-      claim.Status = Claim.Statuses.New;
+      claim.Status = Statuses.New;
     }
 
-    claim.Owner = client;
+    claim.OwnerId = client.Id;
     claim.TransitId = transit.TransitId;
     claim.TransitPrice = transit.Price;
     claim.CreationDate = _clock.GetCurrentInstant();
@@ -98,7 +98,7 @@ public class ClaimService : IClaimService
     return await _claimRepository.Save(claim);
   }
 
-  public async Task<Claim> SetStatus(Claim.Statuses newStatus, long? id)
+  public async Task<Claim> SetStatus(Statuses newStatus, long? id)
   {
     var claim = await Find(id);
     claim.Status = newStatus;
@@ -109,22 +109,23 @@ public class ClaimService : IClaimService
   {
     var claim = await Find(id);
 
-    var claimsResolver = await FindOrCreateResolver(claim.Owner);
-    var transitsDoneByClient = await _transitDetailsFacade.FindByClient(claim.Owner.Id);
-    var result = claimsResolver.Resolve(claim, _appProperties.AutomaticRefundForVipThreshold,
+    var claimsResolver = await FindOrCreateResolver(claim.OwnerId);
+    var transitsDoneByClient = await _transitDetailsFacade.FindByClient(claim.OwnerId);
+    var clientType = (await _clientRepository.Find(claim.OwnerId)).Type;
+    var result = claimsResolver.Resolve(claim, clientType, _appProperties.AutomaticRefundForVipThreshold,
       transitsDoneByClient.Count, _appProperties.NoOfTransitsForClaimAutomaticRefund);
 
-    if (result.Decision == Claim.Statuses.Refunded)
+    if (result.Decision == Statuses.Refunded)
     {
       claim.Refund();
-      _clientNotificationService.NotifyClientAboutRefund(claim.ClaimNo, claim.Owner.Id);
-      if (claim.Owner.Type == Client.Types.Vip)
+      _clientNotificationService.NotifyClientAboutRefund(claim.ClaimNo, claim.OwnerId);
+      if (clientType == Client.Types.Vip)
       {
-        await _awardsService.RegisterNonExpiringMiles(claim.Owner.Id, 10);
+        await _awardsService.RegisterNonExpiringMiles(claim.OwnerId, 10);
       }
     }
 
-    if (result.Decision == Claim.Statuses.Escalated)
+    if (result.Decision == Statuses.Escalated)
     {
       claim.Escalate();
     }
@@ -137,18 +138,23 @@ public class ClaimService : IClaimService
 
     if (result.WhoToAsk == ClaimsResolver.WhoToAsk.AskClient)
     {
-      _clientNotificationService.AskForMoreInformation(claim.ClaimNo, claim.Owner.Id);
+      _clientNotificationService.AskForMoreInformation(claim.ClaimNo, claim.OwnerId);
     }
 
     return claim;
   }
 
-  private async Task<ClaimsResolver> FindOrCreateResolver(Client client)
+  private async Task<ClaimsResolver> FindOrCreateResolver(long? clientId)
   {
     var resolver = 
-      await _claimsResolverRepository.FindByClientId(client.Id) 
-      ?? await _claimsResolverRepository.SaveAsync(new ClaimsResolver(client.Id));
+      await _claimsResolverRepository.FindByClientId(clientId) 
+      ?? await _claimsResolverRepository.SaveAsync(new ClaimsResolver(clientId));
 
     return resolver;
+  }
+
+  public async Task<int> GetNumberOfClaims(long? clientId) 
+  {
+    return (await _claimRepository.FindAllByOwnerId(clientId)).Count;
   }
 }

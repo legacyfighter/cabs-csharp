@@ -1,4 +1,5 @@
 using LegacyFighter.Cabs.Config;
+using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Entity.Miles;
@@ -10,46 +11,49 @@ namespace LegacyFighter.Cabs.Service;
 public class AwardsServiceImpl : IAwardsService
 {
   private readonly IAwardsAccountRepository _accountRepository;
-  private readonly IClientRepository _clientRepository;
   private readonly ITransitRepository _transitRepository;
+  private readonly IClientService _clientService;
+  private readonly IClaimService _claimService;
   private readonly IClock _clock;
   private readonly IAppProperties _appProperties;
 
   public AwardsServiceImpl(
     IAwardsAccountRepository accountRepository,
-    IClientRepository clientRepository,
     ITransitRepository transitRepository,
+    IClientService clientService,
+    IClaimService claimService,
     IClock clock,
     IAppProperties appProperties)
   {
     _accountRepository = accountRepository;
-    _clientRepository = clientRepository;
     _transitRepository = transitRepository;
+    _clientService = clientService;
+    _claimService = claimService;
     _clock = clock;
     _appProperties = appProperties;
   }
 
   public async Task<AwardsAccountDto> FindBy(long? clientId)
   {
-    return new AwardsAccountDto(await _accountRepository.FindByClient(await _clientRepository.Find(clientId)));
+    return new AwardsAccountDto(await _accountRepository.FindByClientId(clientId), await _clientService.Load(clientId));
   }
 
   public async Task RegisterToProgram(long? clientId)
   {
-    var client = await _clientRepository.Find(clientId);
+    var client = await _clientService.Load(clientId);
 
     if (client == null)
     {
       throw new ArgumentException("Client does not exists, id = " + clientId);
     }
 
-    var account = AwardsAccount.NotActiveAccount(client, _clock.GetCurrentInstant());
+    var account = AwardsAccount.NotActiveAccount(clientId, _clock.GetCurrentInstant());
     await _accountRepository.Save(account);
   }
 
   public async Task ActivateAccount(long? clientId)
   {
-    var account = await _accountRepository.FindByClient(await _clientRepository.Find(clientId));
+    var account = await _accountRepository.FindByClientId(clientId);
 
     if (account == null)
     {
@@ -63,7 +67,7 @@ public class AwardsServiceImpl : IAwardsService
 
   public async Task DeactivateAccount(long? clientId)
   {
-    var account = await _accountRepository.FindByClient(await _clientRepository.Find(clientId));
+    var account = await _accountRepository.FindByClientId(clientId);
 
     if (account == null)
     {
@@ -77,7 +81,7 @@ public class AwardsServiceImpl : IAwardsService
 
   public async Task<AwardedMiles> RegisterMiles(long? clientId, long? transitId)
   {
-    var account = await _accountRepository.FindByClient(await _clientRepository.Find(clientId));
+    var account = await _accountRepository.FindByClientId(clientId);
 
     if (account == null || !account.Active)
     {
@@ -101,7 +105,7 @@ public class AwardsServiceImpl : IAwardsService
 
   public async Task<AwardedMiles> RegisterNonExpiringMiles(long? clientId, int miles)
   {
-    var account = await _accountRepository.FindByClient(await _clientRepository.Find(clientId));
+    var account = await _accountRepository.FindByClientId(clientId);
 
     if (account == null)
     {
@@ -117,8 +121,8 @@ public class AwardsServiceImpl : IAwardsService
 
   public async Task RemoveMiles(long? clientId, int miles)
   {
-    var client = await _clientRepository.Find(clientId);
-    var account = await _accountRepository.FindByClient(client);
+    var account = await _accountRepository.FindByClientId(clientId);
+    var client = await _clientService.Load(clientId);
 
     if (account == null)
     {
@@ -126,11 +130,12 @@ public class AwardsServiceImpl : IAwardsService
     }
     else
     {
+      var numberOfClaims = await _claimService.GetNumberOfClaims(clientId);
       account.Remove(miles, 
         _clock.GetCurrentInstant(), 
         ChooseStrategy(
-          (await _transitRepository.FindByClient(client)).Count, 
-          client.Claims.Count,
+          (await _transitRepository.FindByClientId(clientId)).Count, 
+          numberOfClaims,
           client.Type, 
           IsSunday()));
     }
@@ -168,16 +173,14 @@ public class AwardsServiceImpl : IAwardsService
 
   public async Task<int> CalculateBalance(long? clientId)
   {
-    var client = await _clientRepository.Find(clientId);
-    var account = await _accountRepository.FindByClient(client);
+    var account = await _accountRepository.FindByClientId(clientId);
     return account.CalculateBalance(_clock.GetCurrentInstant()).Value;
   }
 
   public async Task TransferMiles(long? fromClientId, long? toClientId, int miles)
   {
-    var fromClient = await _clientRepository.Find(fromClientId);
-    var accountFrom = await _accountRepository.FindByClient(fromClient);
-    var accountTo = await _accountRepository.FindByClient(await _clientRepository.Find(toClientId));
+    var accountFrom = await _accountRepository.FindByClientId(fromClientId);
+    var accountTo = await _accountRepository.FindByClientId(toClientId);
     if (accountFrom == null)
     {
       throw new ArgumentException("Account does not exists, id = " + fromClientId);

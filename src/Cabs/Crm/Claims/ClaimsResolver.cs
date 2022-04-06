@@ -1,23 +1,24 @@
 ﻿using System.Text.Json;
 using LegacyFighter.Cabs.Common;
+using LegacyFighter.Cabs.Entity;
 
-namespace LegacyFighter.Cabs.Entity;
+namespace LegacyFighter.Cabs.Crm.Claims;
 
 public class ClaimsResolver : BaseEntity
 {
   public class Result
   {
     public WhoToAsk WhoToAsk { get; set; }
-    public Claim.Statuses Decision { get; set; }
+    public Statuses Decision { get; set; }
 
-    internal Result(WhoToAsk whoToAsk, Claim.Statuses decision)
+    internal Result(WhoToAsk whoToAsk, Statuses decision)
     {
       WhoToAsk = whoToAsk;
       Decision = decision;
     }
   }
 
-  public ClaimsResolver(long? clientId)
+  internal ClaimsResolver(long? clientId)
   {
     ClientId = clientId;
   }
@@ -35,27 +36,27 @@ public class ClaimsResolver : BaseEntity
 
   private string ClaimedTransitsIds { get; set; }
 
-  public Result Resolve(Claim claim, double automaticRefundForVipThreshold, int numberOfTransits, double noOfTransitsForClaimAutomaticRefund)
+  internal Result Resolve(Claim claim, Client.Types? clientType, double automaticRefundForVipThreshold, int numberOfTransits, double noOfTransitsForClaimAutomaticRefund)
   {
     var transitId = claim.TransitId;
     if (GetClaimedTransitsIds().Contains(transitId))
     {
-      return new Result(WhoToAsk.AskNoOne, Claim.Statuses.Escalated);
+      return new Result(WhoToAsk.AskNoOne, Statuses.Escalated);
     }
     AddNewClaimFor(claim.TransitId);
     if (NumberOfClaims() <= 3)
     {
-      return new Result(WhoToAsk.AskNoOne, Claim.Statuses.Refunded);
+      return new Result(WhoToAsk.AskNoOne, Statuses.Refunded);
     }
-    if (claim.Owner.Type == Client.Types.Vip)
+    if (clientType == Client.Types.Vip)
     {
       if (claim.TransitPrice.IntValue < automaticRefundForVipThreshold)
       {
-        return new Result(WhoToAsk.AskNoOne, Claim.Statuses.Refunded);
+        return new Result(WhoToAsk.AskNoOne, Statuses.Refunded);
       }
       else
       {
-        return new Result(WhoToAsk.AskDriver, Claim.Statuses.Escalated);
+        return new Result(WhoToAsk.AskDriver, Statuses.Escalated);
       }
     }
     else
@@ -64,16 +65,16 @@ public class ClaimsResolver : BaseEntity
       {
         if (claim.TransitPrice.IntValue < automaticRefundForVipThreshold)
         {
-          return new Result(WhoToAsk.AskNoOne, Claim.Statuses.Refunded);
+          return new Result(WhoToAsk.AskNoOne, Statuses.Refunded);
         }
         else
         {
-          return new Result(WhoToAsk.AskClient, Claim.Statuses.Escalated);
+          return new Result(WhoToAsk.AskClient, Statuses.Escalated);
         }
       }
       else
       {
-        return new Result(WhoToAsk.AskDriver, Claim.Statuses.Escalated);
+        return new Result(WhoToAsk.AskDriver, Statuses.Escalated);
       }
     }
   }
@@ -112,5 +113,4 @@ internal static class JsonMapper
   {
     return JsonSerializer.Serialize(transitsIds);
   }
-
 }

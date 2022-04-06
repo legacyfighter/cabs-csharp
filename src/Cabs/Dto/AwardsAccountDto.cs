@@ -9,10 +9,10 @@ public class AwardsAccountDto
   {
   }
 
-  public AwardsAccountDto(AwardsAccount account)
+  public AwardsAccountDto(AwardsAccount account, ClientDto clientDto)
   {
     Active = account.Active;
-    Client = new ClientDto(account.Client);
+    Client = clientDto;
     Transactions = account.Transactions;
     Date = account.Date;
   }

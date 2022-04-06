@@ -1,7 +1,7 @@
 using LegacyFighter.Cabs.Common;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.Entity;
+namespace LegacyFighter.Cabs.Crm.Claims;
 
 public class ClaimAttachment : BaseEntity
 {
@@ -10,11 +10,11 @@ public class ClaimAttachment : BaseEntity
 
   }
 
-  public Client Client => Claim.Owner;
-  public virtual Claim Claim { get; set; }
-  public Instant CreationDate { get; set; }
-  public string Description { get; set; }
-  public byte[] Data { get; set; }
+  internal long? ClientId => Claim.OwnerId;
+  internal virtual Claim Claim { get; set; }
+  internal Instant CreationDate { get; set; }
+  internal string Description { get; set; }
+  internal byte[] Data { get; set; }
 
   public override bool Equals(object obj)
   {

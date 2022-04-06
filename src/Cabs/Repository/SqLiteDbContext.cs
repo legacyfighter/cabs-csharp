@@ -3,6 +3,7 @@ using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Contracts.Legacy;
 using LegacyFighter.Cabs.Contracts.Model;
 using LegacyFighter.Cabs.Contracts.Model.Content;
+using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.DriverReports.TravelledDistances;
 using LegacyFighter.Cabs.Entity;
@@ -95,7 +96,7 @@ public class SqLiteDbContext : DbContext
     modelBuilder.Entity<AwardedMiles>(builder =>
     {
       builder.MapBaseEntityProperties();
-      builder.HasOne(m => m.Client);
+      builder.Property(m => m.ClientId);
       builder.Property("MilesJson").IsRequired();
       builder.Ignore(m => m.Miles);
       builder.Property(m => m.TransitId);
@@ -106,7 +107,7 @@ public class SqLiteDbContext : DbContext
     modelBuilder.Entity<AwardsAccount>(builder =>
     {
       builder.MapBaseEntityProperties();
-      builder.HasOne(a => a.Client);
+      builder.Property(a => a.ClientId);
       builder.HasMany<AwardedMiles>("Miles").WithOne("Account");
       builder.Property(x => x.Date).HasConversion(instantConverter).IsRequired();
       builder.Property(x => x.Transactions).IsRequired();
@@ -126,36 +127,11 @@ public class SqLiteDbContext : DbContext
       builder.Property("CarClass").HasConversion<string>().IsRequired().ValueGeneratedNever();
       builder.Property(t => t.ActiveCarsCounter).IsRequired();
     });
-    modelBuilder.Entity<Claim>(builder =>
-    {
-      builder.MapBaseEntityProperties();
-      builder.HasOne(c => c.Owner).WithMany(c => c.Claims);
-      builder.Property(c => c.TransitId);
-      builder.Property(x => x.ChangeDate).HasConversion(instantConverter);
-      builder.Property(x => x.CompletionDate).HasConversion(instantConverter);
-      builder.Property(x => x.CreationDate).HasConversion(instantConverter).IsRequired();
-      builder.Property(x => x.Reason).IsRequired();
-      builder.Property(x => x.CompletionMode).HasConversion<string>();
-      builder.Property(x => x.Status).HasConversion<string>().IsRequired();
-      builder.Property(x => x.ClaimNo).IsRequired();
-      builder.OwnsOne(x => x.TransitPrice, navigation =>
-      {
-        navigation.Property(m => m.IntValue).HasColumnName(nameof(Claim.TransitPrice)).IsRequired();
-      });
-    });
-    modelBuilder.Entity<ClaimAttachment>(builder =>
-    {
-      builder.MapBaseEntityProperties();
-      builder.HasOne(a => a.Claim);
-      builder.Property(x => x.CreationDate).HasConversion(instantConverter).IsRequired();
-      builder.Property(x => x.Data).HasColumnType("BLOB");
-    });
     modelBuilder.Entity<Client>(builder =>
     {
       builder.MapBaseEntityProperties();
       builder.Property(c => c.ClientType).HasConversion<string>();
       builder.Property(c => c.DefaultPaymentType).HasConversion<string>();
-      builder.HasMany(c => c.Claims).WithOne(c => c.Owner);
     });
     modelBuilder.Entity<Contract>(builder =>
     {
@@ -291,12 +267,6 @@ public class SqLiteDbContext : DbContext
       builder.Property(d => d.TransitId);
       builder.OwnsOne<Tariff>("Tariff", MapTariffProperties);
     });
-    modelBuilder.Entity<ClaimsResolver>(builder =>
-    {
-      builder.MapBaseEntityProperties();
-      builder.Property("ClientId");
-      builder.Property("ClaimedTransitsIds");
-    });
     modelBuilder.Entity<TravelledDistance>(builder =>
     {
       builder.HasKey("IntervalId");
@@ -314,6 +284,7 @@ public class SqLiteDbContext : DbContext
           value => Distance.OfKm(value)).IsRequired();
 
     });
+    ClaimSchema.MapUsing(modelBuilder, instantConverter);
 
     MapRepairEntities(modelBuilder);
     MapContractEntities(modelBuilder);
@@ -412,15 +383,5 @@ public class SqLiteDbContext : DbContext
           .UsePropertyAccessMode(PropertyAccessMode.Field);
       });
     });
-
-  }
-}
-
-public static class EfCoreExtensions
-{
-  public static void MapBaseEntityProperties<T>(this EntityTypeBuilder<T> builder) where T : BaseEntity
-  {
-    builder.HasKey(e => e.Id);
-    builder.Property("Version").IsRowVersion();
   }
 }

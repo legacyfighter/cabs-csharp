@@ -24,8 +24,6 @@ public class Client : BaseEntity
     MonthlyInvoice
   }
 
-  public virtual List<Claim> Claims { get; set; } = new();
-
   public Client()
   {
 

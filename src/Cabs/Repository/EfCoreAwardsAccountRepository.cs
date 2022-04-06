@@ -6,7 +6,7 @@ namespace LegacyFighter.Cabs.Repository;
 
 public interface IAwardsAccountRepository
 {
-  Task<AwardsAccount> FindByClient(Client client);
+  Task<AwardsAccount> FindByClientId(long? clientId);
   Task<AwardsAccount> Save(AwardsAccount account);
   Task<IReadOnlyList<AwardedMiles>> FindAllMilesBy(Client client);
 }
@@ -20,9 +20,9 @@ internal class EfCoreAwardsAccountRepository : IAwardsAccountRepository
     _context = context;
   }
 
-  public async Task<AwardsAccount> FindByClient(Client client)
+  public async Task<AwardsAccount> FindByClientId(long? clientId)
   {
-    return await _context.AwardsAccounts.FirstOrDefaultAsync(a => a.Client == client);
+    return await _context.AwardsAccounts.FirstOrDefaultAsync(a => a.ClientId == clientId);
   }
 
   public async Task<AwardsAccount> Save(AwardsAccount account)
@@ -34,6 +34,6 @@ internal class EfCoreAwardsAccountRepository : IAwardsAccountRepository
 
   public async Task<IReadOnlyList<AwardedMiles>> FindAllMilesBy(Client client) 
   {
-    return (await FindByClient(client)).GetMiles();
+    return (await FindByClientId(client.Id)).GetMiles();
   }
 }

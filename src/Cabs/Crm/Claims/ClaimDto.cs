@@ -1,7 +1,6 @@
-using LegacyFighter.Cabs.Entity;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.Dto;
+namespace LegacyFighter.Cabs.Crm.Claims;
 
 public class ClaimDto
 {
@@ -15,7 +14,7 @@ public class ClaimDto
     Instant? completionDate,
     Instant? changeDate,
     Claim.CompletionModes? completionMode,
-    Claim.Statuses? status,
+    Statuses? status,
     string claimNo)
   {
     ClaimId = claimId;
@@ -23,7 +22,7 @@ public class ClaimDto
     TransitId = transitId;
     Reason = reason;
     IncidentDescription = incidentDescription;
-    IsDraft = status == Claim.Statuses.Draft;
+    IsDraft = status == Statuses.Draft;
     CreationDate = creationDate;
     CompletionDate = completionDate;
     ChangeDate = changeDate;
@@ -34,7 +33,7 @@ public class ClaimDto
 
   public ClaimDto(Claim claim) : this(
     claim.Id,
-    claim.Owner.Id,
+    claim.OwnerId,
     claim.TransitId,
     claim.Reason,
     claim.IncidentDescription,
@@ -56,7 +55,7 @@ public class ClaimDto
   public Instant? CompletionDate { get; set; }
   public Instant? ChangeDate { get; set; }
   public Claim.CompletionModes? CompletionMode { get; set; }
-  public Claim.Statuses? Status { get; set; }
+  public Statuses? Status { get; set; }
   public string ClaimNo { get; set; }
   public long? ClaimId { get; set; }
   public long? ClientId { get; set; }

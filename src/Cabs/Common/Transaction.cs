@@ -1,4 +1,4 @@
-﻿using LegacyFighter.Cabs.Repository;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace LegacyFighter.Cabs.Common;
@@ -11,18 +11,18 @@ public interface ITransactions
 public class Transaction : ITransaction
 {
   private readonly IDbContextTransaction _transaction;
-  private readonly SqLiteDbContext _sqLiteDbContext;
+  private readonly DbContext _dbContext;
   private bool _committed;
 
-  public Transaction(IDbContextTransaction transaction, SqLiteDbContext sqLiteDbContext)
+  public Transaction(IDbContextTransaction transaction, DbContext dbContext)
   {
     _transaction = transaction;
-    _sqLiteDbContext = sqLiteDbContext;
+    _dbContext = dbContext;
   }
 
   public async Task Commit()
   {
-    await _sqLiteDbContext.SaveChangesAsync();
+    await _dbContext.SaveChangesAsync();
     await _transaction.CommitAsync();
     _committed = true;
   }

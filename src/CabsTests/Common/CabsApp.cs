@@ -5,6 +5,7 @@ using LegacyFighter.Cabs.Contracts.Application.Acme.Straightforward;
 using LegacyFighter.Cabs.Contracts.Application.Editor;
 using LegacyFighter.Cabs.Contracts.Legacy;
 using LegacyFighter.Cabs.Controllers;
+using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.DriverReports;
 using LegacyFighter.Cabs.DriverReports.TravelledDistances;
 using LegacyFighter.Cabs.Repair.Api;

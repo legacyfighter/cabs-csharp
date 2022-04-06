@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.DriverReports;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;

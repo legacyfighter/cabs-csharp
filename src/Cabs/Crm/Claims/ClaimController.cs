@@ -1,10 +1,7 @@
 using LegacyFighter.Cabs.Common;
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.Service;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LegacyFighter.Cabs.Controllers;
+namespace LegacyFighter.Cabs.Crm.Claims;
 
 [ApiController]
 [Route("[controller]")]
@@ -37,7 +34,7 @@ public class ClaimController
   [HttpPost("/claims/{id}/markInProcess")]
   public async Task<ClaimDto> MarkAsInProcess(long? id)
   {
-    var claim = await _claimService.SetStatus(Claim.Statuses.InProcess, id);
+    var claim = await _claimService.SetStatus(Statuses.InProcess, id);
     return ToDto(claim);
   }
 

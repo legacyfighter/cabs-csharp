@@ -1,7 +1,8 @@
-﻿using LegacyFighter.Cabs.Entity;
+﻿using LegacyFighter.Cabs.Crm.Claims;
+using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;
 
-namespace LegacyFighter.CabsTests.Entity;
+namespace LegacyFighter.CabsTests.Crm.Claims;
 
 public class ClaimAutomaticResolvingTest
 {
@@ -15,15 +16,15 @@ public class ClaimAutomaticResolvingTest
     //and
     var claim = CreateClaim(transit);
     //and
-    resolver.Resolve(claim, 40, 15, 10);
+    resolver.Resolve(claim, Client.Types.Normal, 40, 15, 10);
     //and
     var claim2 = CreateClaim(transit);
 
     //when
-    var result = resolver.Resolve(claim2, 40, 15, 10);
+    var result = resolver.Resolve(claim2, Client.Types.Normal, 40, 15, 10);
 
     //then
-    Assert.AreEqual(Claim.Statuses.Escalated, result.Decision);
+    Assert.AreEqual(Statuses.Escalated, result.Decision);
     Assert.AreEqual(ClaimsResolver.WhoToAsk.AskNoOne, result.WhoToAsk);
   }
 
@@ -38,10 +39,10 @@ public class ClaimAutomaticResolvingTest
     var claim = CreateClaim(transit);
 
     //when
-    var result = resolver.Resolve(claim, 40, 15, 10);
+    var result = resolver.Resolve(claim, Client.Types.Vip, 40, 15, 10);
 
     //then
-    Assert.AreEqual(Claim.Statuses.Refunded, result.Decision);
+    Assert.AreEqual(Statuses.Refunded, result.Decision);
     Assert.AreEqual(ClaimsResolver.WhoToAsk.AskNoOne, result.WhoToAsk);
   }
 
@@ -52,19 +53,19 @@ public class ClaimAutomaticResolvingTest
     var resolver = new ClaimsResolver();
     //and
     var claim = CreateClaim(ATransit(1L, 39));
-    resolver.Resolve(claim, 40, 15, 10);
+    resolver.Resolve(claim, Client.Types.Vip, 40, 15, 10);
     var claim2 = CreateClaim(ATransit(2L, 39));
-    resolver.Resolve(claim2, 40, 15, 10);
+    resolver.Resolve(claim2, Client.Types.Vip, 40, 15, 10);
     var claim3 = CreateClaim(ATransit(3L, 39));
-    resolver.Resolve(claim3, 40, 15, 10);
+    resolver.Resolve(claim3, Client.Types.Vip, 40, 15, 10);
     //and
     var claim4 = CreateClaim(ATransit(4L, 41), AClient(Client.Types.Vip));
 
     //when
-    var result = resolver.Resolve(claim4, 40, 15, 10);
+    var result = resolver.Resolve(claim4, Client.Types.Vip, 40, 15, 10);
 
     //then
-    Assert.AreEqual(Claim.Statuses.Escalated, result.Decision);
+    Assert.AreEqual(Statuses.Escalated, result.Decision);
     Assert.AreEqual(ClaimsResolver.WhoToAsk.AskDriver, result.WhoToAsk);
   }
 
@@ -75,21 +76,21 @@ public class ClaimAutomaticResolvingTest
     var resolver = new ClaimsResolver();
     //and
     var claim = CreateClaim(ATransit(1L, 39));
-    var result1 = resolver.Resolve(claim, 40, 15, 10);
+    var result1 = resolver.Resolve(claim, Client.Types.Normal, 40, 15, 10);
     var claim2 = CreateClaim(ATransit(2L, 39));
-    var result2 = resolver.Resolve(claim2, 40, 15, 10);
+    var result2 = resolver.Resolve(claim2, Client.Types.Normal, 40, 15, 10);
     var claim3 = CreateClaim(ATransit(3L, 39));
-    var result3 = resolver.Resolve(claim3, 40, 15, 10);
+    var result3 = resolver.Resolve(claim3, Client.Types.Normal, 40, 15, 10);
 
     //when
     var claim4 = CreateClaim(ATransit(4L, 39), AClient(Client.Types.Normal));
-    var result4 = resolver.Resolve(claim4, 40, 4, 10);
+    var result4 = resolver.Resolve(claim4, Client.Types.Normal, 40, 4, 10);
 
     //then
-    Assert.AreEqual(Claim.Statuses.Refunded, result1.Decision);
-    Assert.AreEqual(Claim.Statuses.Refunded, result2.Decision);
-    Assert.AreEqual(Claim.Statuses.Refunded, result3.Decision);
-    Assert.AreEqual(Claim.Statuses.Escalated, result4.Decision);
+    Assert.AreEqual(Statuses.Refunded, result1.Decision);
+    Assert.AreEqual(Statuses.Refunded, result2.Decision);
+    Assert.AreEqual(Statuses.Refunded, result3.Decision);
+    Assert.AreEqual(Statuses.Escalated, result4.Decision);
 
     Assert.AreEqual(ClaimsResolver.WhoToAsk.AskNoOne, result1.WhoToAsk);
     Assert.AreEqual(ClaimsResolver.WhoToAsk.AskNoOne, result2.WhoToAsk);
@@ -103,19 +104,19 @@ public class ClaimAutomaticResolvingTest
     var resolver = new ClaimsResolver();
     //and
     var claim = CreateClaim(ATransit(1L, 39));
-    resolver.Resolve(claim, 40, 15, 10);
+    resolver.Resolve(claim, Client.Types.Normal, 40, 15, 10);
     var claim2 = CreateClaim(ATransit(2L, 39));
-    resolver.Resolve(claim2, 40, 15, 10);
+    resolver.Resolve(claim2, Client.Types.Normal, 40, 15, 10);
     var claim3 = CreateClaim(ATransit(3L, 39));
-    resolver.Resolve(claim3, 40, 15, 10);
+    resolver.Resolve(claim3, Client.Types.Normal, 40, 15, 10);
     //and
     var claim4 = CreateClaim(ATransit(4L, 39), AClient(Client.Types.Normal));
 
     //when
-    var result = resolver.Resolve(claim4, 40, 10, 9);
+    var result = resolver.Resolve(claim4, Client.Types.Normal, 40, 10, 9);
 
     //then
-    Assert.AreEqual(Claim.Statuses.Refunded, result.Decision);
+    Assert.AreEqual(Statuses.Refunded, result.Decision);
     Assert.AreEqual(ClaimsResolver.WhoToAsk.AskNoOne, result.WhoToAsk);
   }
 
@@ -126,19 +127,19 @@ public class ClaimAutomaticResolvingTest
     var resolver = new ClaimsResolver();
     //and
     var claim = CreateClaim(ATransit(1L, 39));
-    resolver.Resolve(claim, 40, 15, 10);
+    resolver.Resolve(claim, Client.Types.Normal, 40, 15, 10);
     var claim2 = CreateClaim(ATransit(2L, 39));
-    resolver.Resolve(claim2, 40, 15, 10);
+    resolver.Resolve(claim2, Client.Types.Normal, 40, 15, 10);
     var claim3 = CreateClaim(ATransit(3L, 39));
-    resolver.Resolve(claim3, 40, 15, 10);
+    resolver.Resolve(claim3, Client.Types.Normal, 40, 15, 10);
     //and
     var claim4 = CreateClaim(ATransit(4L, 50), AClient(Client.Types.Normal));
 
     //when
-    var result = resolver.Resolve(claim4, 40, 12, 10);
+    var result = resolver.Resolve(claim4, Client.Types.Normal, 40, 12, 10);
 
     //then
-    Assert.AreEqual(Claim.Statuses.Escalated, result.Decision);
+    Assert.AreEqual(Statuses.Escalated, result.Decision);
     Assert.AreEqual(ClaimsResolver.WhoToAsk.AskClient, result.WhoToAsk);
   }
 
@@ -149,19 +150,19 @@ public class ClaimAutomaticResolvingTest
     var resolver = new ClaimsResolver();
     //and
     var claim = CreateClaim(ATransit(1L, 39));
-    resolver.Resolve(claim, 40, 15, 10);
+    resolver.Resolve(claim, Client.Types.Normal, 40, 15, 10);
     var claim2 = CreateClaim(ATransit(2L, 39));
-    resolver.Resolve(claim2, 40, 15, 10);
+    resolver.Resolve(claim2, Client.Types.Normal, 40, 15, 10);
     var claim3 = CreateClaim(ATransit(3L, 39));
-    resolver.Resolve(claim3, 40, 15, 10);
+    resolver.Resolve(claim3, Client.Types.Normal, 40, 15, 10);
     //and
     var claim4 = CreateClaim(ATransit(4L, 50), AClient(Client.Types.Normal));
 
     //when
-    var result = resolver.Resolve(claim4, 40, 2, 10);
+    var result = resolver.Resolve(claim4, Client.Types.Normal, 40, 2, 10);
 
     //then
-    Assert.AreEqual(Claim.Statuses.Escalated, result.Decision);
+    Assert.AreEqual(Statuses.Escalated, result.Decision);
     Assert.AreEqual(ClaimsResolver.WhoToAsk.AskDriver, result.WhoToAsk);
   }
 
@@ -190,7 +191,7 @@ public class ClaimAutomaticResolvingTest
     {
       TransitId = transit.Id,
       TransitPrice = transit.Price,
-      Owner = client
+      OwnerId = client.Id
     };
     return claim;
   }

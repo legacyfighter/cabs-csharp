@@ -7,10 +7,8 @@ namespace LegacyFighter.Cabs.Repository;
 public interface ITransitRepository
 {
   Task<List<Transit>> FindAllByDriverAndDateTimeBetween(Driver driver, Instant from, Instant to);
-
   Task<List<Transit>> FindAllByStatus(Transit.Statuses status);
-
-  Task<List<Transit>> FindByClient(Client client);
+  Task<List<Transit>> FindByClientId(long? clientId);
   Task<Transit> Find(long? transitId);
   Task<Transit> Save(Transit transit);
 }
@@ -43,14 +41,14 @@ internal class EfCoreTransitRepository : ITransitRepository
     return await _context.Transits.Where(t => t.Status == status).ToListAsync();
   }
 
-  public async Task<List<Transit>> FindByClient(Client client)
+  public async Task<List<Transit>> FindByClientId(long? clientId)
   {
     return await _context.Transits.Join(
         _context.TransitsDetails,
         transit => transit.Id,
         details => details.TransitId,
         (transit, details) => new { Transit = transit, Details = details })
-      .Where(r => r.Details.Client == client)
+      .Where(r => r.Details.Client.Id == clientId)
       .Select(r => r.Transit)
       .ToListAsync();
   }

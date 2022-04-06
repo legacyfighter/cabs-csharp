@@ -6,7 +6,6 @@ public class ClientDto
 {
   public ClientDto()
   {
-
   }
 
   public ClientDto(Client client)
@@ -19,6 +18,7 @@ public class ClientDto
     ClientType = client.ClientType;
   }
 
+  private int? NumberOfClaims { get; set; }
   public string Name { get; set; }
   public string LastName { get; set; }
   public Client.ClientTypes? ClientType { get; set; }

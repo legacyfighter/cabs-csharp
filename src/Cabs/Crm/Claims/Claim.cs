@@ -2,21 +2,10 @@ using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.MoneyValue;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.Entity;
+namespace LegacyFighter.Cabs.Crm.Claims;
 
 public class Claim : BaseEntity
 {
-
-  public enum Statuses
-  {
-    Draft,
-    New,
-    InProcess,
-    Refunded,
-    Escalated,
-    Rejected
-  }
-
   public enum CompletionModes
   {
     Manual,
@@ -25,22 +14,21 @@ public class Claim : BaseEntity
 
   public Claim()
   {
-
   }
 
-  public string ClaimNo { get; set; }
-  public virtual Client Owner { get; set; }
-  public long? TransitId { get; set; }
-  public Instant CreationDate { get; set; }
-  public Instant? CompletionDate { get; set; }
-  public string IncidentDescription { get; set; }
-  public CompletionModes? CompletionMode { get; set; }
-  public Statuses? Status { get; set; }
-  public Instant? ChangeDate { get; set; }
-  public string Reason { get; set; }
-  public Money TransitPrice { get; set; }
+  public string ClaimNo { get; internal set; }
+  public long? OwnerId { get; internal set; }
+  public long? TransitId { get; internal set; }
+  internal Instant CreationDate { get; set; }
+  internal Instant? CompletionDate { get; set; }
+  internal string IncidentDescription { get; set; }
+  public CompletionModes? CompletionMode { get; internal set; }
+  public Statuses? Status { get; internal set; }
+  internal Instant? ChangeDate { get; set; }
+  internal string Reason { get; set; }
+  internal Money TransitPrice { get; set; }
 
-  public void Escalate() 
+  internal void Escalate() 
   {
     Status = Statuses.Escalated;
     CompletionDate = SystemClock.Instance.GetCurrentInstant();
@@ -48,7 +36,7 @@ public class Claim : BaseEntity
     CompletionMode = CompletionModes.Manual;
   }
 
-  public void Refund()
+  internal void Refund()
   {
     Status = Statuses.Refunded;
     CompletionDate = SystemClock.Instance.GetCurrentInstant();

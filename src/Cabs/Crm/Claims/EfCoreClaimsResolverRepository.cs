@@ -1,7 +1,7 @@
-﻿using LegacyFighter.Cabs.Entity;
+﻿using LegacyFighter.Cabs.Repository;
 using Microsoft.EntityFrameworkCore;
 
-namespace LegacyFighter.Cabs.Repository;
+namespace LegacyFighter.Cabs.Crm.Claims;
 
 public interface IClaimsResolverRepository
 {
@@ -9,7 +9,7 @@ public interface IClaimsResolverRepository
   Task<ClaimsResolver> SaveAsync(ClaimsResolver claimsResolver);
 }
 
-public class EfCoreClaimsResolverRepository : IClaimsResolverRepository
+internal class EfCoreClaimsResolverRepository : IClaimsResolverRepository
 {
   private readonly SqLiteDbContext _dbContext;
 

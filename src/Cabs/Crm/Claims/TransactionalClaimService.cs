@@ -1,8 +1,6 @@
 using LegacyFighter.Cabs.Common;
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
 
-namespace LegacyFighter.Cabs.Service;
+namespace LegacyFighter.Cabs.Crm.Claims;
 
 public class TransactionalClaimService : IClaimService
 {
@@ -30,7 +28,7 @@ public class TransactionalClaimService : IClaimService
     return await _inner.Update(claimDto, claim);
   }
 
-  public async Task<Claim> SetStatus(Claim.Statuses newStatus, long? id)
+  public async Task<Claim> SetStatus(Statuses newStatus, long? id)
   {
     await using var tx = await _transactions.BeginTransaction();
     var status = await _inner.SetStatus(newStatus, id);
@@ -44,5 +42,10 @@ public class TransactionalClaimService : IClaimService
     var claim = await _inner.TryToResolveAutomatically(id);
     await tx.Commit();
     return claim;
+  }
+
+  public async Task<int> GetNumberOfClaims(long? clientId)
+  {
+    return await _inner.GetNumberOfClaims(clientId);
   }
 }

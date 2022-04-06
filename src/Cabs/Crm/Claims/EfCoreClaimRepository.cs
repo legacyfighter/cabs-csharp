@@ -1,13 +1,14 @@
-using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Repository;
 using Microsoft.EntityFrameworkCore;
 
-namespace LegacyFighter.Cabs.Repository;
+namespace LegacyFighter.Cabs.Crm.Claims;
 
 public interface IClaimRepository
 {
   Task<long> Count();
   Task<Claim> Find(long? id);
   Task<Claim> Save(Claim claim);
+  Task<List<Claim>> FindAllByOwnerId(long? ownerId);
 }
 
 internal class EfCoreClaimRepository : IClaimRepository
@@ -34,5 +35,10 @@ internal class EfCoreClaimRepository : IClaimRepository
     _context.Claims.Update(claim);
     await _context.SaveChangesAsync();
     return claim;
+  }
+
+  public async Task<List<Claim>> FindAllByOwnerId(long? ownerId)
+  {
+    return await _context.Claims.Where(claim => claim.OwnerId == ownerId).ToListAsync();
   }
 }

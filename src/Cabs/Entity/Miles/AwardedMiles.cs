@@ -9,22 +9,22 @@ public class AwardedMiles : BaseEntity
   {
   }
 
-  public AwardedMiles(AwardsAccount awardsAccount, long? transitId, Client client, Instant when, IMiles constantUntil) 
+  public AwardedMiles(AwardsAccount awardsAccount, long? transitId, long? clientId, Instant when, IMiles constantUntil) 
   {
     Account = awardsAccount;
     TransitId = transitId;
-    Client = client;
+    ClientId = clientId;
     Date = when;
     Miles = constantUntil;
   }
 
   public void TransferTo(AwardsAccount account) 
   {
-    Client = account.Client;
+    ClientId = account.ClientId;
     Account = account;
   }
 
-  public virtual Client Client { get; protected set; }
+  public long? ClientId { get; protected set; }
 
   private string MilesJson { get; set; }
 

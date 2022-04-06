@@ -1,12 +1,12 @@
-﻿using LegacyFighter.Cabs.Repository;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace LegacyFighter.Cabs.Common;
 
 public class Transactions : ITransactions
 {
-  private readonly SqLiteDbContext _context;
+  private readonly DbContext _context;
 
-  public Transactions(SqLiteDbContext context)
+  public Transactions(DbContext context)
   {
     _context = context;
   }

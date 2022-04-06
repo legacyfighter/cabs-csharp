@@ -1,4 +1,5 @@
 using LegacyFighter.Cabs.Config;
+using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Service;
 using LegacyFighter.CabsTests.Common;
@@ -69,9 +70,9 @@ public class ClaimAutomaticResolvingIntegrationTest
     claim2 = await ClaimService.TryToResolveAutomatically(claim2.Id);
 
     //then
-    Assert.AreEqual(Claim.Statuses.Refunded, claim.Status);
+    Assert.AreEqual(Statuses.Refunded, claim.Status);
     Assert.AreEqual(Claim.CompletionModes.Automatic, claim.CompletionMode);
-    Assert.AreEqual(Claim.Statuses.Escalated, claim2.Status);
+    Assert.AreEqual(Statuses.Escalated, claim2.Status);
     Assert.AreEqual(Claim.CompletionModes.Manual, claim2.CompletionMode);
   }
 
@@ -99,10 +100,10 @@ public class ClaimAutomaticResolvingIntegrationTest
     claim = await ClaimService.TryToResolveAutomatically(claim.Id);
 
     //then
-    Assert.AreEqual(Claim.Statuses.Refunded, claim.Status);
+    Assert.AreEqual(Statuses.Refunded, claim.Status);
     Assert.AreEqual(Claim.CompletionModes.Automatic, claim.CompletionMode);
-    ClientNotificationService.Received(1).NotifyClientAboutRefund(claim.ClaimNo, claim.Owner.Id);
-    await AwardsService.Received(1).RegisterNonExpiringMiles(claim.Owner.Id, 10);
+    ClientNotificationService.Received(1).NotifyClientAboutRefund(claim.ClaimNo, claim.OwnerId);
+    await AwardsService.Received(1).RegisterNonExpiringMiles(claim.OwnerId, 10);
   }
 
   [Test]
@@ -129,7 +130,7 @@ public class ClaimAutomaticResolvingIntegrationTest
     claim = await ClaimService.TryToResolveAutomatically(claim.Id);
 
     //then
-    Assert.AreEqual(Claim.Statuses.Escalated, claim.Status);
+    Assert.AreEqual(Statuses.Escalated, claim.Status);
     Assert.AreEqual(Claim.CompletionModes.Manual, claim.CompletionMode);
     DriverNotificationService.Received(1).AskDriverForDetailsAboutClaim(claim.ClaimNo, driver.Id);
     AwardsService.ReceivedNothing();
@@ -163,10 +164,10 @@ public class ClaimAutomaticResolvingIntegrationTest
     _app.EndReuseRequestScope();
 
     //then
-    Assert.AreEqual(Claim.Statuses.Refunded, claim1.Status);
-    Assert.AreEqual(Claim.Statuses.Refunded, claim2.Status);
-    Assert.AreEqual(Claim.Statuses.Refunded, claim3.Status);
-    Assert.AreEqual(Claim.Statuses.Escalated, claim4.Status);
+    Assert.AreEqual(Statuses.Refunded, claim1.Status);
+    Assert.AreEqual(Statuses.Refunded, claim2.Status);
+    Assert.AreEqual(Statuses.Refunded, claim3.Status);
+    Assert.AreEqual(Statuses.Escalated, claim4.Status);
     Assert.AreEqual(Claim.CompletionModes.Automatic, claim1.CompletionMode);
     Assert.AreEqual(Claim.CompletionModes.Automatic, claim2.CompletionMode);
     Assert.AreEqual(Claim.CompletionModes.Automatic, claim3.CompletionMode);
@@ -206,7 +207,7 @@ public class ClaimAutomaticResolvingIntegrationTest
     claim = await ClaimService.TryToResolveAutomatically(claim.Id);
 
     //then
-    Assert.AreEqual(Claim.Statuses.Refunded, claim.Status);
+    Assert.AreEqual(Statuses.Refunded, claim.Status);
     Assert.AreEqual(Claim.CompletionModes.Automatic, claim.CompletionMode);
     ClientNotificationService.Received(1).NotifyClientAboutRefund(claim.ClaimNo, client.Id);
     AwardsService.ReceivedNothing();
@@ -237,7 +238,7 @@ public class ClaimAutomaticResolvingIntegrationTest
     claim = await ClaimService.TryToResolveAutomatically(claim.Id);
 
     //then
-    Assert.AreEqual(Claim.Statuses.Escalated, claim.Status);
+    Assert.AreEqual(Statuses.Escalated, claim.Status);
     Assert.AreEqual(Claim.CompletionModes.Manual, claim.CompletionMode);
     ClientNotificationService.Received(1).AskForMoreInformation(claim.ClaimNo, client.Id);
     AwardsService.ReceivedNothing();
@@ -271,7 +272,7 @@ public class ClaimAutomaticResolvingIntegrationTest
     claim = await ClaimService.TryToResolveAutomatically(claim.Id);
 
     //then
-    Assert.AreEqual(Claim.Statuses.Escalated, claim.Status);
+    Assert.AreEqual(Statuses.Escalated, claim.Status);
     Assert.AreEqual(Claim.CompletionModes.Manual, claim.CompletionMode);
     DriverNotificationService.Received(1).AskDriverForDetailsAboutClaim(claim.ClaimNo, driver.Id);
     AwardsService.ReceivedNothing();

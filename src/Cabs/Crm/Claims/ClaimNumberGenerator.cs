@@ -1,9 +1,7 @@
 using System.Globalization;
-using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.Repository;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.Service;
+namespace LegacyFighter.Cabs.Crm.Claims;
 
 public class ClaimNumberGenerator
 {
@@ -14,7 +12,7 @@ public class ClaimNumberGenerator
     _claimRepository = claimRepository;
   }
 
-  public async Task<string> Generate(Claim claim)
+  internal async Task<string> Generate(Claim claim)
   {
     var count = await _claimRepository.Count();
     var prefix = count;

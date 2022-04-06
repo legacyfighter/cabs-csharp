@@ -1,4 +1,4 @@
-namespace LegacyFighter.Cabs.Repository;
+namespace LegacyFighter.Cabs.Crm.Claims;
 
 public interface IClaimAttachmentRepository
 {

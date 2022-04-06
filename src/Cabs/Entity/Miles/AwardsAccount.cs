@@ -5,23 +5,23 @@ namespace LegacyFighter.Cabs.Entity.Miles;
 
 public class AwardsAccount : BaseEntity
 {
-  public static AwardsAccount NotActiveAccount(Client client, Instant date) 
+  public static AwardsAccount NotActiveAccount(long? clientId, Instant date) 
   {
-    return new AwardsAccount(client, false, date);
+    return new AwardsAccount(clientId, false, date);
   }
 
   public AwardsAccount()
   {
   }
 
-  public AwardsAccount(Client client, bool isActive, Instant date) 
+  public AwardsAccount(long? clientId, bool isActive, Instant date) 
   {
-    Client = client;
+    ClientId = clientId;
     Active = isActive;
     Date = date;
   }
 
-  public virtual Client Client { get; }
+  public long? ClientId { get; }
   public Instant Date { get; } = SystemClock.Instance.GetCurrentInstant();
   public bool Active { private set; get; } = false;
   public int Transactions { get; private set; } = 0;
@@ -30,7 +30,7 @@ public class AwardsAccount : BaseEntity
 
   public AwardedMiles AddExpiringMiles(int amount, Instant expireAt, long? transitId, Instant when) 
   {
-    var expiringMiles = new AwardedMiles(this, transitId, Client, when, ConstantUntil.Value(amount, expireAt));
+    var expiringMiles = new AwardedMiles(this, transitId, ClientId, when, ConstantUntil.Value(amount, expireAt));
     Miles.Add(expiringMiles);
     Transactions++;
     return expiringMiles;
@@ -38,7 +38,7 @@ public class AwardsAccount : BaseEntity
 
   public AwardedMiles AddNonExpiringMiles(int amount, Instant when)
   {
-    var nonExpiringMiles = new AwardedMiles(this, null, Client, when, ConstantUntil.Forever(amount));
+    var nonExpiringMiles = new AwardedMiles(this, null, ClientId, when, ConstantUntil.Forever(amount));
     Miles.Add(nonExpiringMiles);
     Transactions++;
     return nonExpiringMiles;
@@ -85,7 +85,7 @@ public class AwardsAccount : BaseEntity
     }
     else
     {
-      throw new ArgumentException("Insufficient miles, id = " + Client.Id + ", miles requested = " + miles);
+      throw new ArgumentException("Insufficient miles, id = " + ClientId + ", miles requested = " + miles);
     }
   }
 
