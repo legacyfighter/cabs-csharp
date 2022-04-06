@@ -4,12 +4,12 @@ using LegacyFighter.Cabs.Geolocation.Address;
 
 namespace LegacyFighter.Cabs.Ride;
 
-public class TransactionalTransitService : ITransitService
+public class TransactionalRideService : IRideService
 {
-  private readonly ITransitService _inner;
+  private readonly IRideService _inner;
   private readonly ITransactions _transactions;
 
-  public TransactionalTransitService(ITransitService inner, ITransactions transactions)
+  public TransactionalRideService(IRideService inner, ITransactions transactions)
   {
     _inner = inner;
     _transactions = transactions;
@@ -23,10 +23,11 @@ public class TransactionalTransitService : ITransitService
     return transit;
   }
 
-  public async Task<TransitDto> CreateTransit(long? clientId, Address from, Address to, CarClasses? carClass)
+  public async Task<TransitDto> CreateTransit(long? clientId, AddressDto fromDto, AddressDto toDto,
+    CarClasses? carClass)
   {
     await using var tx = await _transactions.BeginTransaction();
-    var transit = await _inner.CreateTransit(clientId, from, to, carClass);
+    var transit = await _inner.CreateTransit(clientId, fromDto, toDto, carClass);
     await tx.Commit();
     return transit;
   }

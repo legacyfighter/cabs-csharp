@@ -3,10 +3,10 @@ using LegacyFighter.Cabs.Geolocation.Address;
 
 namespace LegacyFighter.Cabs.Ride;
 
-public interface ITransitService
+public interface IRideService
 {
   Task<TransitDto> CreateTransit(TransitDto transitDto);
-  Task<TransitDto> CreateTransit(long? clientId, Address from, Address to, CarClasses? carClass);
+  Task<TransitDto> CreateTransit(long? clientId, AddressDto fromDto, AddressDto toDto, CarClasses? carClass);
   Task ChangeTransitAddressFrom(Guid requestGuid, Address newAddress);
   Task ChangeTransitAddressFrom(Guid requestGuid, AddressDto newAddress);
   Task ChangeTransitAddressTo(Guid requestGuid, AddressDto newAddress);

@@ -15,7 +15,7 @@ public class RideFixture
 {
   private readonly ITransitRepository _transitRepository;
   private readonly IAddressRepository _addressRepository;
-  private readonly ITransitService _transitService;
+  private readonly IRideService _rideService;
   private readonly IDriverSessionService _driverSessionService;
   private readonly CarTypeFixture _carTypeFixture;
   private readonly DriverFixture _driverFixture;
@@ -25,7 +25,7 @@ public class RideFixture
   public RideFixture(
     ITransitRepository transitRepository,
     IAddressRepository addressRepository,
-    ITransitService transitService,
+    IRideService rideService,
     IDriverSessionService driverSessionService,
     CarTypeFixture carTypeFixture, 
     DriverFixture driverFixture,
@@ -38,7 +38,7 @@ public class RideFixture
     _driverFixture = driverFixture;
     _stubbedPrice = stubbedPrice;
     _transitDetailsFacade = transitDetailsFacade;
-    _transitService = transitService;
+    _rideService = rideService;
     _driverSessionService = driverSessionService;
   }
 
@@ -53,12 +53,16 @@ public class RideFixture
     from = await _addressRepository.Save(from);
     destination = await _addressRepository.Save(destination);
     await _carTypeFixture.AnActiveCarCategory(CarClasses.Van);
-    var transitView = await _transitService.CreateTransit(client.Id, from, destination, CarClasses.Van);
-    await _transitService.PublishTransit(transitView.RequestId);
-    await _transitService.FindDriversForTransit(transitView.RequestId);
-    await _transitService.AcceptTransit(driver.Id, transitView.RequestId);
-    await _transitService.StartTransit(driver.Id, transitView.RequestId);
-    await _transitService.CompleteTransit(driver.Id, transitView.RequestId, destination);
+    var transitView = await _rideService.CreateTransit(
+      client.Id,
+      new AddressDto(from),
+      new AddressDto(destination),
+      CarClasses.Van);
+    await _rideService.PublishTransit(transitView.RequestId);
+    await _rideService.FindDriversForTransit(transitView.RequestId);
+    await _rideService.AcceptTransit(driver.Id, transitView.RequestId);
+    await _rideService.StartTransit(driver.Id, transitView.RequestId);
+    await _rideService.CompleteTransit(driver.Id, transitView.RequestId, destination);
     var transitId = (await _transitDetailsFacade.Find(transitView.RequestId)).TransitId;
     return await _transitRepository.Find(transitId);
 
@@ -86,14 +90,18 @@ public class RideFixture
     _stubbedPrice.Stub(new Money(price));
 
     await _carTypeFixture.AnActiveCarCategory(CarClasses.Van);
-    var transit = await _transitService.CreateTransit(client.Id, from, destination, CarClasses.Van);
-    await _transitService.PublishTransit(transit.RequestId);
-    await _transitService.FindDriversForTransit(transit.RequestId);
-    await _transitService.AcceptTransit(driver.Id, transit.RequestId);
-    await _transitService.StartTransit(driver.Id, transit.RequestId);
+    var transit = await _rideService.CreateTransit(
+      client.Id,
+      new AddressDto(from),
+      new AddressDto(destination),
+      CarClasses.Van);
+    await _rideService.PublishTransit(transit.RequestId);
+    await _rideService.FindDriversForTransit(transit.RequestId);
+    await _rideService.AcceptTransit(driver.Id, transit.RequestId);
+    await _rideService.StartTransit(driver.Id, transit.RequestId);
     clock.GetCurrentInstant().Returns(completedAt);
-    await _transitService.CompleteTransit(driver.Id, transit.RequestId, destination);
-    return await _transitService.LoadTransit(transit.RequestId);
+    await _rideService.CompleteTransit(driver.Id, transit.RequestId, destination);
+    return await _rideService.LoadTransit(transit.RequestId);
   }
 
   public async Task<TransitDto> DriverHasDoneSessionAndPicksSomeoneUpInCar(

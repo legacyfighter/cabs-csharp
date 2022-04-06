@@ -16,10 +16,15 @@ public static class RideDependencies
     builder.Services.AddTransient<IRequestForTransitRepository, EfCoreRequestForTransitRepository>();
     builder.Services.AddTransient<ITransitDetailsRepository, EfCoreTransitDetailsRepository>();
     builder.Services.AddTransient<ITransitDemandRepository, EfCoreTransitDemandRepository>();
-    builder.Services.AddTransient<TransitService>();
-    builder.Services.AddTransient<ITransitService>(ctx =>
-      new TransactionalTransitService(
-        ctx.GetRequiredService<TransitService>(),
+    builder.Services.AddTransient<RideService>();
+    builder.Services.AddTransient<IRideService>(ctx =>
+      new TransactionalRideService(
+        ctx.GetRequiredService<RideService>(),
+        ctx.GetRequiredService<ITransactions>()));
+    builder.Services.AddTransient<RequestTransitService>();
+    builder.Services.AddTransient<IRequestTransitService>(ctx =>
+      new TransactionalRequestTransitService(
+        ctx.GetRequiredService<RequestTransitService>(),
         ctx.GetRequiredService<ITransactions>()));
   }
 }

@@ -15,7 +15,7 @@ using NodaTime;
 namespace LegacyFighter.Cabs.Ride;
 
 // If this class will still be here in 2022 I will quit.
-public class TransitService : ITransitService
+public class RideService : IRideService
 {
   private readonly IDriverRepository _driverRepository;
   private readonly ITransitRepository _transitRepository;
@@ -32,10 +32,11 @@ public class TransitService : ITransitService
   private readonly IDriverAssignmentFacade _driverAssignmentFacade;
   private readonly IRequestForTransitRepository _requestForTransitRepository;
   private readonly ITransitDemandRepository _transitDemandRepository;
+  private readonly IRequestTransitService _requestTransitService;
   private readonly Tariffs _tariffs;
   private readonly IDriverService _driverService;
 
-  public TransitService(
+  public RideService(
     IDriverRepository driverRepository,
     ITransitRepository transitRepository,
     IClientRepository clientRepository,
@@ -52,6 +53,7 @@ public class TransitService : ITransitService
     IDriverAssignmentFacade driverAssignmentFacade, 
     IRequestForTransitRepository requestForTransitRepository, 
     ITransitDemandRepository transitDemandRepository, 
+    IRequestTransitService requestTransitService,
     Tariffs tariffs)
   {
     _driverRepository = driverRepository;
@@ -70,14 +72,42 @@ public class TransitService : ITransitService
     _driverAssignmentFacade = driverAssignmentFacade;
     _requestForTransitRepository = requestForTransitRepository;
     _transitDemandRepository = transitDemandRepository;
+    _requestTransitService = requestTransitService;
     _tariffs = tariffs;
   }
 
   public async Task<TransitDto> CreateTransit(TransitDto transitDto)
   {
-    var from = await AddressFromDto(transitDto.From);
-    var to = await AddressFromDto(transitDto.To);
-    return await CreateTransit(transitDto.ClientDto.Id, from, to, transitDto.CarClass);
+    return await CreateTransit(
+      transitDto.ClientDto.Id,
+      transitDto.From,
+      transitDto.To,
+      transitDto.CarClass);
+  }
+
+  public async Task<TransitDto> CreateTransit(
+    long? clientId,
+    AddressDto fromDto,
+    AddressDto toDto,
+    CarClasses? carClass)
+  {
+    var client = await FindClient(clientId);
+    var from = await AddressFromDto(fromDto);
+    var to = await AddressFromDto(toDto);
+    var now = _clock.GetCurrentInstant();
+    var requestForTransit = await _requestTransitService.CreateRequestForTransit(from, to);
+    await _transitDetailsFacade.TransitRequested(now, requestForTransit.RequestGuid, from, to, requestForTransit.Distance, client, carClass, requestForTransit.EstimatedPrice, requestForTransit.Tariff);
+    return await LoadTransit(requestForTransit.Id);
+  }
+
+  private async Task<Client> FindClient(long? clientId)
+  {
+    var client = await _clientRepository.Find(clientId);
+    if (client == null)
+    {
+      throw new ArgumentException($"Client does not exist, id = {clientId}");
+    }
+    return client;
   }
 
   private async Task<Address> AddressFromDto(AddressDto addressDto)
@@ -85,38 +115,6 @@ public class TransitService : ITransitService
     var address = addressDto.ToAddressEntity();
     return await _addressRepository.Save(address);
   }
-
-  public async Task<TransitDto> CreateTransit(long? clientId, Address from, Address to, CarClasses? carClass)
-  {
-    var client = await _clientRepository.Find(clientId);
-
-    if (client == null)
-    {
-      throw new ArgumentException("Client does not exist, id = " + clientId);
-    }
-
-    // TODO FIXME later: add some exceptions handling
-    var geoFrom = _geocodingService.GeocodeAddress(from);
-    var geoTo = _geocodingService.GeocodeAddress(to);
-    var distance = Distance.OfKm((float) _distanceCalculator.CalculateByMap(geoFrom[0], geoFrom[1], geoTo[0], geoTo[1]));
-    var now = _clock.GetCurrentInstant();
-    var tariff = ChooseTariff(now);
-    var requestForTransit = await _requestForTransitRepository.Save(new RequestForTransit(tariff, distance));
-    await _transitDetailsFacade.TransitRequested(
-      now,
-      requestForTransit.RequestGuid,
-      from,
-      to,
-      distance,
-      client,
-      carClass,
-      requestForTransit.EstimatedPrice,
-      requestForTransit.Tariff);
-
-    return await LoadTransit(requestForTransit.Id);
-  }
-
-  private Tariff ChooseTariff(Instant when) => _tariffs.Choose(when);
 
   public async Task ChangeTransitAddressFrom(Guid requestGuid, Address newAddress)
   {
@@ -300,7 +298,7 @@ public class TransitService : ITransitService
     }
 
     var now = _clock.GetCurrentInstant();
-    var transit = new Transit(ChooseTariff(now), requestGuid);
+    var transit = new Transit(_tariffs.Choose(now), requestGuid);
     await _transitRepository.Save(transit);
     await _transitDetailsFacade.TransitStarted(requestGuid, transit.Id, now);
   }
