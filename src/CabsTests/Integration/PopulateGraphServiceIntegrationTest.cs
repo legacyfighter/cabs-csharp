@@ -1,7 +1,8 @@
 ﻿using LegacyFighter.Cabs.Crm.TransitAnalyzer;
 using LegacyFighter.Cabs.DriverFleet.DriverReports;
 using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.Service;
+using LegacyFighter.Cabs.Geolocation;
+using LegacyFighter.Cabs.Geolocation.Address;
 using LegacyFighter.CabsTests.Common;
 using Microsoft.Extensions.DependencyInjection;
 

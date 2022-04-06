@@ -1,6 +1,4 @@
-using LegacyFighter.Cabs.Entity;
-
-namespace LegacyFighter.Cabs.Repository;
+namespace LegacyFighter.Cabs.Geolocation.Address;
 
 public interface IAddressRepository
 {
@@ -10,7 +8,7 @@ public interface IAddressRepository
   Task<Address> GetByHash(int hash);
 }
 
-public class AddressRepository : IAddressRepository
+internal class AddressRepository : IAddressRepository
 {
   private readonly IAddressRepositoryInterface _addressRepositoryInterface;
 

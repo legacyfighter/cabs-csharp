@@ -1,7 +1,7 @@
 ﻿using System;
-using LegacyFighter.Cabs.DistanceValue;
+using LegacyFighter.Cabs.Geolocation;
 
-namespace LegacyFighter.CabsTests.DistanceValue;
+namespace LegacyFighter.CabsTests.Geolocation;
 
 public class DistanceTest
 {

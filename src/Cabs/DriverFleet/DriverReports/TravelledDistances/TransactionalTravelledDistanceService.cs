@@ -1,5 +1,5 @@
 ﻿using LegacyFighter.Cabs.Common;
-using LegacyFighter.Cabs.DistanceValue;
+using LegacyFighter.Cabs.Geolocation;
 using NodaTime;
 
 namespace LegacyFighter.Cabs.DriverFleet.DriverReports.TravelledDistances;

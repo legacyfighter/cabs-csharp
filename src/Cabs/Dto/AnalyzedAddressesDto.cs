@@ -1,3 +1,5 @@
+using LegacyFighter.Cabs.Geolocation.Address;
+
 namespace LegacyFighter.Cabs.Dto;
 
 public class AnalyzedAddressesDto

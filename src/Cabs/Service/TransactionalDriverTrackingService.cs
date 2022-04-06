@@ -1,6 +1,6 @@
 using LegacyFighter.Cabs.Common;
-using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Geolocation;
 using NodaTime;
 
 namespace LegacyFighter.Cabs.Service;

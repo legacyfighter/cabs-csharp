@@ -1,4 +1,5 @@
 using LegacyFighter.Cabs.Dto;
+using LegacyFighter.Cabs.Geolocation.Address;
 using LegacyFighter.Cabs.Service;
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,15 +1,13 @@
-using LegacyFighter.Cabs.Entity;
-
-namespace LegacyFighter.Cabs.Service;
+namespace LegacyFighter.Cabs.Geolocation;
 
 public interface IGeocodingService
 {
-  double[] GeocodeAddress(Address address);
+  double[] GeocodeAddress(Address.Address address);
 }
 
 public class GeocodingService : IGeocodingService
 {
-  public double[] GeocodeAddress(Address address)
+  public double[] GeocodeAddress(Address.Address address)
   {
     //TODO ... call do zewnętrznego serwisu
 

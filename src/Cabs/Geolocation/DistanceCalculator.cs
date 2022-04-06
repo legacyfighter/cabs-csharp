@@ -1,4 +1,6 @@
-namespace LegacyFighter.Cabs.Service;
+using LegacyFighter.Cabs.Common;
+
+namespace LegacyFighter.Cabs.Geolocation;
 
 public class DistanceCalculator
 {

@@ -1,5 +1,6 @@
 ﻿using LegacyFighter.Cabs.Controllers;
 using LegacyFighter.Cabs.Dto;
+using LegacyFighter.Cabs.Geolocation.Address;
 using LegacyFighter.CabsTests.Common;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;

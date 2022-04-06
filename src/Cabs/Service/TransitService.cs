@@ -1,10 +1,11 @@
 using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Common;
-using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Entity.Events;
+using LegacyFighter.Cabs.Geolocation;
+using LegacyFighter.Cabs.Geolocation.Address;
 using LegacyFighter.Cabs.Invoicing;
 using LegacyFighter.Cabs.Loyalty;
 using LegacyFighter.Cabs.Notification;

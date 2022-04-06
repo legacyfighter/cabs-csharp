@@ -1,5 +1,5 @@
 ﻿using System.Globalization;
-using LegacyFighter.Cabs.DistanceValue;
+using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.MoneyValue;
 using NodaTime;
 

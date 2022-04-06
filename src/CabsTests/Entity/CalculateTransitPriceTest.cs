@@ -1,6 +1,6 @@
 ﻿using System;
-using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.MoneyValue;
 using NodaTime;
 

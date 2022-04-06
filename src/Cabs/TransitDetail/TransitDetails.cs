@@ -1,7 +1,8 @@
 ﻿using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Common;
-using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Geolocation;
+using LegacyFighter.Cabs.Geolocation.Address;
 using LegacyFighter.Cabs.MoneyValue;
 using NodaTime;
 

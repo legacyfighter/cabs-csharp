@@ -1,6 +1,7 @@
 using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Geolocation.Address;
 using LegacyFighter.Cabs.MoneyValue;
 using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.Service;

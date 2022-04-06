@@ -2,6 +2,7 @@ using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Geolocation.Address;
 
 namespace LegacyFighter.Cabs.Service;
 

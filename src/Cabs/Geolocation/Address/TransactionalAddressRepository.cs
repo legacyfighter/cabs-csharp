@@ -1,7 +1,6 @@
 using LegacyFighter.Cabs.Common;
-using LegacyFighter.Cabs.Entity;
 
-namespace LegacyFighter.Cabs.Repository;
+namespace LegacyFighter.Cabs.Geolocation.Address;
 
 public class TransactionalAddressRepository : IAddressRepository
 {

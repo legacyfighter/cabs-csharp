@@ -14,6 +14,7 @@ using LegacyFighter.Cabs.Contracts.Model.State.Dynamic.Acme;
 using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.Crm.TransitAnalyzer;
 using LegacyFighter.Cabs.DriverFleet;
+using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.Invoicing;
 using LegacyFighter.Cabs.Loyalty;
 using LegacyFighter.Cabs.Notification;
@@ -55,7 +56,6 @@ builder.Services.AddDbContext<SqLiteDbContext>();
 builder.Services.AddTransient<DbContext>(ctx => ctx.GetRequiredService<SqLiteDbContext>());
 builder.Services.AddScoped<EventsPublisher>();
 builder.Services.AddTransient<ITransactions, Transactions>();
-builder.Services.AddTransient<IAddressRepositoryInterface, EfCoreAddressRepository>();
 builder.Services.AddTransient<IDriverSessionRepository, EfCoreDriverSessionRepository>();
 builder.Services.AddTransient<IDriverPositionRepository, EfCoreDriverPositionRepository>();
 builder.Services.AddTransient<IClientRepository, EfCoreClientRepository>();
@@ -76,20 +76,13 @@ builder.Services.AddTransient<IDriverSessionService>(ctx =>
   new TransactionalDriverSessionService(
     ctx.GetRequiredService<DriverSessionService>(),
     ctx.GetRequiredService<ITransactions>()));
-builder.Services.AddTransient<IGeocodingService, GeocodingService>();
 builder.Services.AddTransient<TransitService>();
 builder.Services.AddTransient<ITransitService>(ctx =>
   new TransactionalTransitService(
     ctx.GetRequiredService<TransitService>(),
     ctx.GetRequiredService<ITransactions>()));
-builder.Services.AddTransient<DistanceCalculator>();
 builder.Services.AddSingleton<IAppProperties, AppProperties>();
 builder.Services.AddSingleton<IClock>(_ => SystemClock.Instance);
-builder.Services.AddTransient<AddressRepository>();
-builder.Services.AddTransient<IAddressRepository>(ctx => 
-  new TransactionalAddressRepository(
-    ctx.GetRequiredService<AddressRepository>(),
-    ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddTransient<UserDao>();
 builder.Services.AddTransient<JobDoer>();
 builder.Services.AddTransient<IJobDoer>(ctx => new TransactionalJobDoer(
@@ -135,6 +128,7 @@ TransitAnalyzerDependencies.AddTo(builder);
 NotificationDependencies.AddTo(builder);
 DriverFleetDependencies.AddTo(builder);
 LoyaltyDependencies.AddTo(builder);
+GeolocationDependencies.AddTo(builder);
 
 var app = builder.Build();
 

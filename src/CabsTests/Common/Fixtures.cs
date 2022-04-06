@@ -4,7 +4,8 @@ using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.Service;
+using LegacyFighter.Cabs.Geolocation;
+using LegacyFighter.Cabs.Geolocation.Address;
 using NodaTime;
 using NodaTime.Extensions;
 

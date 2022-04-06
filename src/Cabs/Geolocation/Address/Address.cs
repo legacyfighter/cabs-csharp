@@ -1,6 +1,6 @@
 using LegacyFighter.Cabs.Common;
 
-namespace LegacyFighter.Cabs.Entity;
+namespace LegacyFighter.Cabs.Geolocation.Address;
 
 public class Address : BaseEntity
 {

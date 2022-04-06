@@ -1,7 +1,7 @@
-using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Repository;
 using Microsoft.EntityFrameworkCore;
 
-namespace LegacyFighter.Cabs.Repository;
+namespace LegacyFighter.Cabs.Geolocation.Address;
 
 public interface IAddressRepositoryInterface
 {
@@ -11,7 +11,7 @@ public interface IAddressRepositoryInterface
   async Task<int?> FindHashById(long? id) => (await Find(id)).Hash;
 }
 
-public class EfCoreAddressRepository : IAddressRepositoryInterface
+internal class EfCoreAddressRepository : IAddressRepositoryInterface
 {
   private readonly SqLiteDbContext _context;
 

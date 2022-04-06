@@ -1,4 +1,4 @@
-﻿using LegacyFighter.Cabs.DistanceValue;
+﻿using LegacyFighter.Cabs.Geolocation;
 using NodaTime;
 using NodaTime.TimeZones;
 

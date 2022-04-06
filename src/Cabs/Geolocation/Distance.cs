@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace LegacyFighter.Cabs.DistanceValue;
+namespace LegacyFighter.Cabs.Geolocation;
 
 public class Distance : IEquatable<Distance>
 {

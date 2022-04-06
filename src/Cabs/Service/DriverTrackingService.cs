@@ -1,7 +1,7 @@
-using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.DriverFleet.DriverReports.TravelledDistances;
 using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.Repository;
 using NodaTime;
 

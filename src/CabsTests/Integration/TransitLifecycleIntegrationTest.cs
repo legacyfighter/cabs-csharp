@@ -1,7 +1,8 @@
 ﻿using System;
 using LegacyFighter.Cabs.CarFleet;
-using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Geolocation;
+using LegacyFighter.Cabs.Geolocation.Address;
 using LegacyFighter.Cabs.Service;
 using LegacyFighter.CabsTests.Common;
 using Microsoft.Extensions.DependencyInjection;
