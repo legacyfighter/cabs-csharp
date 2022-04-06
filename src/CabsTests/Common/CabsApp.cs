@@ -68,7 +68,19 @@ internal class CabsApp : WebApplicationFactory<Program>
     {
       configurationBuilder.AddInMemoryCollection(_configurationOverrides);
     });
-    builder.ConfigureServices(collection => collection.AddTransient<Fixtures>());
+    builder.ConfigureServices(collection =>
+    {
+      collection.AddTransient<Fixtures>();
+      collection.AddTransient<AddressFixture>();
+      collection.AddTransient<AwardsAccountFixture>();
+      collection.AddTransient<CarTypeFixture>();
+      collection.AddTransient<ClaimFixture>();
+      collection.AddTransient<ClientFixture>();
+      collection.AddTransient<DriverFixture>();
+      collection.AddTransient<RideFixture>();
+      collection.AddTransient<StubbedTransitPrice>();
+      collection.AddTransient<TransitFixture>();
+    });
     builder.ConfigureServices(_customization);
   }
 

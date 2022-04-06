@@ -24,6 +24,7 @@ public class RemovingAwardMilesIntegrationTest
   private IAwardsService AwardsService => _app.AwardsService;
   private IAwardsAccountRepository AwardsAccountRepository => _app.AwardsAccountRepository;
   private IClock Clock { get; set; } = default!;
+  private IGeocodingService GeocodingService { get; set; } = default!;
   private IAppProperties AppProperties { get; set; } = default!;
 
   [SetUp]
@@ -31,9 +32,11 @@ public class RemovingAwardMilesIntegrationTest
   {
     AppProperties = Substitute.For<IAppProperties>();
     Clock = Substitute.For<IClock>();
+    GeocodingService = Substitute.For<IGeocodingService>();
     _app = CabsApp.CreateInstance(collection =>
     {
       collection.AddSingleton(Clock);
+      collection.AddSingleton(GeocodingService);
       collection.AddSingleton(AppProperties);
     });
   }
@@ -72,7 +75,7 @@ public class RemovingAwardMilesIntegrationTest
     //given
     var client = await ClientWithAnActiveMilesProgram(Client.Types.Normal);
     //and
-    await Fixtures.ClientHasDoneTransits(client, 15);
+    await Fixtures.ClientHasDoneTransits(client, 15, GeocodingService);
     //and
     var transit = await Fixtures.ATransit(new Money(80));
     //and
@@ -96,7 +99,7 @@ public class RemovingAwardMilesIntegrationTest
     //given
     var client = await ClientWithAnActiveMilesProgram(Client.Types.Normal);
     //and
-    await Fixtures.ClientHasDoneTransits(client, 15);
+    await Fixtures.ClientHasDoneTransits(client, 15, GeocodingService);
     //and
     var transit = await Fixtures.ATransit(new Money(80));
 
@@ -137,12 +140,12 @@ public class RemovingAwardMilesIntegrationTest
   }
 
   [Test]
-  public async Task shouldRemoveSoonToExpireMilesFirstWhenRemovingOnSundayAndClientHasDoneManyTransits()
+  public async Task ShouldRemoveSoonToExpireMilesFirstWhenRemovingOnSundayAndClientHasDoneManyTransits()
   {
     //given
     var client = await ClientWithAnActiveMilesProgram(Client.Types.Normal);
     //and
-    await Fixtures.ClientHasDoneTransits(client, 15);
+    await Fixtures.ClientHasDoneTransits(client, 15, GeocodingService);
     //and
     var transit = await Fixtures.ATransit(new Money(80));
     //and
@@ -169,7 +172,7 @@ public class RemovingAwardMilesIntegrationTest
     //given
     var client = await ClientWithAnActiveMilesProgram(Client.Types.Normal);
     //and
-    await Fixtures.ClientHasDoneClaims(client, 3);
+    await Fixtures.ClientHasDoneClaimsAfterCompletedTransit(client, 3);
     //and
     var transit = await Fixtures.ATransit(new Money(80));
     //and

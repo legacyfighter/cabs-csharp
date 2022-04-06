@@ -313,6 +313,7 @@ public class SqLiteDbContext : DbContext
         .HasConversion(
           distance => distance.ToKmInDouble(),
           value => Distance.OfKm(value)).IsRequired();
+
     });
 
     MapRepairEntities(modelBuilder);

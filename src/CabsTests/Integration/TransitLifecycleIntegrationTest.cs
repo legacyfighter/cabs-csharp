@@ -1,5 +1,4 @@
 ﻿using System;
-using FluentAssertions.Equivalency;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Service;
@@ -14,8 +13,6 @@ public class TransitLifeCycleIntegrationTest
 {
   private Fixtures Fixtures => _app.Fixtures;
   private ITransitService TransitService => _app.TransitService;
-  private IDriverSessionService DriverSessionService => _app.DriverSessionService;
-  private IDriverTrackingService DriverTrackingService => _app.DriverTrackingService;
   private IGeocodingService GeocodingService { get; set; } = default!;
   private CabsApp _app = default!;
 
@@ -449,32 +446,19 @@ public class TransitLifeCycleIntegrationTest
     GeocodingService.GeocodeAddress(Arg.Any<Address>()).Returns(new double[] { 1000, 1000 });
     GeocodingService.GeocodeAddress(Arg<Address>.That(
         a => a.Should().BeEquivalentTo(from.ToAddressEntity(),
-          options => options
-            .Excluding(address => address.Id)
-            .Excluding(address => address.Hash)
-            .Excluding((IMemberInfo info) => info.Name == "Version")
-            .ComparingByMembers<Address>()
-          )))
+          options => options.ComparingByMembers<Address>())))
       .Returns(new double[] { 1, 1 });
     return addressDto;
   }
 
   private async Task<long?> ANearbyDriver(string plateNumber)
   {
-    var driver = await Fixtures.ADriver();
-    await Fixtures.DriverHasFee(driver, DriverFee.FeeTypes.Flat, 10);
-    await DriverSessionService.LogIn(driver.Id, plateNumber, CarType.CarClasses.Van, "BRAND");
-    await DriverTrackingService.RegisterPosition(driver.Id, 1, 1, SystemClock.Instance.GetCurrentInstant());
-    return driver.Id;
+    return (await Fixtures.ANearbyDriver(plateNumber, 1, 1, CarType.CarClasses.Van, SystemClock.Instance.GetCurrentInstant(), "BRAND")).Id;
   }
 
   private async Task<long?> AFarAwayDriver(string plateNumber)
   {
-    var driver = await Fixtures.ADriver();
-    await Fixtures.DriverHasFee(driver, DriverFee.FeeTypes.Flat, 10);
-    await DriverSessionService.LogIn(driver.Id, plateNumber, CarType.CarClasses.Van, "BRAND");
-    await DriverTrackingService.RegisterPosition(driver.Id, 1000, 1000, SystemClock.Instance.GetCurrentInstant());
-    return driver.Id;
+    return (await Fixtures.ANearbyDriver(plateNumber, 1000, 1000, CarType.CarClasses.Van, SystemClock.Instance.GetCurrentInstant(), "BRAND")).Id;
   }
 
   private async Task<Transit> RequestTransitFromTo(AddressDto pickup, AddressDto destination)

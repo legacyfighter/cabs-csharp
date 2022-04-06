@@ -1,11 +1,8 @@
 using System.Linq;
-using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;
-using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.Service;
-using LegacyFighter.Cabs.TransitDetail;
 using NodaTime;
 using NodaTime.Extensions;
 
@@ -13,284 +10,185 @@ namespace LegacyFighter.CabsTests.Common;
 
 public class Fixtures
 {
-  private readonly ITransitRepository _transitRepository;
-  private readonly IDriverFeeRepository _feeRepository;
-  private readonly IClientRepository _clientRepository;
-  private readonly IAddressRepository _addressRepository;
-  private readonly IDriverService _driverService;
-  private readonly ICarTypeService _carTypeService;
-  private readonly IClaimService _claimService;
-  private readonly IAwardsService _awardsService;
-  private readonly ITransitService _transitService;
-  private readonly IDriverSessionService _driverSessionService;
-  private readonly IDriverTrackingService _driverTrackingService;
-  private readonly IDriverAttributeRepository _driverAttributeRepository;
-  private readonly ITransitDetailsFacade _transitDetailsFacade;
+  private readonly AddressFixture _addressFixture;
+  private readonly ClaimFixture _claimFixture;
+  private readonly DriverFixture _driverFixture;
+  private readonly ClientFixture _clientFixture;
+  private readonly TransitFixture _transitFixture;
+  private readonly AwardsAccountFixture _awardsAccountFixture;
+  private readonly CarTypeFixture _carTypeFixture;
+  private readonly RideFixture _rideFixture;
 
   public Fixtures(
-    ITransitRepository transitRepository,
-    IDriverFeeRepository feeRepository,
-    IClientRepository clientRepository,
-    IAddressRepository addressRepository,
-    IDriverService driverService,
-    ICarTypeService carTypeService,
-    IClaimService claimService,
-    IAwardsService awardsService,
-    ITransitService transitService,
-    IDriverSessionService driverSessionService,
-    IDriverTrackingService driverTrackingService,
-    IDriverAttributeRepository driverAttributeRepository, 
-    ITransitDetailsFacade transitDetailsFacade)
+    AddressFixture addressFixture,
+    ClaimFixture claimFixture,
+    DriverFixture driverFixture,
+    ClientFixture clientFixture,
+    TransitFixture transitFixture,
+    AwardsAccountFixture awardsAccountFixture,
+    CarTypeFixture carTypeFixture,
+    RideFixture rideFixture)
   {
-    _transitRepository = transitRepository;
-    _feeRepository = feeRepository;
-    _driverService = driverService;
-    _carTypeService = carTypeService;
-    _claimService = claimService;
-    _awardsService = awardsService;
-    _clientRepository = clientRepository;
-    _addressRepository = addressRepository;
-    _driverAttributeRepository = driverAttributeRepository;
-    _transitDetailsFacade = transitDetailsFacade;
-    _transitService = transitService;
-    _driverSessionService = driverSessionService;
-    _driverTrackingService = driverTrackingService;
+    _addressFixture = addressFixture;
+    _claimFixture = claimFixture;
+    _driverFixture = driverFixture;
+    _clientFixture = clientFixture;
+    _transitFixture = transitFixture;
+    _awardsAccountFixture = awardsAccountFixture;
+    _carTypeFixture = carTypeFixture;
+    _rideFixture = rideFixture;
   }
 
-  public Task<Client> AClient()
+  public async Task<Address> AnAddress() 
   {
-    return _clientRepository.Save(new Client());
+    return await _addressFixture.AnAddress();
   }
 
-  public Task<Client> AClient(Client.Types type) 
+  public async Task<Client> AClient()
   {
-    var client = new Client
-    {
-      Type = type
-    };
-    return _clientRepository.Save(client);
+    return await _clientFixture.AClient();
+  }
+
+  public async Task<Client> AClient(Client.Types type)
+  {
+    return await _clientFixture.AClient(type);
   }
 
   public async Task<Transit> ATransit(Driver driver, int price, LocalDateTime when, Client? client)
   {
-    var dateTime = when.InUtc().ToInstant();
-    var transit = new Transit(dateTime, Distance.Zero)
-    {
-      Price = new Money(price)
-    };
-    transit.ProposeTo(driver);
-    transit.AcceptBy(driver, SystemClock.Instance.GetCurrentInstant());
-    transit = await _transitRepository.Save(transit);
-    await _transitDetailsFacade.TransitRequested(dateTime, transit.Id, null, null, Distance.Zero, client, null, new Money(price), transit.Tariff);
-    return transit;
+    return await _transitFixture.ATransit(driver, price, when, client);
   }
 
   public async Task<Transit> ATransit(Money price) 
   {
-    return await ATransit(await ADriver(), price.IntValue);
+    return await _transitFixture.ATransit(await _driverFixture.ADriver(), price.IntValue);
   }
 
   public async Task<Transit> ATransit(Driver driver, int price, LocalDateTime when)
   {
-    return await ATransit(driver, price, when, null);
+    return await _transitFixture.ATransit(driver, price, when, null);
   }
 
-  public Task<Transit> ATransit(Driver driver, int price)
+  public async Task<Transit> ATransit(Driver driver, int price)
   {
-    return ATransit(driver, price, SystemClock.Instance.InBclSystemDefaultZone().GetCurrentLocalDateTime(), null);
-  }
-
-  public async Task<DriverFee> DriverHasFee(Driver driver, DriverFee.FeeTypes feeType, int amount, int min)
-  {
-    var driverFee = new DriverFee
-    {
-      Driver = driver,
-      Amount = amount,
-      FeeType = feeType,
-      Min = new Money(min)
-    };
-    return await _feeRepository.Save(driverFee);
-  }
-
-  public Task<DriverFee> DriverHasFee(Driver driver, DriverFee.FeeTypes feeType, int amount)
-  {
-    return DriverHasFee(driver, feeType, amount, 0);
-  }
-
-  public async Task<Driver> ADriver()
-  {
-    return await ADriver(Driver.Statuses.Active, "Janusz", "Kowalsi", "FARME100165AB5EW");
-  }
-
-  public async Task<Driver> ADriver(Driver.Statuses status, string name, string lastName, string driverLicense)
-  {
-    return await _driverService.CreateDriver(driverLicense, lastName, name, Driver.Types.Regular,
-      status, "");
-  }
-
-  public async Task<Driver> ANearbyDriver(string plateNumber) 
-  {
-    var driver = await ADriver();
-    await DriverHasFee(driver, DriverFee.FeeTypes.Flat, 10);
-    await _driverSessionService.LogIn(driver.Id, plateNumber, CarType.CarClasses.Van, "BRAND");
-    await _driverTrackingService.RegisterPosition(driver.Id, 1, 1, SystemClock.Instance.GetCurrentInstant());
-    return driver;
-  }
-
-  public async Task<Transit> ARequestedAndCompletedTransit(
-    int price,
-    Instant publishedAt,
-    Instant completedAt,
-    Client client,
-    Driver driver,
-    Address from,
-    Address destination)
-  {
-    from = await _addressRepository.Save(from);
-    destination = await _addressRepository.Save(destination);
-    var transit = new Transit(publishedAt, Distance.Zero);
-    transit.PublishAt(publishedAt);
-    transit.ProposeTo(driver);
-    transit.AcceptBy(driver, publishedAt);
-    transit.Start(publishedAt);
-    transit.CompleteTransitAt(completedAt, destination, Distance.OfKm(1));
-    transit.Price = new Money(price);
-    transit = await _transitRepository.Save(transit);
-    await _transitDetailsFacade.TransitRequested(publishedAt, transit.Id, from, destination, Distance.Zero, client, null, new Money(price), transit.Tariff);
-    await _transitDetailsFacade.TransitAccepted(transit.Id, publishedAt, driver.Id);
-    await _transitDetailsFacade.TransitStarted(transit.Id, publishedAt);
-    await _transitDetailsFacade.TransitCompleted(transit.Id, publishedAt, new Money(price), new Money(0));
-    return transit;
-  }
-
-  public async Task<Transit> ACompletedTransitAt(int price, Instant when)
-  {
-    var client = await AClient();
-    var driver = await ADriver();
-    return await ACompletedTransitAt(price, when, client, driver);
-  }
-
-  public async Task<Transit> ACompletedTransitAt(int price, Instant publishedAt, Instant completedAt, Client client, Driver driver)
-  {
-    var destination = new Address("Polska", "Warszawa", "Zytnia", 20);
-    var from = new Address("Polska", "Warszawa", "M³ynarska", 20);
-    
-    return await ARequestedAndCompletedTransit(price, publishedAt, completedAt, client, driver, from, destination);
-  }
-
-  public async Task<Transit> ACompletedTransitAt(int price, Instant publishedAt, Client client, Driver driver) 
-  {
-    return await ACompletedTransitAt(price, publishedAt, publishedAt.Plus(Duration.FromMinutes(10)), client, driver);
-  }
-
-  public async Task<Transit> ARequestedAndCompletedTransit(
-    int price,
-    Instant publishedAt,
-    Instant completedAt,
-    Client client,
-    Driver driver,
-    Address from,
-    Address destination,
-    IClock clock)
-  {
-    from = await _addressRepository.Save(from);
-    destination = await _addressRepository.Save(destination);
-
-    clock.GetCurrentInstant().Returns(publishedAt);
-    var transit = await _transitService.CreateTransit(client.Id, from, destination, CarType.CarClasses.Van);
-    await _transitService.PublishTransit(transit.Id);
-    await _transitService.FindDriversForTransit(transit.Id);
-    await _transitService.AcceptTransit(driver.Id, transit.Id);
-    await _transitService.StartTransit(driver.Id, transit.Id);
-    clock.GetCurrentInstant().Returns(completedAt);
-    await _transitService.CompleteTransit(driver.Id, transit.Id, destination);
-
-    return await _transitRepository.Find(transit.Id);
-  }
-
-  public async Task<CarType> AnActiveCarCategory(CarType.CarClasses carClass)
-  {
-    var carTypeDto = new CarTypeDto
-    {
-      CarClass = carClass,
-      Description = "opis"
-    };
-    var carType = await _carTypeService.Create(carTypeDto);
-    foreach (var _ in Enumerable.Range(1, carType.MinNoOfCarsToActivateClass))
-    {
-      await _carTypeService.RegisterCar(carType.CarClass);
-    }
-
-    await _carTypeService.Activate(carType.Id);
-    return carType;
-  }
-
-  public TransitDto ATransitDto(Client client, AddressDto from, AddressDto to)
-  {
-    var transitDto = new TransitDto
-    {
-      ClientDto = new ClientDto(client),
-      From = from,
-      To = to
-    };
-    return transitDto;
+    return await _transitFixture.ATransit(driver, price, SystemClock.Instance.InBclSystemDefaultZone().GetCurrentLocalDateTime(), null);
   }
 
   public async Task<TransitDto> ATransitDto(AddressDto from, AddressDto to)
   {
-    return ATransitDto(await AClient(), from, to);
+    return _transitFixture.ATransitDto(await AClient(), from, to);
   }
 
-  public async Task ClientHasDoneTransits(Client client, int noOfTransits) 
+  public async Task<DriverFee> DriverHasFee(Driver driver, DriverFee.FeeTypes feeType, int amount, int min)
+  {
+    return await _driverFixture.DriverHasFee(driver, feeType, amount, min);
+  }
+
+  public async Task<DriverFee> DriverHasFee(Driver driver, DriverFee.FeeTypes feeType, int amount)
+  {
+    return await _driverFixture.DriverHasFee(driver, feeType, amount);
+  }
+
+  public async Task<Driver> ADriver()
+  {
+    return await _driverFixture.ADriver();
+  }
+
+  public async Task<Driver> ADriver(Driver.Statuses status, string name, string lastName, string driverLicense)
+  {
+    return await _driverFixture.ADriver(status, name, lastName, driverLicense);
+  }
+
+  public async Task<Driver> ANearbyDriver(IGeocodingService stubbedGeocodingService, Address pickup) 
+  {
+    return await _driverFixture.ANearbyDriver(stubbedGeocodingService, pickup);
+  }
+
+  public async Task<Driver> ANearbyDriver(
+    string plateNumber,
+    double latitude,
+    double longitude,
+    CarType.CarClasses carClass,
+    Instant when) 
+  {
+    return await _driverFixture.ANearbyDriver(
+      plateNumber,
+      latitude,
+      longitude,
+      carClass,
+      when,
+      "brand");
+  }
+
+  public async Task<Driver> ANearbyDriver(
+    string plateNumber,
+    double latitude,
+    double longitude,
+    CarType.CarClasses carClass,
+    Instant when,
+    string carBrand) 
+  {
+    return await _driverFixture.ANearbyDriver(
+      plateNumber,
+      latitude,
+      longitude,
+      carClass,
+      when,
+      carBrand);
+  }
+
+  public async Task DriverHasAttribute(Driver driver, DriverAttribute.DriverAttributeNames name, string value) 
+  {
+    await _driverFixture.DriverHasAttribute(driver, name, value);
+  }
+
+  public async Task<Transit> AJourney(int price, Client client, Driver driver, Address from, Address destination) 
+  {
+    return await _rideFixture.ARide(price, client, driver, from, destination);
+  }
+
+  public async Task<Transit> AJourneyWithFixedClock(int price, Instant publishedAt, Instant completedAt, Client client, Driver driver, Address from, Address destination, IClock clock) 
+  {
+    return await _rideFixture.ARideWithFixedClock(price, publishedAt, completedAt, client, driver, from, destination, clock);
+  }
+
+  public async Task<CarType> AnActiveCarCategory(CarType.CarClasses carClass)
+  {
+    return await _carTypeFixture.AnActiveCarCategory(carClass);
+  }
+
+  public async Task ClientHasDoneTransits(Client client, int noOfTransits, IGeocodingService geocodingService) 
   {
     await Task.WhenAll(Enumerable.Range(1, noOfTransits)
       .Select(async i =>
       {
-        var driver = await ADriver();
-        var completedTransit = await ACompletedTransitAt(10, SystemClock.Instance.GetCurrentInstant(), client, driver);
-        await _transitRepository.Save(completedTransit);
+        var pickup = await AnAddress();
+        var driver = await ANearbyDriver(geocodingService, pickup);
+        await AJourney(10, client, driver, pickup, await AnAddress());
       }));
   }
 
   public async Task<Claim> CreateClaim(Client client, Transit transit)
   {
-    var claimDto = ClaimDto("Okradli mnie na hajs", "$$$", client.Id, transit.Id);
-    claimDto.IsDraft = false;
-    return await _claimService.Create(claimDto);
+    return await _claimFixture.CreateClaim(client, transit);
   }
 
   public async Task<Claim> CreateClaim(Client client, Transit transit, string reason) 
   {
-    var claimDto = ClaimDto("Okradli mnie na hajs", reason, client.Id, transit.Id);
-    claimDto.IsDraft = false;
-    return await _claimService.Create(claimDto);
+    return await _claimFixture.CreateClaim(client, transit, reason);
   }
 
-  public async Task<Claim> CreateAndResolveClaim(Client client, Transit transit) 
+  public async Task<Claim> CreateAndResolveClaim(Client client, Transit transit)
   {
-    var claim = await CreateClaim(client, transit);
-    claim = await _claimService.TryToResolveAutomatically(claim.Id);
-    return claim;
+    return await _claimFixture.CreateAndResolveClaim(client, transit);
   }
 
-  public ClaimDto ClaimDto(string desc, string reason, long? clientId, long? transitId) 
-  {
-    var claimDto = new ClaimDto
-    {
-      ClientId = clientId,
-      TransitId = transitId,
-      IncidentDescription = desc,
-      Reason = reason
-    };
-    return claimDto;
-  }
-
-  public async Task ClientHasDoneClaims(Client client, int howMany)
+  public async Task ClientHasDoneClaimsAfterCompletedTransit(Client client, int howMany)
   {
     await Task.WhenAll(Enumerable.Range(1, howMany)
       .Select(async i =>
       {
-        var driver = await ADriver();
+        var driver = await _driverFixture.ADriver();
         var transit = await ATransit(driver, 20, SystemClock.Instance.InBclSystemDefaultZone().GetCurrentLocalDateTime(), client);
         await CreateAndResolveClaim(client, transit);
       }));
@@ -298,24 +196,13 @@ public class Fixtures
 
   public async Task<Client> AClientWithClaims(Client.Types type, int howManyClaims)
   {
-    var client = await AClient(type);
-    await ClientHasDoneClaims(client, howManyClaims);
+    var client = await _clientFixture.AClient(type);
+    await ClientHasDoneClaimsAfterCompletedTransit(client, howManyClaims);
     return client;
-  }
-
-  public async Task AwardsAccount(Client client) 
-  {
-    await _awardsService.RegisterToProgram(client.Id);
   }
 
   public async Task ActiveAwardsAccount(Client client)
   {
-    await AwardsAccount(client);
-    await _awardsService.ActivateAccount(client.Id);
-  }
-
-  public async Task DriverHasAttribute(Driver driver, DriverAttribute.DriverAttributeNames name, string value)
-  {
-    await _driverAttributeRepository.Save(new DriverAttribute(driver, name, value));
+    await _awardsAccountFixture.ActiveAwardsAccount(client);
   }
 }

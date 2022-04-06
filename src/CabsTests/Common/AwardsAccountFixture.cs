@@ -1,0 +1,25 @@
+using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Service;
+
+namespace LegacyFighter.CabsTests.Common;
+
+public class AwardsAccountFixture
+{
+  private readonly IAwardsService _awardsService;
+
+  public AwardsAccountFixture(IAwardsService awardsService)
+  {
+    _awardsService = awardsService;
+  }
+
+  public async Task AwardsAccount(Client client) 
+  {
+    await _awardsService.RegisterToProgram(client.Id);
+  }
+
+  public async Task ActiveAwardsAccount(Client client)
+  {
+    await AwardsAccount(client);
+    await _awardsService.ActivateAccount(client.Id);
+  }
+}
