@@ -26,5 +26,15 @@ public static class RideDependencies
       new TransactionalRequestTransitService(
         ctx.GetRequiredService<RequestTransitService>(),
         ctx.GetRequiredService<ITransactions>()));
+    builder.Services.AddTransient<ChangeDestinationService>();
+    builder.Services.AddTransient<IChangeDestinationService>(ctx =>
+      new TransactionalChangeDestinationService(
+        ctx.GetRequiredService<ChangeDestinationService>(),
+        ctx.GetRequiredService<ITransactions>()));
+    builder.Services.AddTransient<ChangePickupService>();
+    builder.Services.AddTransient<IChangePickupService>(ctx =>
+      new TransactionalChangePickupService(
+        ctx.GetRequiredService<ChangePickupService>(),
+        ctx.GetRequiredService<ITransactions>()));
   }
 }

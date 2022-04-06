@@ -15,7 +15,7 @@ public interface ITransitDetailsFacade
   Task TransitRequested(Instant when, Guid requestId, Address from, Address to, Distance distance,
     Client client, CarClasses? carClass, Money estimatedPrice, Tariff tariff);
   Task PickupChangedTo(Guid requestId, Address newAddress, Distance newDistance);
-  Task DestinationChanged(Guid requestId, Address newAddress);
+  Task DestinationChanged(Guid requestId, Address newAddress, Distance newDistance);
   Task TransitPublished(Guid requestId, Instant when);
   Task TransitStarted(Guid requestId, long? transitId, Instant when);
   Task TransitAccepted(Guid requestId, long? driverId, Instant when);

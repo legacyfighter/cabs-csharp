@@ -47,10 +47,10 @@ public class TransactionalTransitDetailsFacade : ITransitDetailsFacade
     await tx.Commit();
   }
 
-  public async Task DestinationChanged(Guid requestId, Address newAddress)
+  public async Task DestinationChanged(Guid requestId, Address newAddress, Distance newDistance)
   {
     await using var tx = await _transactions.BeginTransaction();
-    await _inner.DestinationChanged(requestId, newAddress);
+    await _inner.DestinationChanged(requestId, newAddress, newDistance);
     await tx.Commit();
   }
 

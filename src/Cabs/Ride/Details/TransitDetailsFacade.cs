@@ -59,10 +59,10 @@ public class TransitDetailsFacade : ITransitDetailsFacade
     details.SetPickupChangedTo(newAddress, newDistance);
   }
 
-  public async Task DestinationChanged(Guid requestId, Address newAddress)
+  public async Task DestinationChanged(Guid requestId, Address newAddress, Distance newDistance)
   {
     var details = await Load(requestId);
-    details.SetDestinationChangedTo(newAddress);
+    details.SetDestinationChangedTo(newAddress, newDistance);
   }
 
   public async Task TransitStarted(Guid requestId, long? transitId, Instant when)

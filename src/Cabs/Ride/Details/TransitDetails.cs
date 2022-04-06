@@ -93,9 +93,10 @@ public class TransitDetails : BaseEntity
     Distance = newDistance;
   }
 
-  internal void SetDestinationChangedTo(Address newAddress)
+  internal void SetDestinationChangedTo(Address newAddress, Distance newDistance)
   {
     To = newAddress;
+    Distance = newDistance;
   }
 
   internal void InvolvedDriversAre(InvolvedDriversSummary involvedDriversSummary)
