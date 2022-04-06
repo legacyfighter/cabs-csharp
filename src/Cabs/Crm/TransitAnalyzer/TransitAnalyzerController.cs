@@ -1,9 +1,7 @@
-using LegacyFighter.Cabs.Crm.TransitAnalyzer;
-using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Geolocation.Address;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LegacyFighter.Cabs.Controllers;
+namespace LegacyFighter.Cabs.Crm.TransitAnalyzer;
 
 [ApiController]
 [Route("[controller]")]

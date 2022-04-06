@@ -1,6 +1,6 @@
 using LegacyFighter.Cabs.Geolocation.Address;
 
-namespace LegacyFighter.Cabs.Dto;
+namespace LegacyFighter.Cabs.Crm.TransitAnalyzer;
 
 public class AnalyzedAddressesDto
 {

@@ -2,9 +2,8 @@
 using System.Linq;
 using FluentAssertions.Extensions;
 using LegacyFighter.Cabs.CarFleet;
-using LegacyFighter.Cabs.Controllers;
 using LegacyFighter.Cabs.Crm;
-using LegacyFighter.Cabs.Dto;
+using LegacyFighter.Cabs.Crm.TransitAnalyzer;
 using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.Geolocation.Address;
 using LegacyFighter.CabsTests.Common;
