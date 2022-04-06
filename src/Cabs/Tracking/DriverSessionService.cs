@@ -1,9 +1,7 @@
 using LegacyFighter.Cabs.CarFleet;
-using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.Repository;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.Service;
+namespace LegacyFighter.Cabs.Tracking;
 
 public class DriverSessionService : IDriverSessionService
 {
@@ -59,5 +57,11 @@ public class DriverSessionService : IDriverSessionService
   public async Task<List<DriverSession>> FindByDriver(long? driverId)
   {
     return await _driverSessionRepository.FindByDriverId(driverId);
+  }
+
+  public async Task<List<long?>> FindCurrentlyLoggedDriverIds(List<long?> driversIds, List<CarClasses> carClasses)
+  {
+    return (await _driverSessionRepository.FindAllByLoggedOutAtNullAndDriverIdInAndCarClassIn(driversIds, carClasses))
+      .Select(s => s.DriverId).ToList();
   }
 }

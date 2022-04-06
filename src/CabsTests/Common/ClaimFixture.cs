@@ -1,5 +1,6 @@
 using LegacyFighter.Cabs.Crm;
 using LegacyFighter.Cabs.Crm.Claims;
+using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 
 namespace LegacyFighter.CabsTests.Common;
@@ -20,7 +21,7 @@ public class ClaimFixture
     return await _claimService.Create(claimDto);
   }
 
-  public async Task<Claim> CreateClaim(Client client, Transit transit, string reason) 
+  public async Task<Claim> CreateClaim(Client client, TransitDto transit, string reason) 
   {
     var claimDto = ClaimDto("Okradli mnie na hajs", reason, client.Id, transit.Id);
     claimDto.IsDraft = false;

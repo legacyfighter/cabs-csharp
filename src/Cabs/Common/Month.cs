@@ -1,4 +1,4 @@
-namespace LegacyFighter.Cabs.Service;
+namespace LegacyFighter.Cabs.Common;
 
 public record Month(int Value)
 {

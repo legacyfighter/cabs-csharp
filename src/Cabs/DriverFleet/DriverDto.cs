@@ -29,6 +29,7 @@ public class DriverDto
     Photo = driver.Photo;
     Status = driver.Status;
     Type = driver.Type;
+    IsOccupied = driver.Occupied;
   }
 
   public long? Id { get; set; }
@@ -38,4 +39,5 @@ public class DriverDto
   public string Photo { get; set; }
   public Driver.Statuses Status { get; set; }
   public Driver.Types? Type { get; set; }
+  public bool IsOccupied { get; private set; }
 }

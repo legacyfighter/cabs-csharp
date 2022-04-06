@@ -7,6 +7,7 @@ using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.Geolocation.Address;
 using LegacyFighter.Cabs.Repository;
+using LegacyFighter.Cabs.Tracking;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;

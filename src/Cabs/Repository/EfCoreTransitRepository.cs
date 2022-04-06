@@ -30,7 +30,7 @@ internal class EfCoreTransitRepository : ITransitRepository
         transit => transit.Id,
         details => details.TransitId,
         (transit, details) => new { Transit = transit, Details = details })
-      .Where(r => r.Transit.Driver == driver &&
+      .Where(r => r.Transit.DriverId == driver.Id &&
                   r.Details.DateTime >= from &&
                   r.Details.DateTime <= to)
       .Select(r => r.Transit)

@@ -1,27 +1,18 @@
 using LegacyFighter.Cabs.Common;
-using LegacyFighter.Cabs.DriverFleet;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.Entity;
+namespace LegacyFighter.Cabs.Tracking;
 
 public class DriverPosition : BaseEntity
 {
-  public DriverPosition()
+  internal DriverPosition()
   {
   }
 
-  public DriverPosition(Driver driver, Instant seenAt, double latitude, double longitude) 
-  {
-    Driver = driver;
-    SeenAt = seenAt;
-    Latitude = latitude;
-    Longitude = longitude;
-  }
-
-  public virtual Driver Driver { set; get; }
-  public double Latitude { get; set; }
-  public double Longitude { get; set; }
-  public Instant SeenAt { get; set; }
+  internal long? DriverId { set; get; }
+  internal double Latitude { get; set; }
+  internal double Longitude { get; set; }
+  internal Instant SeenAt { get; set; }
 
   public override bool Equals(object obj)
   {

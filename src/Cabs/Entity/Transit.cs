@@ -1,6 +1,5 @@
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Crm;
-using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.Geolocation.Address;
 using LegacyFighter.Cabs.MoneyValue;
@@ -10,7 +9,6 @@ namespace LegacyFighter.Cabs.Entity;
 
 public class Transit : BaseEntity
 {
-
   public enum Statuses
   {
     Draft,
@@ -42,6 +40,8 @@ public class Transit : BaseEntity
   private Client.PaymentTypes? PaymentType { get; set; }
   public Tariff Tariff { get; set; }
   private float _km;
+  private string _driversRejections;
+  private string _proposedDrivers;
 
   public Transit()
   {
@@ -106,29 +106,36 @@ public class Transit : BaseEntity
     }
 
     Status = Statuses.Cancelled;
-    Driver = null;
+    DriverId = null;
     Km = Distance.Zero.ToKmInFloat();
     AwaitingDriversResponses = 0;
   }
 
-  public bool CanProposeTo(Driver driver)
+  public bool CanProposeTo(long? driverId)
   {
-    return !DriversRejections.Contains(driver);
+    return !DriversRejections.Contains(driverId);
   }
 
-  public void ProposeTo(Driver driver)
+  public void ProposeTo(long? driverId)
   {
-    if (CanProposeTo(driver))
+    if (CanProposeTo(driverId))
     {
-      ProposedDrivers.Add(driver);
+      AddDriverToProposed(driverId);
       AwaitingDriversResponses++;
     }
+  }
+
+  private void AddDriverToProposed(long? driverId) 
+  {
+    var proposedDriversSet = ProposedDrivers;
+    proposedDriversSet.Add(driverId);
+    _proposedDrivers = JsonToCollectionMapper.Serialize(proposedDriversSet);
   }
 
   public void FailDriverAssignment()
   {
     Status = Statuses.DriverAssignmentFailed;
-    Driver = null;
+    DriverId = null;
     Km = Distance.Zero.ToKmInFloat();
     AwaitingDriversResponses = 0;
   }
@@ -138,28 +145,27 @@ public class Transit : BaseEntity
     return Status == Statuses.Cancelled || Published + Duration.FromSeconds(300) < date;
   }
 
-  public void AcceptBy(Driver driver, Instant when)
+  public void AcceptBy(long? driverId, Instant when)
   {
-    if (Driver != null)
+    if (DriverId != null)
     {
       throw new InvalidOperationException("Transit already accepted, id = " + Id);
     }
     else
     {
-      if (!ProposedDrivers.Contains(driver))
+      if (!ProposedDrivers.Contains(driverId))
       {
         throw new InvalidOperationException("Driver out of possible drivers, id = " + Id);
       }
       else
       {
-        if (DriversRejections.Contains(driver))
+        if (DriversRejections.Contains(driverId))
         {
           throw new InvalidOperationException("Driver out of possible drivers, id = " + Id);
         }
       }
 
-      Driver = driver;
-      driver.Occupied = true;
+      DriverId = driverId;
       AwaitingDriversResponses = 0;
       Status = Statuses.TransitToPassenger;
     }
@@ -175,10 +181,17 @@ public class Transit : BaseEntity
     Status = Statuses.InTransit;
   }
 
-  public void RejectBy(Driver driver)
+  public void RejectBy(long? driverId)
   {
-    DriversRejections.Add(driver);
+    AddToDriverRejections(driverId);
     AwaitingDriversResponses--;
+  }
+
+  private void AddToDriverRejections(long? driverId)
+  {
+    var driverRejectionSet = DriversRejections;
+    driverRejectionSet.Add(driverId);
+    _driversRejections = JsonToCollectionMapper.Serialize(driverRejectionSet);
   }
 
   public void PublishAt(Instant when)
@@ -202,7 +215,7 @@ public class Transit : BaseEntity
     }
   }
 
-  public virtual Driver Driver { get; protected set; }
+  public long? DriverId { get; protected set; }
 
   public Money Price
   {
@@ -270,8 +283,13 @@ public class Transit : BaseEntity
   }
 
   public int AwaitingDriversResponses { get; private set; } = 0;
-  protected virtual ISet<Driver> DriversRejections { get; set; } = new HashSet<Driver>();
-  public virtual ISet<Driver> ProposedDrivers { get; protected set; } = new HashSet<Driver>();
+
+  public ISet<long?> DriversRejections
+    => JsonToCollectionMapper.Deserialize(_driversRejections);
+
+  public ISet<long?> ProposedDrivers
+    => JsonToCollectionMapper.Deserialize(_proposedDrivers);
+
   private int PickupAddressChangeCounter { get; set; } = 0;
 
   public override bool Equals(object obj)

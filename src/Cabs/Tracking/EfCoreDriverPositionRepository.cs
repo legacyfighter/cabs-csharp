@@ -1,17 +1,14 @@
-using LegacyFighter.Cabs.DriverFleet;
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Repository;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.Repository;
+namespace LegacyFighter.Cabs.Tracking;
 
 public interface IDriverPositionRepository
 {
   Task<List<DriverPositionDtoV2>> FindAverageDriverPositionSince(double latitudeMin, double latitudeMax,
     double longitudeMin, double longitudeMax, Instant date);
 
-  Task<List<DriverPosition>> FindByDriverAndSeenAtBetweenOrderBySeenAtAsc(Driver driver, Instant from, Instant to);
   Task<DriverPosition> Save(DriverPosition position);
 }
 
@@ -35,24 +32,14 @@ internal class EfCoreDriverPositionRepository : IDriverPositionRepository
                                              && position.Longitude >= longitudeMin 
                                              && position.Longitude <= longitudeMax
                                              && position.SeenAt >= date
-      group position by position.Driver.Id
+      group position by position.DriverId
       into positionGroup
       select new DriverPositionDtoV2(
-        positionGroup.First().Driver,
+        positionGroup.First().DriverId,
         positionGroup.Average(p => p.Latitude),
         positionGroup.Average(p => p.Longitude),
         positionGroup.Max(p => p.SeenAt)
       )).ToListAsync();
-  }
-
-  public async Task<List<DriverPosition>> FindByDriverAndSeenAtBetweenOrderBySeenAtAsc(Driver driver, Instant from,
-    Instant to)
-  {
-    return await _context.DriverPositions.Where(
-        d => d.Driver == driver && 
-             d.SeenAt >= from && 
-             d.SeenAt <= to)
-      .ToListAsync();
   }
 
   public async Task<DriverPosition> Save(DriverPosition position)

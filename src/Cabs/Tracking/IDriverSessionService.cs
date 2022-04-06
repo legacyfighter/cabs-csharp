@@ -1,7 +1,6 @@
 using LegacyFighter.Cabs.CarFleet;
-using LegacyFighter.Cabs.Entity;
 
-namespace LegacyFighter.Cabs.Service;
+namespace LegacyFighter.Cabs.Tracking;
 
 public interface IDriverSessionService
 {
@@ -9,4 +8,5 @@ public interface IDriverSessionService
   Task LogOut(long sessionId);
   Task LogOutCurrentSession(long? driverId);
   Task<List<DriverSession>> FindByDriver(long? driverId);
+  Task<List<long?>> FindCurrentlyLoggedDriverIds(List<long?> driversIds, List<CarClasses> carClasses);
 }

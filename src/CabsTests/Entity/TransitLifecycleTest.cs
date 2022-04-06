@@ -1,5 +1,4 @@
 ﻿using System;
-using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.Geolocation.Address;
@@ -9,6 +8,9 @@ namespace LegacyFighter.CabsTests.Entity;
 
 public class TransitLifeCycleTest
 {
+  public const long DriverId = 1L;
+  public const long SecondDriverId = 2L;
+
   [Test]
   public void CanCreateTransit()
   {
@@ -42,15 +44,13 @@ public class TransitLifeCycleTest
     //given
     var destination = new Address("Polska", "Warszawa", "Żytnia", 25);
     //and
-    var driver = new Driver();
-    //and
     var transit = RequestTransit();
     //and
     transit.PublishAt(Now());
     //and
-    transit.ProposeTo(driver);
+    transit.ProposeTo(DriverId);
     //and
-    transit.AcceptBy(driver, Now());
+    transit.AcceptBy(DriverId, Now());
     //and
     transit.Start(Now());
     //and
@@ -80,17 +80,15 @@ public class TransitLifeCycleTest
     //given
     var destination = new Address("Polska", "Warszawa", "Żytnia", 25);
     //and
-    var driver = new Driver();
-    //and
     var transit = RequestTransit();
     //and
     var changedTo = new Address("Polska", "Warszawa", "Żytnia", 27);
     //and
     transit.PublishAt(Now());
     //and
-    transit.ProposeTo(driver);
+    transit.ProposeTo(DriverId);
     //and
-    transit.AcceptBy(driver, Now());
+    transit.AcceptBy(DriverId, Now());
 
     //expect
     transit.Invoking(t => t.ChangePickupTo(changedTo, Distance.OfKm(20.1f), 0.1))
@@ -163,13 +161,11 @@ public class TransitLifeCycleTest
     //and
     var transit = RequestTransit();
     //and
-    var driver = new Driver();
-    //and
     transit.PublishAt(Now());
     //and
-    transit.ProposeTo(driver);
+    transit.ProposeTo(DriverId);
     //and
-    transit.AcceptBy(driver, Now());
+    transit.AcceptBy(DriverId, Now());
 
     //and
     transit.Start(Now());
@@ -204,14 +200,12 @@ public class TransitLifeCycleTest
     //given
     var transit = RequestTransit();
     //and
-    var driver = new Driver();
-    //and
     transit.PublishAt(Now());
     //and
-    transit.ProposeTo(driver);
+    transit.ProposeTo(DriverId);
 
     //when
-    transit.AcceptBy(driver, Now());
+    transit.AcceptBy(DriverId, Now());
     //then
     Assert.AreEqual(Transit.Statuses.TransitToPassenger, transit.Status);
   }
@@ -222,18 +216,14 @@ public class TransitLifeCycleTest
     //given
     var transit = RequestTransit();
     //and
-    var driver = new Driver();
-    //and
-    var secondDriver = new Driver();
-    //and
     transit.PublishAt(Now());
     //and
-    transit.ProposeTo(driver);
+    transit.ProposeTo(DriverId);
     //and
-    transit.AcceptBy(driver, Now());
+    transit.AcceptBy(DriverId, Now());
 
     //expect
-    transit.Invoking(t => t.AcceptBy(secondDriver, Now()))
+    transit.Invoking(t => t.AcceptBy(SecondDriverId, Now()))
       .Should().ThrowExactly<InvalidOperationException>();
   }
 
@@ -243,14 +233,12 @@ public class TransitLifeCycleTest
     //given
     var transit = RequestTransit();
     //and
-    var driver = new Driver();
-    //and
     transit.PublishAt(Now());
     //and
-    transit.RejectBy(driver);
+    transit.RejectBy(DriverId);
 
     //expect
-    transit.Invoking(t => t.AcceptBy(driver, Now()))
+    transit.Invoking(t => t.AcceptBy(DriverId, Now()))
       .Should().ThrowExactly<InvalidOperationException>();
   }
 
@@ -260,12 +248,10 @@ public class TransitLifeCycleTest
     //given
     var transit = RequestTransit();
     //and
-    var driver = new Driver();
-    //and
     transit.PublishAt(Now());
 
     //expect
-    transit.Invoking(t => t.AcceptBy(driver, Now()))
+    transit.Invoking(t => t.AcceptBy(DriverId, Now()))
       .Should().ThrowExactly<InvalidOperationException>();
   }
 
@@ -275,13 +261,11 @@ public class TransitLifeCycleTest
     //given
     var transit = RequestTransit();
     //and
-    var driver = new Driver();
-    //and
     transit.PublishAt(Now());
     //and
-    transit.ProposeTo(driver);
+    transit.ProposeTo(DriverId);
     //and
-    transit.AcceptBy(driver, Now());
+    transit.AcceptBy(DriverId, Now());
     //when
     transit.Start(Now());
 
@@ -311,13 +295,11 @@ public class TransitLifeCycleTest
     //and
     var transit = RequestTransit();
     //and
-    var driver = new Driver();
-    //and
     transit.PublishAt(Now());
     //and
-    transit.ProposeTo(driver);
+    transit.ProposeTo(DriverId);
     //and
-    transit.AcceptBy(driver, Now());
+    transit.AcceptBy(DriverId, Now());
     //and
     transit.Start(Now());
 
@@ -339,13 +321,11 @@ public class TransitLifeCycleTest
     //and
     var transit = RequestTransit();
     //and
-    var driver = new Driver();
-    //and
     transit.PublishAt(Now());
     //and
-    transit.ProposeTo(driver);
+    transit.ProposeTo(DriverId);
     //and
-    transit.AcceptBy(driver, Now());
+    transit.AcceptBy(DriverId, Now());
 
     //expect
     transit.Invoking(t => t.CompleteTransitAt(Now(), addressTo, Distance.OfKm(20)))
@@ -358,12 +338,10 @@ public class TransitLifeCycleTest
     //given
     var transit = RequestTransit();
     //and
-    var driver = new Driver();
-    //and
     transit.PublishAt(Now());
 
     //when
-    transit.RejectBy(driver);
+    transit.RejectBy(DriverId);
 
     //then
     Assert.AreEqual(Transit.Statuses.WaitingForDriverAssignment, transit.Status);

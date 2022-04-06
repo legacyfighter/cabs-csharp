@@ -52,7 +52,4 @@ public class Driver : BaseEntity
   {
     return !Equals(left, right);
   }
-
-  public virtual ISet<Transit> RejectingTransits { get; private set; } = new HashSet<Transit>();
-  public virtual ISet<Transit> ProposingTransits { get; private set; } = new HashSet<Transit>();
 }

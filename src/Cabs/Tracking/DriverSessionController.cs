@@ -1,9 +1,7 @@
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Service;
 using Microsoft.AspNetCore.Mvc;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.Controllers;
+namespace LegacyFighter.Cabs.Tracking;
 
 [ApiController]
 [Route("[controller]")]

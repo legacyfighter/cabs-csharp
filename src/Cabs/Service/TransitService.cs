@@ -11,6 +11,7 @@ using LegacyFighter.Cabs.Invoicing;
 using LegacyFighter.Cabs.Loyalty;
 using LegacyFighter.Cabs.Notification;
 using LegacyFighter.Cabs.Repository;
+using LegacyFighter.Cabs.Tracking;
 using LegacyFighter.Cabs.TransitDetail;
 using NodaTime;
 
@@ -25,8 +26,6 @@ public class TransitService : ITransitService
   private readonly InvoiceGenerator _invoiceGenerator;
   private readonly IDriverNotificationService _notificationService;
   private readonly DistanceCalculator _distanceCalculator;
-  private readonly IDriverPositionRepository _driverPositionRepository;
-  private readonly IDriverSessionRepository _driverSessionRepository;
   private readonly ICarTypeService _carTypeService;
   private readonly IGeocodingService _geocodingService;
   private readonly IAddressRepository _addressRepository;
@@ -35,6 +34,8 @@ public class TransitService : ITransitService
   private readonly IAwardsService _awardsService;
   private readonly EventsPublisher _eventsPublisher;
   private readonly ITransitDetailsFacade _transitDetailsFacade;
+  private readonly IDriverTrackingService _driverTrackingService;
+  private readonly IDriverService _driverService;
 
   public TransitService(
     IDriverRepository driverRepository,
@@ -43,8 +44,6 @@ public class TransitService : ITransitService
     InvoiceGenerator invoiceGenerator,
     IDriverNotificationService notificationService,
     DistanceCalculator distanceCalculator,
-    IDriverPositionRepository driverPositionRepository,
-    IDriverSessionRepository driverSessionRepository,
     ICarTypeService carTypeService,
     IGeocodingService geocodingService,
     IAddressRepository addressRepository,
@@ -52,7 +51,10 @@ public class TransitService : ITransitService
     IClock clock,
     IAwardsService awardsService,
     EventsPublisher eventsPublisher, 
-    ITransitDetailsFacade transitDetailsFacade)
+    ITransitDetailsFacade transitDetailsFacade,
+    IDriverTrackingService driverTrackingService,
+    IDriverService driverService
+    )
   {
     _driverRepository = driverRepository;
     _transitRepository = transitRepository;
@@ -60,8 +62,6 @@ public class TransitService : ITransitService
     _invoiceGenerator = invoiceGenerator;
     _notificationService = notificationService;
     _distanceCalculator = distanceCalculator;
-    _driverPositionRepository = driverPositionRepository;
-    _driverSessionRepository = driverSessionRepository;
     _carTypeService = carTypeService;
     _geocodingService = geocodingService;
     _addressRepository = addressRepository;
@@ -70,9 +70,11 @@ public class TransitService : ITransitService
     _awardsService = awardsService;
     _eventsPublisher = eventsPublisher;
     _transitDetailsFacade = transitDetailsFacade;
+    _driverTrackingService = driverTrackingService;
+    _driverService = driverService;
   }
 
-  public async Task<Transit> CreateTransit(TransitDto transitDto)
+  public async Task<TransitDto> CreateTransit(TransitDto transitDto)
   {
     var from = await AddressFromDto(transitDto.From);
     var to = await AddressFromDto(transitDto.To);
@@ -85,7 +87,7 @@ public class TransitService : ITransitService
     return await _addressRepository.Save(address);
   }
 
-  public async Task<Transit> CreateTransit(long? clientId, Address from, Address to, CarClasses? carClass)
+  public async Task<TransitDto> CreateTransit(long? clientId, Address from, Address to, CarClasses? carClass)
   {
     var client = await _clientRepository.Find(clientId);
 
@@ -103,7 +105,7 @@ public class TransitService : ITransitService
     var estimatedPrice = transit.EstimateCost();
     transit = await _transitRepository.Save(transit);
     await _transitDetailsFacade.TransitRequested(now, transit.Id, from, to, km, client, carClass, estimatedPrice, transit.Tariff);
-    return transit;
+    return await LoadTransit(transit.Id);
   }
 
   public async Task ChangeTransitAddressFrom(long? transitId, Address newAddress)
@@ -149,9 +151,9 @@ public class TransitService : ITransitService
     await _transitRepository.Save(transit);
     await _transitDetailsFacade.PickupChangedTo(transit.Id, newAddress, newDistance);
 
-    foreach (var driver in transit.ProposedDrivers) 
+    foreach (var driverId in transit.ProposedDrivers) 
     {
-      _notificationService.NotifyAboutChangedTransitAddress(driver.Id, transitId);
+      _notificationService.NotifyAboutChangedTransitAddress(driverId, transitId);
     }
   }
 
@@ -184,9 +186,9 @@ public class TransitService : ITransitService
     transit.ChangeDestinationTo(newAddress, newDistance);
     await _transitDetailsFacade.DestinationChanged(transit.Id, newAddress, newDistance);
 
-    if (transit.Driver != null)
+    if (transit.DriverId != null)
     {
-      _notificationService.NotifyAboutChangedTransitAddress(transit.Driver.Id, transitId);
+      _notificationService.NotifyAboutChangedTransitAddress(transit.DriverId, transitId);
     }
   }
 
@@ -199,9 +201,9 @@ public class TransitService : ITransitService
       throw new ArgumentException("Transit does not exist, id = " + transitId);
     }
 
-    if (transit.Driver != null)
+    if (transit.DriverId != null)
     {
-      _notificationService.NotifyAboutCancelledTransit(transit.Driver.Id, transitId);
+      _notificationService.NotifyAboutCancelledTransit(transit.DriverId, transitId);
     }
 
     transit.Cancel();
@@ -296,81 +298,31 @@ public class TransitService : ITransitService
             180 / Math.PI;
           var longitudeMax = longitude + dLon * 180 / Math.PI;
 
-          var driversAvgPositions = await _driverPositionRepository
-            .FindAverageDriverPositionSince(latitudeMin, latitudeMax, longitudeMin, longitudeMax,
-              _clock.GetCurrentInstant().Minus(Duration.FromMinutes(5)));
-
-          if (driversAvgPositions.Any())
+          var carClasses = await ChoosePossibleCarClasses(transitDetails.CarType);
+          if (carClasses.Count == 0) 
           {
-            driversAvgPositions.Sort((d1, d2) => 
-                Math.Sqrt(Math.Pow(latitude - d1.Latitude, 2) + Math.Pow(longitude - d1.Longitude, 2)).CompareTo(
-              Math.Sqrt(Math.Pow(latitude - d2.Latitude, 2) + Math.Pow(longitude - d2.Longitude, 2))
-              ));
-            driversAvgPositions = driversAvgPositions.Take(20).ToList();
-
-            var carClasses = new List<CarClasses?>();
-            var activeCarClasses = (await _carTypeService.FindActiveCarClasses())
-              .Select(c => new CarClasses?(c)).ToList();
-            if (!activeCarClasses.Any())
-            {
-              return transit;
-            }
-
-            if (transitDetails.CarType
-
-                != null)
-            {
-              if (activeCarClasses.Contains(transitDetails.CarType))
-              {
-                carClasses.Add(transitDetails.CarType);
-              }
-              else
-              {
-                return transit;
-              }
-            }
-            else
-            {
-              carClasses.AddRange(activeCarClasses);
-            }
-
-            var drivers = driversAvgPositions.Select(p => p.Driver.Id).ToList();
-
-            var activeDriverIdsInSpecificCar = (await _driverSessionRepository
-              .FindAllByLoggedOutAtNullAndDriverIdInAndCarClassIn(drivers, carClasses))
-
-              .Select(ds => ds.DriverId).ToList();
-
-            driversAvgPositions = driversAvgPositions
-              .Where(dp=>activeDriverIdsInSpecificCar.Contains(dp.Driver.Id)).ToList();
-
-            // Iterate across average driver positions
-            foreach (var driverAvgPosition in driversAvgPositions) 
-            {
-              var driver = driverAvgPosition.Driver;
-              if (driver.Status == Driver.Statuses.Active &&
-                  driver.Occupied == false)
-              {
-                if (transit.CanProposeTo(driver))
-                {
-                  transit.ProposeTo(driver);
-                  _notificationService.NotifyAboutPossibleTransit(driver.Id, transitId);
-                }
-              }
-              else
-              {
-                // Not implemented yet!
-              }
-            }
-
-            await _transitRepository.Save(transit);
-
+            return transit;
           }
-          else
+
+          var driversAvgPositions = await _driverTrackingService
+            .FindActiveDriversNearby(latitudeMin, latitudeMax, longitudeMin, longitudeMax, latitude, longitude, carClasses);
+
+          if (driversAvgPositions.Count == 0) 
           {
-            // Next iteration, no drivers at specified area
+            //next iteration
             continue;
           }
+
+          // Iterate across average driver positions
+          foreach (var driverAvgPosition in driversAvgPositions) 
+          {
+            if (transit.CanProposeTo(driverAvgPosition.DriverId)) 
+            {
+              transit.ProposeTo(driverAvgPosition.DriverId);
+              _notificationService.NotifyAboutPossibleTransit(driverAvgPosition.DriverId, transitId);
+            }
+          }
+          return transit;
         }
       }
       else
@@ -382,8 +334,27 @@ public class TransitService : ITransitService
     {
       throw new ArgumentException("Transit does not exist, id = " + transitId);
     }
-
   }
+
+  private async Task<List<CarClasses>> ChoosePossibleCarClasses(CarClasses? carClass)
+  {
+    var carClasses = new List<CarClasses>();
+    var activeCarClasses = await _carTypeService.FindActiveCarClasses();
+    if (carClass != null)
+    {
+      if (activeCarClasses.Contains(carClass.Value))
+      {
+        carClasses.Add(carClass.Value);
+      }
+    }
+    else
+    {
+      carClasses.AddRange(activeCarClasses);
+    }
+
+    return carClasses;
+  }
+
 
   public async Task AcceptTransit(long? driverId, long? transitId)
   {
@@ -404,7 +375,8 @@ public class TransitService : ITransitService
       else
       {
         var now = _clock.GetCurrentInstant();
-        transit.AcceptBy(driver, now);
+        transit.AcceptBy(driverId, now);
+        driver.Occupied = true;
         await _transitDetailsFacade.TransitAccepted(transitId, now, driverId);
         await _transitRepository.Save(transit);
         await _driverRepository.Save(driver);
@@ -450,7 +422,7 @@ public class TransitService : ITransitService
       throw new ArgumentException("Transit does not exist, id = " + transitId);
     }
 
-    transit.RejectBy(driver);
+    transit.RejectBy(driverId);
     await _transitRepository.Save(transit);
   }
 
@@ -504,7 +476,10 @@ public class TransitService : ITransitService
   public async Task<TransitDto> LoadTransit(long? id)
   {
     var transitDetails = await FindTransitDetails(id);
-    return new TransitDto(await _transitRepository.Find(id), transitDetails);
+    var transit = await _transitRepository.Find(id);
+    var proposedDrivers = await _driverService.LoadDrivers(transit.ProposedDrivers);
+    var driverRejections = await _driverService.LoadDrivers(transit.DriversRejections);
+    return new TransitDto(transitDetails, proposedDrivers, driverRejections, transit.DriverId);
   }
 
   private async Task<TransitDetailsDto> FindTransitDetails(long? transitId) 

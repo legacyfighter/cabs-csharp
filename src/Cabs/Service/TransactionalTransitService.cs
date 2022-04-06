@@ -17,7 +17,7 @@ public class TransactionalTransitService : ITransitService
     _transactions = transactions;
   }
 
-  public async Task<Transit> CreateTransit(TransitDto transitDto)
+  public async Task<TransitDto> CreateTransit(TransitDto transitDto)
   {
     await using var tx = await _transactions.BeginTransaction();
     var transit = await _inner.CreateTransit(transitDto);
@@ -25,7 +25,7 @@ public class TransactionalTransitService : ITransitService
     return transit;
   }
 
-  public async Task<Transit> CreateTransit(long? clientId, Address from, Address to, CarClasses? carClass)
+  public async Task<TransitDto> CreateTransit(long? clientId, Address from, Address to, CarClasses? carClass)
   {
     await using var tx = await _transactions.BeginTransaction();
     var transit = await _inner.CreateTransit(clientId, from, to, carClass);

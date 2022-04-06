@@ -18,6 +18,7 @@ using LegacyFighter.Cabs.Repair.Api;
 using LegacyFighter.Cabs.Repair.Legacy.Service;
 using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.Service;
+using LegacyFighter.Cabs.Tracking;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;

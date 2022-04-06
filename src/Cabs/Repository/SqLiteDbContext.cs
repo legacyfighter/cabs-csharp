@@ -17,6 +17,7 @@ using LegacyFighter.Cabs.Loyalty;
 using LegacyFighter.Cabs.Parties.Model.Parties;
 using LegacyFighter.Cabs.Repair.Legacy.Parts;
 using LegacyFighter.Cabs.Repair.Legacy.User;
+using LegacyFighter.Cabs.Tracking;
 using LegacyFighter.Cabs.TransitDetail;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -94,33 +95,19 @@ public class SqLiteDbContext : DbContext
 
     base.OnModelCreating(modelBuilder);
 
-    modelBuilder.Entity<DriverPosition>(builder =>
-    {
-      builder.MapBaseEntityProperties();
-      builder.HasOne(p => p.Driver);
-      builder.Property(p => p.Latitude).IsRequired();
-      builder.Property(p => p.Longitude).IsRequired();
-      builder.Property(p => p.SeenAt).HasConversion(instantConverter).IsRequired();
-    });
-    modelBuilder.Entity<DriverSession>(builder =>
-    {
-      builder.MapBaseEntityProperties();
-      builder.Property(x => x.LoggedAt).HasConversion(instantConverter).IsRequired();
-      builder.Property(x => x.LoggedOutAt).HasConversion(instantConverter);
-      builder.Property(x => x.PlatesNumber).IsRequired();
-      builder.Property(x => x.CarClass).HasConversion<string>();
-      builder.Property(s => s.DriverId);
-    });
     modelBuilder.Entity<Transit>(builder =>
     {
       builder.MapBaseEntityProperties();
       builder.Ignore(x => x.KmDistance);
+      builder.Property("DriverPaymentStatus");
+      builder.Property("ClientPaymentStatus");
+      builder.Property("PaymentType");
       builder.Property("Km");
       builder.Property("PickupAddressChangeCounter");
       builder.Property(x => x.Published).HasConversion(instantConverter);
-      builder.HasOne(t => t.Driver);
-      builder.HasMany(t => t.ProposedDrivers).WithMany(d => d.ProposingTransits);
-      builder.HasMany("DriversRejections").WithMany("RejectingTransits");
+      builder.Property(t => t.DriverId);
+      builder.Property("_proposedDrivers");
+      builder.Property("_driversRejections");
       builder.OwnsOne(t => t.EstimatedPrice, navigation =>
       {
         navigation.Property(m => m.IntValue).HasColumnName(nameof(Transit.EstimatedPrice));
@@ -175,6 +162,7 @@ public class SqLiteDbContext : DbContext
     LoyaltySchema.MapUsing(modelBuilder, instantConverter);
     GeolocationSchema.MapUsing(modelBuilder);
     CrmSchema.MapUsing(modelBuilder);
+    TrackingSchema.MapUsing(modelBuilder, instantConverter);
     MapRepairEntities(modelBuilder);
     MapContractEntities(modelBuilder);
   }

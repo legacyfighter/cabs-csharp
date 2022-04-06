@@ -6,7 +6,7 @@ namespace LegacyFighter.Cabs.DriverFleet.DriverReports.TravelledDistances;
 public interface ITravelledDistanceService
 {
   Task<Distance> CalculateDistance(long driverId, Instant from, Instant to);
-  Task AddPosition(long driverId, double latitude, double longitude, Instant seenAt);
+  Task AddPosition(long? driverId, double latitude, double longitude, Instant seenAt);
 }
 
 public class TravelledDistanceService : ITravelledDistanceService
@@ -30,7 +30,7 @@ public class TravelledDistanceService : ITravelledDistanceService
     return Distance.OfKm(await _travelledDistanceRepository.CalculateDistance(left.Beginning, right.End, driverId));
   }
 
-  public async Task AddPosition(long driverId, double latitude, double longitude, Instant seenAt)
+  public async Task AddPosition(long? driverId, double latitude, double longitude, Instant seenAt)
   {
     var matchedSlot = await _travelledDistanceRepository
       .FindTravelledDistanceTimeSlotByTime(seenAt, driverId);
@@ -50,7 +50,7 @@ public class TravelledDistanceService : ITravelledDistanceService
     {
       var currentTimeSlot = TimeSlot.ThatContains(now);
       var prev = currentTimeSlot.Prev();
-      var prevTravelledDistance = await _travelledDistanceRepository.FindTravelledDistanceByTimeSlotAndDriverId(prev, driverId);
+      var prevTravelledDistance = await _travelledDistanceRepository.FindTravelledDistanceByTimeSlotAndDriverId(prev, driverId.Value);
       if (prevTravelledDistance != null)
       {
         if (prevTravelledDistance.EndsAt(seenAt))
@@ -59,7 +59,7 @@ public class TravelledDistanceService : ITravelledDistanceService
         }
       }
 
-      await CreateSlotForNow(driverId, currentTimeSlot, latitude, longitude);
+      await CreateSlotForNow(driverId.Value, currentTimeSlot, latitude, longitude);
     }
   }
 
@@ -73,7 +73,7 @@ public class TravelledDistanceService : ITravelledDistanceService
     aggregatedDistance.AddDistance(travelled, latitude, longitude);
   }
 
-  private void RecalculateDistanceFor(TravelledDistance aggregatedDistance, long driverId)
+  private void RecalculateDistanceFor(TravelledDistance aggregatedDistance, long? driverId)
   {
     //TODO
   }

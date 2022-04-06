@@ -1,5 +1,5 @@
+using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.MoneyValue;
-using LegacyFighter.Cabs.Service;
 
 namespace LegacyFighter.Cabs.DriverFleet;
 
@@ -15,4 +15,5 @@ public interface IDriverService
   Task<Dictionary<Month, Money>> CalculateDriverYearlyPayment(long? driverId, int year);
   Task<DriverDto> LoadDriver(long? driverId);
   Task AddAttribute(long driverId, DriverAttributeNames attr, string value);
+  Task<ISet<DriverDto>> LoadDrivers(ICollection<long?> ids);
 }

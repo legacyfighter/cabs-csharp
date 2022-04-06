@@ -1,4 +1,5 @@
 using LegacyFighter.Cabs.Repository;
+using Microsoft.EntityFrameworkCore;
 
 namespace LegacyFighter.Cabs.DriverFleet;
 
@@ -6,6 +7,7 @@ public interface IDriverRepository
 {
   Task<Driver> Find(long? driverId);
   Task<Driver> Save(Driver driver);
+  Task<List<Driver>> FindAllById(ICollection<long?> ids);
 }
 
 internal class EfCoreDriverRepository : IDriverRepository
@@ -27,5 +29,10 @@ internal class EfCoreDriverRepository : IDriverRepository
     _context.Drivers.Update(driver);
     await _context.SaveChangesAsync();
     return driver;
+  }
+
+  public Task<List<Driver>> FindAllById(ICollection<long?> ids)
+  {
+    return _context.Drivers.Where(x => ids.Contains(x.Id)).ToListAsync();
   }
 }

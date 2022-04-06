@@ -5,10 +5,10 @@ using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.DriverFleet.DriverReports;
 using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.Geolocation.Address;
 using LegacyFighter.Cabs.Service;
+using LegacyFighter.Cabs.Tracking;
 using LegacyFighter.CabsTests.Common;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
@@ -125,7 +125,7 @@ public class CreateDriverReportIntegrationTest
       .ToList();
   }
 
-  private async Task<Transit> DriverHasDoneSessionAndPicksSomeoneUpInCar(Driver driver, Client client,
+  private async Task<TransitDto> DriverHasDoneSessionAndPicksSomeoneUpInCar(Driver driver, Client client,
     CarClasses carClass, string plateNumber, string carBrand, Instant when)
   {
     Clock.GetCurrentInstant().Returns(when);

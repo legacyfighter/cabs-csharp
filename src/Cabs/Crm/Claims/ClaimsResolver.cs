@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using LegacyFighter.Cabs.Common;
+﻿using LegacyFighter.Cabs.Common;
 
 namespace LegacyFighter.Cabs.Crm.Claims;
 
@@ -82,34 +81,16 @@ public class ClaimsResolver : BaseEntity
   {
     var transitsIds = GetClaimedTransitsIds();
     transitsIds.Add(transitId);
-    ClaimedTransitsIds = JsonMapper.Serialize(transitsIds);
+    ClaimedTransitsIds = JsonToCollectionMapper.Serialize(transitsIds);
   }
 
   private ISet<long?> GetClaimedTransitsIds()
   {
-    return JsonMapper.Deserialize(ClaimedTransitsIds);
+    return JsonToCollectionMapper.Deserialize(ClaimedTransitsIds);
   }
 
   private int NumberOfClaims()
   {
     return GetClaimedTransitsIds().Count;
-  }
-}
-
-internal static class JsonMapper
-{
-  public static ISet<long?> Deserialize(string json)
-  {
-    if (json == null)
-    {
-      return new HashSet<long?>();
-    }
-
-    return JsonSerializer.Deserialize<ISet<long?>>(json);
-  }
-
-  public static string Serialize(ISet<long?> transitsIds)
-  {
-    return JsonSerializer.Serialize(transitsIds);
   }
 }

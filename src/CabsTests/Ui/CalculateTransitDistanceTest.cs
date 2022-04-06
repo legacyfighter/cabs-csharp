@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using LegacyFighter.Cabs.Crm;
+using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.Geolocation.Address;
-using LegacyFighter.Cabs.MoneyValue;
 using LegacyFighter.Cabs.TransitDetail;
 using NodaTime;
+using NodaTime.Extensions;
 
 namespace LegacyFighter.CabsTests.Ui;
 
@@ -48,23 +50,32 @@ public class CalculateTransitDistanceTest
 
   private TransitDto TransitForDistance(float km)
   {
-    var distance = Distance.OfKm(km);
-    var transit = new Transit(SystemClock.Instance.GetCurrentInstant(), distance)
-    {
-      Price = new Money(10)
-    };
-    var transitDetails = new TransitDetailsDto(
-      1L,
-      SystemClock.Instance.GetCurrentInstant(),
-      SystemClock.Instance.GetCurrentInstant(),
+    var tariff = Tariff.OfTime(LocalDateTimeNow());
+    var transitDetails = new TransitDetailsDto(1L,
+      Now(),
+      Now(),
       new ClientDto(),
       null,
       new AddressDto(),
       new AddressDto(),
-      SystemClock.Instance.GetCurrentInstant(),
-      SystemClock.Instance.GetCurrentInstant(),
-      distance,
-      transit.Tariff);
-    return new TransitDto(transit, transitDetails);
+      Now(),
+      Now(),
+      Distance.OfKm(km),
+      tariff);
+    return new TransitDto(
+      transitDetails,
+      new HashSet<DriverDto>(),
+      new HashSet<DriverDto>(),
+      null);
+  }
+
+  private static Instant Now()
+  {
+    return SystemClock.Instance.GetCurrentInstant();
+  }
+
+  private static LocalDateTime LocalDateTimeNow()
+  {
+    return SystemClock.Instance.InBclSystemDefaultZone().GetCurrentLocalDateTime();
   }
 }

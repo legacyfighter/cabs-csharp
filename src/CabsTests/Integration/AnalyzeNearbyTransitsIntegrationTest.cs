@@ -265,7 +265,7 @@ public class AnalyzeNearbyTransitsIntegrationTest : TestWithGraphDb
   {
     GeocodingService.GeocodeAddress(destination).Returns(new double[]{1, 1});
     var driver = await Fixtures.ANearbyDriver(GeocodingService, pickup);
-    await Fixtures.AJourneyWithFixedClock(40, publishedAt, completedAt, client, driver, pickup, destination, Clock);
+    await Fixtures.ARideWithFixedClock(40, publishedAt, completedAt, client, driver, pickup, destination, Clock);
   }
 
   private async Task AddressesContainExactly(Func<Task<AnalyzedAddressesDto>> actualSource, params Address[] addresses)

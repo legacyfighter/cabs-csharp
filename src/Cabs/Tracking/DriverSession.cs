@@ -2,16 +2,16 @@ using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Common;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.Entity;
+namespace LegacyFighter.Cabs.Tracking;
 
 public class DriverSession : BaseEntity
 {
-  public string CarBrand { get; set; }
-  public Instant LoggedAt { get; set; }
-  public Instant? LoggedOutAt { get; set; }
-  public long? DriverId { get; set; }
-  public string PlatesNumber { get; set; }
-  public CarClasses? CarClass { get; set; }
+  internal string CarBrand { get; set; }
+  internal Instant LoggedAt { get; set; }
+  internal Instant? LoggedOutAt { get; set; }
+  internal long? DriverId { get; set; }
+  internal string PlatesNumber { get; set; }
+  internal CarClasses? CarClass { get; set; }
 
   public override bool Equals(object obj)
   {

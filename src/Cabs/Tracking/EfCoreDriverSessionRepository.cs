@@ -1,14 +1,14 @@
 using LegacyFighter.Cabs.CarFleet;
-using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Repository;
 using Microsoft.EntityFrameworkCore;
 
-namespace LegacyFighter.Cabs.Repository;
+namespace LegacyFighter.Cabs.Tracking;
 
 public interface IDriverSessionRepository
 {
 
   Task<List<DriverSession>> FindAllByLoggedOutAtNullAndDriverIdInAndCarClassIn(ICollection<long?> driverIds,
-    List<CarClasses?> carClasses);
+    List<CarClasses> carClasses);
 
   Task<DriverSession> FindTopByDriverIdAndLoggedOutAtIsNullOrderByLoggedAtDesc(long? driverId);
 
@@ -28,10 +28,10 @@ internal class EfCoreDriverSessionRepository : IDriverSessionRepository
 
   public async Task<List<DriverSession>> FindAllByLoggedOutAtNullAndDriverIdInAndCarClassIn(
     ICollection<long?> driverIds,
-    List<CarClasses?> carClasses)
+    List<CarClasses> carClasses)
   {
     var driverSessions = await _context.DriverSessions.Where(d =>
-      d.LoggedOutAt == null && driverIds.Contains(d.DriverId) && carClasses.Contains(d.CarClass))
+      d.LoggedOutAt == null && driverIds.Contains(d.DriverId) && carClasses.Cast<CarClasses?>().Contains(d.CarClass))
       .ToListAsync();
     return driverSessions;
   }

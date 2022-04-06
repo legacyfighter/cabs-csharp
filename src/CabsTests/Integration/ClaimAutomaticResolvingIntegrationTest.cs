@@ -286,7 +286,7 @@ public class ClaimAutomaticResolvingIntegrationTest
   private async Task<Transit> ATransit(Address pickup, Client client, Driver driver, int price)
   {
     var destination = await Fixtures.AnAddress();
-    return await Fixtures.AJourney(price, client, driver, pickup, destination);
+    return await Fixtures.ARide(price, client, driver, pickup, destination);
   }
 
   private void LowCostThresholdIs(int price)

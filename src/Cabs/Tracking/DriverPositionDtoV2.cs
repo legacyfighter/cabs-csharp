@@ -1,7 +1,6 @@
-using LegacyFighter.Cabs.DriverFleet;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.Dto;
+namespace LegacyFighter.Cabs.Tracking;
 
 public class DriverPositionDtoV2
 {
@@ -10,15 +9,15 @@ public class DriverPositionDtoV2
 
   }
 
-  public DriverPositionDtoV2(Driver driver, double latitude, double longitude, Instant seenAt)
+  public DriverPositionDtoV2(long? driverId, double latitude, double longitude, Instant seenAt)
   {
-    Driver = driver;
+    DriverId = driverId;
     Latitude = latitude;
     Longitude = longitude;
     SeenAt = seenAt;
   }
 
-  public Driver Driver { get; set; }
+  public long? DriverId { get; set; }
   public double Latitude { get; set; }
   public double Longitude { get; set; }
   public Instant SeenAt { get; set; }

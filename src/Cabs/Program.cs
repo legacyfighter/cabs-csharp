@@ -27,6 +27,7 @@ using LegacyFighter.Cabs.Repair.Legacy.Dao;
 using LegacyFighter.Cabs.Repair.Legacy.Service;
 using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.Service;
+using LegacyFighter.Cabs.Tracking;
 using LegacyFighter.Cabs.TransitDetail;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -57,20 +58,8 @@ builder.Services.AddDbContext<SqLiteDbContext>();
 builder.Services.AddTransient<DbContext>(ctx => ctx.GetRequiredService<SqLiteDbContext>());
 builder.Services.AddScoped<EventsPublisher>();
 builder.Services.AddTransient<ITransactions, Transactions>();
-builder.Services.AddTransient<IDriverSessionRepository, EfCoreDriverSessionRepository>();
-builder.Services.AddTransient<IDriverPositionRepository, EfCoreDriverPositionRepository>();
 builder.Services.AddTransient<ITransitRepository, EfCoreTransitRepository>();
 builder.Services.AddTransient<ITransitDetailsRepository, EfCoreTransitDetailsRepository>();
-builder.Services.AddTransient<DriverTrackingService>();
-builder.Services.AddTransient<IDriverTrackingService>(ctx =>
-  new TransactionalDriverTrackingService(
-    ctx.GetRequiredService<DriverTrackingService>(),
-    ctx.GetRequiredService<ITransactions>()));
-builder.Services.AddTransient<DriverSessionService>();
-builder.Services.AddTransient<IDriverSessionService>(ctx =>
-  new TransactionalDriverSessionService(
-    ctx.GetRequiredService<DriverSessionService>(),
-    ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddTransient<TransitService>();
 builder.Services.AddTransient<ITransitService>(ctx =>
   new TransactionalTransitService(
@@ -125,6 +114,7 @@ DriverFleetDependencies.AddTo(builder);
 LoyaltyDependencies.AddTo(builder);
 GeolocationDependencies.AddTo(builder);
 CrmDependencies.AddTo(builder);
+TrackingDependencies.AddTo(builder);
 
 var app = builder.Build();
 

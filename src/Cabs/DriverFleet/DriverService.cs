@@ -1,6 +1,5 @@
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.MoneyValue;
-using LegacyFighter.Cabs.Service;
 using LegacyFighter.Cabs.TransitDetail;
 using NodaTime;
 
@@ -178,5 +177,11 @@ public class DriverService : IDriverService
 
     await _driverAttributeRepository.Save(new DriverAttribute(driver, attr, value));
 
+  }
+
+  public async Task<ISet<DriverDto>> LoadDrivers(ICollection<long?> ids) 
+  {
+    return (await _driverRepository.FindAllById(ids))
+      .Select(d => new DriverDto(d)).ToHashSet();
   }
 }

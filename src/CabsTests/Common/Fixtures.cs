@@ -48,6 +48,21 @@ public class Fixtures
     return await _addressFixture.AnAddress();
   }
 
+  public async Task<AddressDto> AnAddress(
+    IGeocodingService geocodingService,
+    string country,
+    string city,
+    string street,
+    int buildingNumber)
+  {
+    return await _addressFixture.AnAddress(
+      geocodingService,
+      country,
+      city,
+      street,
+      buildingNumber);
+  }
+
   public async Task<Client> AClient()
   {
     return await _clientFixture.AClient();
@@ -112,6 +127,19 @@ public class Fixtures
   }
 
   public async Task<Driver> ANearbyDriver(
+    IGeocodingService stubbedGeocodingService,
+    Address pickup,
+    double latitude,
+    double longitude) 
+  {
+    return await _driverFixture.ANearbyDriver(
+      stubbedGeocodingService,
+      pickup,
+      latitude,
+      longitude);
+  }
+
+  public async Task<Driver> ANearbyDriver(
     string plateNumber,
     double latitude,
     double longitude,
@@ -149,12 +177,12 @@ public class Fixtures
     await _driverFixture.DriverHasAttribute(driver, name, value);
   }
 
-  public async Task<Transit> AJourney(int price, Client client, Driver driver, Address from, Address destination) 
+  public async Task<Transit> ARide(int price, Client client, Driver driver, Address from, Address destination) 
   {
     return await _rideFixture.ARide(price, client, driver, from, destination);
   }
 
-  public async Task<Transit> AJourneyWithFixedClock(int price, Instant publishedAt, Instant completedAt, Client client, Driver driver, Address from, Address destination, IClock clock) 
+  public async Task<Transit> ARideWithFixedClock(int price, Instant publishedAt, Instant completedAt, Client client, Driver driver, Address from, Address destination, IClock clock) 
   {
     return await _rideFixture.ARideWithFixedClock(price, publishedAt, completedAt, client, driver, from, destination, clock);
   }
@@ -171,7 +199,7 @@ public class Fixtures
       {
         var pickup = await AnAddress();
         var driver = await ANearbyDriver(geocodingService, pickup);
-        await AJourney(10, client, driver, pickup, await AnAddress());
+        await ARide(10, client, driver, pickup, await AnAddress());
       }));
   }
 
@@ -180,9 +208,9 @@ public class Fixtures
     return await _claimFixture.CreateClaim(client, transit);
   }
 
-  public async Task<Claim> CreateClaim(Client client, Transit transit, string reason) 
+  public async Task<Claim> CreateClaim(Client client, TransitDto transitDto, string reason) 
   {
-    return await _claimFixture.CreateClaim(client, transit, reason);
+    return await _claimFixture.CreateClaim(client, transitDto, reason);
   }
 
   public async Task<Claim> CreateAndResolveClaim(Client client, Transit transit)

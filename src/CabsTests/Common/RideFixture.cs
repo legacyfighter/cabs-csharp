@@ -1,6 +1,7 @@
 using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Crm;
 using LegacyFighter.Cabs.DriverFleet;
+using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Geolocation.Address;
 using LegacyFighter.Cabs.MoneyValue;
@@ -57,7 +58,7 @@ public class RideFixture
     return await _transitRepository.Find(transit.Id);
   }
 
-  private async Task StubPrice(int price, Transit transit) 
+  private async Task StubPrice(int price, TransitDto transit) 
   {
     var fakePrice = new Money(price);
     await _stubbedPrice.Stub(transit.Id, fakePrice);

@@ -49,7 +49,9 @@ public class TransactionalTransitDetailsFacade : ITransitDetailsFacade
 
   public async Task TransitPublished(long? transitId, Instant when)
   {
+    await using var tx = await _transactions.BeginTransaction();
     await _inner.TransitPublished(transitId, when);
+    await tx.Commit();
   }
 
   public async Task TransitStarted(long? transitId, Instant when)

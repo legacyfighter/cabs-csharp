@@ -1,6 +1,5 @@
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.MoneyValue;
-using LegacyFighter.Cabs.Service;
 
 namespace LegacyFighter.Cabs.DriverFleet;
 
@@ -57,8 +56,13 @@ public class TransactionalDriverService : IDriverService
     return driver;
   }
 
-  public Task AddAttribute(long driverId, DriverAttributeNames attr, string value)
+  public async Task AddAttribute(long driverId, DriverAttributeNames attr, string value)
   {
-    return _inner.AddAttribute(driverId, attr, value);
+    await _inner.AddAttribute(driverId, attr, value);
+  }
+
+  public async Task<ISet<DriverDto>> LoadDrivers(ICollection<long?> ids)
+  {
+    return await _inner.LoadDrivers(ids);
   }
 }

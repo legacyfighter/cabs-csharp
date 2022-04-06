@@ -1,8 +1,7 @@
 using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Common;
-using LegacyFighter.Cabs.Entity;
 
-namespace LegacyFighter.Cabs.Service;
+namespace LegacyFighter.Cabs.Tracking;
 
 public class TransactionalDriverSessionService : IDriverSessionService
 {
@@ -37,5 +36,10 @@ public class TransactionalDriverSessionService : IDriverSessionService
   public Task<List<DriverSession>> FindByDriver(long? driverId)
   {
     return _inner.FindByDriver(driverId);
+  }
+
+  public async Task<List<long?>> FindCurrentlyLoggedDriverIds(List<long?> driversIds, List<CarClasses> carClasses)
+  {
+    return await _inner.FindCurrentlyLoggedDriverIds(driversIds, carClasses);
   }
 }

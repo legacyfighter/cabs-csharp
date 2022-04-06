@@ -1,8 +1,7 @@
 using LegacyFighter.Cabs.CarFleet;
-using LegacyFighter.Cabs.Entity;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.Dto;
+namespace LegacyFighter.Cabs.Tracking;
 
 public class DriverSessionDto
 {

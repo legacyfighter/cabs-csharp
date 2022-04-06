@@ -1,5 +1,6 @@
 ﻿using System;
 using LegacyFighter.Cabs.CarFleet;
+using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.Geolocation.Address;
@@ -7,7 +8,6 @@ using LegacyFighter.Cabs.Service;
 using LegacyFighter.CabsTests.Common;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
-using TddXt.XNSubstitute;
 
 namespace LegacyFighter.CabsTests.Integration;
 
@@ -24,16 +24,20 @@ public class TransitLifeCycleIntegrationTest
     GeocodingService = Substitute.For<IGeocodingService>();
     _app = CabsApp.CreateInstance(collection => { collection.AddSingleton(GeocodingService); });
     await Fixtures.AnActiveCarCategory(CarClasses.Van);
-    GeocodingService.GeocodeAddress(Arg.Any<Address>()).Returns(new double[] { 1, 1 });
   }
 
   [Test]
   public async Task CanCreateTransit()
   {
+    //given
+    var pickup = new AddressDto("Polska", "Warszawa", "Młynarska", 20);
+    //and
+    var destination = new AddressDto("Polska", "Warszawa", "Żytnia", 25);
+    //and
+    await ANearbyDriver(pickup);
+
     //when
-    var transit = await RequestTransitFromTo(
-      new AddressDto("Polska", "Warszawa", "Młynarska", 20),
-      new AddressDto("Polska", "Warszawa", "Żytnia", 25));
+    var transit = await RequestTransitFromTo(pickup, destination);
 
     //then
     var loaded = await TransitService.LoadTransit(transit.Id);
@@ -59,13 +63,18 @@ public class TransitLifeCycleIntegrationTest
   public async Task CanChangeTransitDestination()
   {
     //given
-    var transit = await RequestTransitFromTo(
-      new AddressDto("Polska", "Warszawa", "Młynarska", 20),
-      new AddressDto("Polska", "Warszawa", "Żytnia", 25));
+    var pickup = new AddressDto("Polska", "Warszawa", "Młynarska", 20);
+    //and
+    var destination = new AddressDto("Polska", "Warszawa", "Żytnia", 25);
+    //and
+    await ANearbyDriver(pickup);
+    //and
+    var transit = await RequestTransitFromTo(pickup, destination);
 
     //when
-    await TransitService.ChangeTransitAddressTo(transit.Id,
-      new AddressDto("Polska", "Warszawa", "Mazowiecka", 30));
+    var newDestination = await NewAddress("Polska", "Warszawa", "Mazowiecka", 30);
+    //and
+    await TransitService.ChangeTransitAddressTo(transit.Id, newDestination);
 
     //then
     var loaded = await TransitService.LoadTransit(transit.Id);
@@ -79,13 +88,13 @@ public class TransitLifeCycleIntegrationTest
   public async Task CannotChangeDestinationWhenTransitIsCompleted()
   {
     //given
+    var pickup = new AddressDto("Polska", "Warszawa", "Młynarska", 20);
+    //and
     var destination = new AddressDto("Polska", "Warszawa", "Żytnia", 25);
     //and
-    var transit = await RequestTransitFromTo(
-      new AddressDto("Polska", "Warszawa", "Młynarska", 20),
-      destination);
+    var driver = await ANearbyDriver(pickup);
     //and
-    var driver = await ANearbyDriver("WU1212");
+    var transit = await RequestTransitFromTo(pickup, destination);
     //and
     await TransitService.PublishTransit(transit.Id);
     //and
@@ -96,8 +105,8 @@ public class TransitLifeCycleIntegrationTest
     await TransitService.CompleteTransit(driver, transit.Id, destination);
 
     //expect
-    await TransitService.Awaiting(s => s.ChangeTransitAddressTo(transit.Id,
-        new AddressDto("Polska", "Warszawa", "Żytnia", 23)))
+    var newAddress = await NewAddress("Polska", "Warszawa", "Żytnia", 23);
+    await TransitService.Awaiting(s => s.ChangeTransitAddressTo(transit.Id, newAddress))
       .Should().ThrowExactlyAsync<InvalidOperationException>();
   }
 
@@ -105,13 +114,20 @@ public class TransitLifeCycleIntegrationTest
   public async Task CanChangePickupPlace()
   {
     //given
-    var transit = await RequestTransitFromTo(
-      new AddressDto("Polska", "Warszawa", "Młynarska", 20),
-      new AddressDto("Polska", "Warszawa", "Żytnia", 25));
+    var pickup = new AddressDto("Polska", "Warszawa", "Młynarska", 20);
+    //and
+    var destination = new AddressDto("Polska", "Warszawa", "Żytnia", 25);
+    //and
+    await ANearbyDriver(pickup);
+    //and
+    var transit = await RequestTransitFromTo(pickup, destination);
+    //and
+    await TransitService.PublishTransit(transit.Id);
 
     //when
-    await TransitService.ChangeTransitAddressFrom(transit.Id,
-      new AddressDto("Polska", "Warszawa", "Puławska", 28));
+    var newPickup = NewPickupAddress("Puławska", 28);
+    //and
+    await TransitService.ChangeTransitAddressFrom(transit.Id, newPickup);
 
     //then
     var loaded = await TransitService.LoadTransit(transit.Id);
@@ -123,15 +139,15 @@ public class TransitLifeCycleIntegrationTest
   public async Task CannotChangePickupPlaceAfterTransitIsAccepted()
   {
     //given
+    var pickup = new AddressDto("Polska", "Warszawa", "Młynarska", 20);
+    //and
     var destination = new AddressDto("Polska", "Warszawa", "Żytnia", 25);
     //and
-    var transit = await RequestTransitFromTo(
-      new AddressDto("Polska", "Warszawa", "Młynarska", 20),
-      destination);
+    var driver = await ANearbyDriver(pickup);
     //and
-    var changedTo = new AddressDto("Polska", "Warszawa", "Żytnia", 27);
+    var transit = await RequestTransitFromTo(pickup, destination);
     //and
-    var driver = await ANearbyDriver("WU1212");
+    var changedTo = NewPickupAddress(10);
     //and
     await TransitService.PublishTransit(transit.Id);
     //and
@@ -158,22 +174,28 @@ public class TransitLifeCycleIntegrationTest
   public async Task CannotChangePickupPlaceMoreThanThreeTimes()
   {
     //given
-    var transit = await RequestTransitFromTo(
-      new AddressDto("Polska", "Warszawa", "Młynarska", 20),
-      new AddressDto("Polska", "Warszawa", "Żytnia", 25));
+    var pickup = new AddressDto("Polska", "Warszawa", "Młynarska", 20);
     //and
-    await TransitService.ChangeTransitAddressFrom(transit.Id,
-      new AddressDto("Polska", "Warszawa", "Żytnia", 26));
+    var destination = new AddressDto("Polska", "Warszawa", "Żytnia", 25);
     //and
-    await TransitService.ChangeTransitAddressFrom(transit.Id,
-      new AddressDto("Polska", "Warszawa", "Żytnia", 27));
+    await ANearbyDriver(pickup);
     //and
-    await TransitService.ChangeTransitAddressFrom(transit.Id,
-      new AddressDto("Polska", "Warszawa", "Żytnia", 28));
+    var transit = await RequestTransitFromTo(pickup, destination);
+    //and
+    await TransitService.PublishTransit(transit.Id);
+    //and
+    var newPickup1 = NewPickupAddress(10);
+    await TransitService.ChangeTransitAddressFrom(transit.Id, newPickup1);
+    //and
+    var newPickup2 = NewPickupAddress(11);
+    await TransitService.ChangeTransitAddressFrom(transit.Id, newPickup2);
+    //and
+    var newPickup3 = NewPickupAddress(12);
+    await TransitService.ChangeTransitAddressFrom(transit.Id, newPickup3);
 
     //expect
-    await TransitService.Awaiting(s => s.ChangeTransitAddressFrom(transit.Id,
-        new AddressDto("Polska", "Warszawa", "Żytnia", 29)))
+    await TransitService.Awaiting(
+        s => s.ChangeTransitAddressFrom(transit.Id, NewPickupAddress(13)))
       .Should().ThrowExactlyAsync<InvalidOperationException>();
   }
 
@@ -181,13 +203,20 @@ public class TransitLifeCycleIntegrationTest
   public async Task CannotChangePickupPlaceWhenItIsFarWayFromOriginal()
   {
     //given
-    var from = new AddressDto("Polska", "Warszawa", "Młynarska", 20);
-    var transit = await RequestTransitFromTo(
-      from,
-      new AddressDto("Polska", "Warszawa", "Żytnia", 25));
+    var pickup = new AddressDto("Polska", "Warszawa", "Młynarska", 20);
+    //and
+    var destination = new AddressDto("Polska", "Warszawa", "Żytnia", 25);
+    //and
+    await ANearbyDriver(pickup);
+    //and
+    var transit = await RequestTransitFromTo(pickup, destination);
+    //and
+    await TransitService.PublishTransit(transit.Id);
 
     //expect
-    await TransitService.Awaiting(s => s.ChangeTransitAddressFrom(transit.Id, FarAwayAddress(from)))
+    var farawayAddress = await FarAwayAddress();
+    await TransitService.Awaiting(
+        s => s.ChangeTransitAddressFrom(transit.Id, farawayAddress))
       .Should().ThrowExactlyAsync<InvalidOperationException>();
   }
 
@@ -195,9 +224,13 @@ public class TransitLifeCycleIntegrationTest
   public async Task CanCancelTransit()
   {
     //given
-    var transit = await RequestTransitFromTo(
-      new AddressDto("Polska", "Warszawa", "Młynarska", 20),
-      new AddressDto("Polska", "Warszawa", "Żytnia", 25));
+    var pickup = new AddressDto("Polska", "Warszawa", "Młynarska", 20);
+    //and
+    var destination = new AddressDto("Polska", "Warszawa", "Żytnia", 25);
+    //and
+    await ANearbyDriver(pickup);
+    //and
+    var transit = await RequestTransitFromTo(pickup, destination);
 
     //when
     await TransitService.CancelTransit(transit.Id);
@@ -211,13 +244,13 @@ public class TransitLifeCycleIntegrationTest
   public async Task CannotCancelTransitAfterItWasStarted()
   {
     //given
+    var pickup = new AddressDto("Polska", "Warszawa", "Młynarska", 20);
+    //and
     var destination = new AddressDto("Polska", "Warszawa", "Żytnia", 25);
     //and
-    var transit = await RequestTransitFromTo(
-      new AddressDto("Polska", "Warszawa", "Młynarska", 20),
-      destination);
+    var driver = await ANearbyDriver(pickup);
     //and
-    var driver = await ANearbyDriver("WU1212");
+    var transit = await RequestTransitFromTo(pickup, destination);
     //and
     await TransitService.PublishTransit(transit.Id);
     //and
@@ -240,11 +273,13 @@ public class TransitLifeCycleIntegrationTest
   public async Task CanPublishTransit()
   {
     //given
-    var transit = await RequestTransitFromTo(
-      new AddressDto("Polska", "Warszawa", "Młynarska", 20),
-      new AddressDto("Polska", "Warszawa", "Żytnia", 25));
+    var pickup = new AddressDto("Polska", "Warszawa", "Młynarska", 20);
     //and
-    await ANearbyDriver("WU1212");
+    var destination = new AddressDto("Polska", "Warszawa", "Żytnia", 25);
+    //and
+    await ANearbyDriver(pickup);
+    //and
+    var transit = await RequestTransitFromTo(pickup, destination);
 
     //when
     await TransitService.PublishTransit(transit.Id);
@@ -259,10 +294,13 @@ public class TransitLifeCycleIntegrationTest
   public async Task CanAcceptTransit()
   {
     //given
-    var transit = await RequestTransitFromTo(new AddressDto("Polska", "Warszawa", "Młynarska", 20),
-      new AddressDto("Polska", "Warszawa", "Żytnia", 25));
+    var pickup = new AddressDto("Polska", "Warszawa", "Młynarska", 20);
     //and
-    var driver = await ANearbyDriver("WU1212");
+    var destination = new AddressDto("Polska", "Warszawa", "Żytnia", 25);
+    //and
+    var driver = await ANearbyDriver(pickup);
+    //and
+    var transit = await RequestTransitFromTo(pickup, destination);
     //and
     await TransitService.PublishTransit(transit.Id);
 
@@ -279,13 +317,15 @@ public class TransitLifeCycleIntegrationTest
   public async Task OnlyOneDriverCanAcceptTransit()
   {
     //given
-    var transit = await RequestTransitFromTo(
-      new AddressDto("Polska", "Warszawa", "Młynarska", 20),
-      new AddressDto("Polska", "Warszawa", "Żytnia", 25));
+    var pickup = new AddressDto("Polska", "Warszawa", "Młynarska", 20);
     //and
-    var driver = await ANearbyDriver("WU1212");
+    var destination = new AddressDto("Polska", "Warszawa", "Żytnia", 25);
     //and
-    var secondDriver = await ANearbyDriver("DW MARIO");
+    var driver = await ANearbyDriver(pickup);
+    //and
+    var transit = await RequestTransitFromTo(pickup, destination);
+    //and
+    var secondDriver = await ANearbyDriver(pickup);
     //and
     await TransitService.PublishTransit(transit.Id);
     //and
@@ -300,11 +340,13 @@ public class TransitLifeCycleIntegrationTest
   public async Task TransitCannotBeAcceptedByDriverWhoAlreadyRejected()
   {
     //given
-    var transit = await RequestTransitFromTo(
-      new AddressDto("Polska", "Warszawa", "Młynarska", 20),
-      new AddressDto("Polska", "Warszawa", "Żytnia", 25));
+    var pickup = new AddressDto("Polska", "Warszawa", "Młynarska", 20);
     //and
-    var driver = await ANearbyDriver("WU1212");
+    var destination = new AddressDto("Polska", "Warszawa", "Żytnia", 25);
+    //and
+    var driver = await ANearbyDriver(pickup);
+    //and
+    var transit = await RequestTransitFromTo(pickup, destination);
     //and
     await TransitService.PublishTransit(transit.Id);
 
@@ -320,10 +362,13 @@ public class TransitLifeCycleIntegrationTest
   public async Task TransitCannotBeAcceptedByDriverWhoHasNotSeenProposal()
   {
     //given
-    var transit = await RequestTransitFromTo(new AddressDto("Polska", "Warszawa", "Młynarska", 20),
-      new AddressDto("Polska", "Warszawa", "Żytnia", 25));
+    var pickup = new AddressDto("Polska", "Warszawa", "Młynarska", 20);
     //and
-    var farAwayDriver = await AFarAwayDriver("WU1212");
+    var destination = new AddressDto("Polska", "Warszawa", "Żytnia", 25);
+    //and
+    var farAwayDriver = await AFarAwayDriver(pickup);
+    //and
+    var transit = await RequestTransitFromTo(pickup, destination);
     //and
     await TransitService.PublishTransit(transit.Id);
 
@@ -336,10 +381,13 @@ public class TransitLifeCycleIntegrationTest
   public async Task CanStartTransit()
   {
     //given
-    var transit = await RequestTransitFromTo(new AddressDto("Polska", "Warszawa", "Młynarska", 20),
-      new AddressDto("Polska", "Warszawa", "Żytnia", 25));
+    var pickup = new AddressDto("Polska", "Warszawa", "Młynarska", 20);
     //and
-    var driver = await ANearbyDriver("WU1212");
+    var destination = new AddressDto("Polska", "Warszawa", "Żytnia", 25);
+    //and
+    var driver = await ANearbyDriver(pickup);
+    //and
+    var transit = await RequestTransitFromTo(pickup, destination);
     //and
     await TransitService.PublishTransit(transit.Id);
     //and
@@ -357,10 +405,13 @@ public class TransitLifeCycleIntegrationTest
   public async Task CannotStartNotAcceptedTransit()
   {
     //given
-    var transit = await RequestTransitFromTo(new AddressDto("Polska", "Warszawa", "Młynarska", 20),
-      new AddressDto("Polska", "Warszawa", "Żytnia", 25));
+    var pickup = new AddressDto("Polska", "Warszawa", "Młynarska", 20);
     //and
-    var driver = await ANearbyDriver("WU1212");
+    var destination = new AddressDto("Polska", "Warszawa", "Żytnia", 25);
+    //and
+    var driver = await ANearbyDriver(pickup);
+    //and
+    var transit = await RequestTransitFromTo(pickup, destination);
     //and
     await TransitService.PublishTransit(transit.Id);
 
@@ -373,13 +424,13 @@ public class TransitLifeCycleIntegrationTest
   public async Task CanCompleteTransit()
   {
     //given
+    var pickup = new AddressDto("Polska", "Warszawa", "Młynarska", 20);
+    //and
     var destination = new AddressDto("Polska", "Warszawa", "Żytnia", 25);
     //and
-    var transit = await RequestTransitFromTo(
-      new AddressDto("Polska", "Warszawa", "Młynarska", 20),
-      destination);
+    var driver = await ANearbyDriver(pickup);
     //and
-    var driver = await ANearbyDriver("WU1212");
+    var transit = await RequestTransitFromTo(pickup, destination);
     //and
     await TransitService.PublishTransit(transit.Id);
     //and
@@ -405,11 +456,11 @@ public class TransitLifeCycleIntegrationTest
     //given
     var addressTo = new AddressDto("Polska", "Warszawa", "Żytnia", 25);
     //and
-    var transit = await RequestTransitFromTo(
-      new AddressDto("Polska", "Warszawa", "Młynarska", 20),
-      addressTo);
+    var pickup = new AddressDto(null, null, null, 0);
     //and
-    var driver = await ANearbyDriver("WU1212");
+    var driver = await ANearbyDriver(pickup);
+    //and
+    var transit = await RequestTransitFromTo(pickup, addressTo);
     //and
     await TransitService.PublishTransit(transit.Id);
     //and
@@ -424,11 +475,13 @@ public class TransitLifeCycleIntegrationTest
   public async Task CanRejectTransit()
   {
     //given
-    var transit = await RequestTransitFromTo(
-      new AddressDto("Polska", "Warszawa", "Młynarska", 20),
-      new AddressDto("Polska", "Warszawa", "Żytnia", 25));
+    var pickup = new AddressDto("Polska", "Warszawa", "Młynarska", 20);
     //and
-    var driver = await ANearbyDriver("WU1212");
+    var destination = new AddressDto("Polska", "Warszawa", "Żytnia", 25);
+    //and
+    var driver = await ANearbyDriver(pickup);
+    //and
+    var transit = await RequestTransitFromTo(pickup, destination);
     //and
     await TransitService.PublishTransit(transit.Id);
 
@@ -441,33 +494,71 @@ public class TransitLifeCycleIntegrationTest
     Assert.IsNull(loaded.AcceptedAt);
   }
 
-  private AddressDto FarAwayAddress(AddressDto from)
+  private async Task<AddressDto> NewAddress(
+    string country,
+    string city,
+    string street,
+    int buildingNumber)
   {
-    var addressDto = new AddressDto("Dania", "Kopenhaga", "Mylve", 2);
-
-    GeocodingService.GeocodeAddress(Arg.Any<Address>()).Returns(new double[] { 1000, 1000 });
-    GeocodingService.GeocodeAddress(Arg<Address>.That(
-        a => a.Should().BeEquivalentTo(from.ToAddressEntity(),
-          options => options.ComparingByMembers<Address>())))
+    var addressDto = await Fixtures.AnAddress(
+      GeocodingService,
+      country,
+      city,
+      street,
+      buildingNumber);
+    GeocodingService.GeocodeAddress(
+        Arg.Is<Address>(a => new AddressMatcher(addressDto).Matches(a)))
       .Returns(new double[] { 1, 1 });
     return addressDto;
   }
 
-  private async Task<long?> ANearbyDriver(string plateNumber)
+  private async Task<AddressDto> FarAwayAddress()
   {
-    return (await Fixtures.ANearbyDriver(plateNumber, 1, 1, CarClasses.Van, SystemClock.Instance.GetCurrentInstant(), "BRAND")).Id;
+    var addressDto = await NewAddress("Dania", "Kopenhaga", "Mylve", 2);
+    GeocodingService.GeocodeAddress(
+        Arg.Is<Address>(a => new AddressMatcher(addressDto).Matches(a)))
+      .Returns(new double[] { 10000, 21211321 });
+    return addressDto;
   }
 
-  private async Task<long?> AFarAwayDriver(string plateNumber)
+  private async Task<long?> ANearbyDriver(AddressDto from)
   {
-    return (await Fixtures.ANearbyDriver(plateNumber, 1000, 1000, CarClasses.Van, SystemClock.Instance.GetCurrentInstant(), "BRAND")).Id;
+    return (await Fixtures.ANearbyDriver(GeocodingService, from.ToAddressEntity(), 1, 1)).Id;
   }
 
-  private async Task<Transit> RequestTransitFromTo(AddressDto pickup, AddressDto destination)
+  private async Task<long?> AFarAwayDriver(AddressDto address)
   {
-    var aTransitDto = await Fixtures.ATransitDto(
-      pickup,
-      destination);
-    return await TransitService.CreateTransit(aTransitDto);
+    GeocodingService.GeocodeAddress(
+        Arg.Is<Address>(a => new AddressMatcher(address).Matches(a)))
+      .Returns(new double[] { 20000000, 100000000 });
+    return (await Fixtures.ANearbyDriver("DW MARIO", 1000000000, 1000000000, CarClasses.Van, SystemClock.Instance.GetCurrentInstant(), "BRAND")).Id;
+
+  }
+
+  private async Task<TransitDto> RequestTransitFromTo(AddressDto pickupDto, AddressDto destination)
+  {
+    GeocodingService.GeocodeAddress(
+        Arg.Is<Address>(a => new AddressMatcher(destination).Matches(a)))
+      .Returns(new double[] { 1, 1 });
+    var transitDto = await Fixtures.ATransitDto(pickupDto, destination);
+    return await TransitService.CreateTransit(transitDto);
+  }
+
+  private AddressDto NewPickupAddress(int buildingNumber) 
+  {
+    var newPickup = new AddressDto("Polska", "Warszawa", "Mazowiecka", buildingNumber);
+    GeocodingService.GeocodeAddress(
+        Arg.Is<Address>(a => new AddressMatcher(newPickup).Matches(a)))
+      .Returns(new double[] { 1, 1 });
+    return newPickup;
+  }
+
+  private AddressDto NewPickupAddress(string street, int buildingNumber) 
+  {
+    var newPickup = new AddressDto("Polska", "Warszawa", street, buildingNumber);
+    GeocodingService.GeocodeAddress(
+        Arg.Is<Address>(a => new AddressMatcher(newPickup).Matches(a)))
+      .Returns(new double[] { 1, 1 });
+    return newPickup;
   }
 }

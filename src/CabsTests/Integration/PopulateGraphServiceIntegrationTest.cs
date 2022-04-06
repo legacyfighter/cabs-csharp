@@ -64,6 +64,6 @@ internal class PopulateGraphServiceIntegrationTest : TestWithGraphDb
   {
     GeocodingService.GeocodeAddress(destination).Returns(new double[]{1, 1});
     var driver = await Fixtures.ANearbyDriver(GeocodingService, pickup);
-    await Fixtures.AJourney(50, client, driver, pickup, destination);
+    await Fixtures.ARide(50, client, driver, pickup, destination);
   }
 }

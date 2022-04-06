@@ -4,7 +4,7 @@ using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.Geolocation.Address;
 using LegacyFighter.Cabs.MoneyValue;
-using LegacyFighter.Cabs.Service;
+using LegacyFighter.Cabs.Tracking;
 using NodaTime;
 
 namespace LegacyFighter.CabsTests.Common;
@@ -78,13 +78,15 @@ public class DriverFixture
   }
 
   public async Task<Driver> ANearbyDriver(
-    string plateNumber,
+    IGeocodingService stubbedGeocodingService,
+    Address pickup,
     double latitude,
-    double longitude,
-    CarClasses carClass,
-    Instant when)
+    double longitude)
   {
-    return await ANearbyDriver(plateNumber, latitude, longitude, carClass, when, "brand");
+    stubbedGeocodingService.GeocodeAddress(Arg.Is<Address>(a => new AddressMatcher(pickup).Matches(a)))
+      .Returns(new[] { latitude, longitude });
+    return await ANearbyDriver("WU DAMIAN", latitude, longitude, CarClasses.Van,
+      SystemClock.Instance.GetCurrentInstant(), "brand");
   }
 
   public async Task<Driver> ANearbyDriver(

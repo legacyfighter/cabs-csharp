@@ -24,11 +24,15 @@ public class TransitDto
 
   }
 
-  public TransitDto(Transit transit, TransitDetailsDto transitDetails)
+  public TransitDto(
+    TransitDetailsDto transitDetails,
+    ISet<DriverDto> proposedDrivers,
+    ISet<DriverDto> driverRejections,
+    long? assignedDriver)
 
     : this(transitDetails.TransitId, transitDetails.TariffName,
       transitDetails.Status, 
-      transit.Driver == null ? null : new DriverDto(transit.Driver),
+      proposedDrivers.FirstOrDefault(driver => driver.Id == assignedDriver),
       transitDetails.Distance, 
       transitDetails.KmRate.Value,
       transitDetails.Price != null ? new decimal(transitDetails.Price.IntValue) : null,
@@ -41,16 +45,12 @@ public class TransitDto
       transitDetails.Started, 
       transitDetails.CompletedAt,
       null, 
-      new List<DriverDto>(), 
+      new List<DriverDto>(proposedDrivers), 
       transitDetails.From,
       transitDetails.To, 
       transitDetails.CarType, 
       transitDetails.Client)
   {
-    foreach (var d in transit.ProposedDrivers)
-    {
-      ProposedDrivers.Add(new DriverDto(d));
-    }
   }
 
   public TransitDto(

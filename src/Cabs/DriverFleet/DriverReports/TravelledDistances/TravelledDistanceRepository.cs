@@ -7,7 +7,7 @@ namespace LegacyFighter.Cabs.DriverFleet.DriverReports.TravelledDistances;
 
 public interface ITravelledDistanceRepository
 {
-  Task<TravelledDistance?> FindTravelledDistanceTimeSlotByTime(Instant when, long driverId);
+  Task<TravelledDistance> FindTravelledDistanceTimeSlotByTime(Instant when, long? driverId);
   Task<TravelledDistance?> FindTravelledDistanceByTimeSlotAndDriverId(TimeSlot timeSlot, long driverId);
   Task<double> CalculateDistance(Instant beginning, Instant to, long driverId);
   Task Save(TravelledDistance travelledDistance);
@@ -22,7 +22,7 @@ internal class EfCoreTravelledDistanceRepository : ITravelledDistanceRepository
     _dbContext = dbContext;
   }
 
-  public Task<TravelledDistance?> FindTravelledDistanceTimeSlotByTime(Instant when, long driverId)
+  public Task<TravelledDistance> FindTravelledDistanceTimeSlotByTime(Instant when, long? driverId)
   {
     return _dbContext.TravelledDistances.FromSqlInterpolated(
         $"select * from TravelledDistances td where td.Beginning <= {when.ToUnixTimeTicks()} and {when.ToUnixTimeTicks()} < td.End and td.DriverId = {driverId}")

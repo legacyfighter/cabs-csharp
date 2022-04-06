@@ -25,8 +25,7 @@ public class TransitController
   [HttpPost("/transits/")]
   public async Task<TransitDto> CreateTransit([FromBody] TransitDto transitDto)
   {
-    var transit = await _transitService.CreateTransit(transitDto);
-    return await _transitService.LoadTransit(transit.Id);
+    return await _transitService.CreateTransit(transitDto);
   }
 
   [HttpPost("/transits/{id}/changeAddressTo")]
