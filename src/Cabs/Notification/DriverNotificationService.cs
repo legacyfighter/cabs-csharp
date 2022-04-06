@@ -1,4 +1,4 @@
-namespace LegacyFighter.Cabs.Service;
+namespace LegacyFighter.Cabs.Notification;
 
 public interface IDriverNotificationService
 {

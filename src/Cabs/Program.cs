@@ -16,6 +16,7 @@ using LegacyFighter.Cabs.Crm.TransitAnalyzer;
 using LegacyFighter.Cabs.DriverReports;
 using LegacyFighter.Cabs.DriverReports.TravelledDistances;
 using LegacyFighter.Cabs.Invoicing;
+using LegacyFighter.Cabs.Notification;
 using LegacyFighter.Cabs.Parties.Api;
 using LegacyFighter.Cabs.Parties.Infra;
 using LegacyFighter.Cabs.Parties.Model.Parties;
@@ -71,8 +72,6 @@ builder.Services.AddTransient<IAwardsService>(ctx =>
   new TransactionalAwardsService(
     ctx.GetRequiredService<AwardsServiceImpl>(),
     ctx.GetRequiredService<ITransactions>()));
-builder.Services.AddTransient<IClientNotificationService, ClientNotificationService>();
-builder.Services.AddTransient<IDriverNotificationService, DriverNotificationService>();
 builder.Services.AddTransient<ClientService>();
 builder.Services.AddTransient<IClientService>(
   ctx => new TransactionalClientService(
@@ -159,6 +158,8 @@ AgreementsDependencies.AddTo(builder);
 CarFleetDependencies.AddTo(builder);
 InvoicingDependencies.AddTo(builder);
 TransitAnalyzerDependencies.AddTo(builder);
+NotificationDependencies.AddTo(builder);
+
 var app = builder.Build();
 
 using (var serviceScope = app.Services.CreateScope())
