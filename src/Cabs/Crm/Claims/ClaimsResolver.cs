@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using LegacyFighter.Cabs.Common;
-using LegacyFighter.Cabs.Entity;
 
 namespace LegacyFighter.Cabs.Crm.Claims;
 

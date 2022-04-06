@@ -1,4 +1,5 @@
-﻿using LegacyFighter.Cabs.Crm.Claims;
+﻿using LegacyFighter.Cabs.Crm;
+using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;
 

@@ -1,6 +1,4 @@
-using LegacyFighter.Cabs.Entity;
-
-namespace LegacyFighter.Cabs.Dto;
+namespace LegacyFighter.Cabs.Crm;
 
 public class ClientDto
 {

@@ -1,4 +1,4 @@
-using LegacyFighter.Cabs.Dto;
+using LegacyFighter.Cabs.Crm;
 using NodaTime;
 
 namespace LegacyFighter.Cabs.Loyalty;

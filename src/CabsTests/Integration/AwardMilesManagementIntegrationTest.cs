@@ -1,5 +1,5 @@
 ﻿using System;
-using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Crm;
 using LegacyFighter.Cabs.Loyalty;
 using LegacyFighter.CabsTests.Common;
 using Microsoft.Extensions.DependencyInjection;

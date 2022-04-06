@@ -1,4 +1,5 @@
 ﻿using System;
+using LegacyFighter.Cabs.Crm;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Geolocation;

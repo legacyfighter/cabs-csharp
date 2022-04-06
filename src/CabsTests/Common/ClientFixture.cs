@@ -1,5 +1,4 @@
-using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.Repository;
+using LegacyFighter.Cabs.Crm;
 
 namespace LegacyFighter.CabsTests.Common;
 

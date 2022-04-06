@@ -1,4 +1,4 @@
-using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Crm;
 using LegacyFighter.Cabs.Loyalty;
 
 namespace LegacyFighter.CabsTests.Common;

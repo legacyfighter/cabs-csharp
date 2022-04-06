@@ -1,8 +1,6 @@
 using LegacyFighter.Cabs.Common;
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
 
-namespace LegacyFighter.Cabs.Service;
+namespace LegacyFighter.Cabs.Crm;
 
 public class TransactionalClientService : IClientService
 {

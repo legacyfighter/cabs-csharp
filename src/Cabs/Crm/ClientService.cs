@@ -1,8 +1,4 @@
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.Repository;
-
-namespace LegacyFighter.Cabs.Service;
+namespace LegacyFighter.Cabs.Crm;
 
 public class ClientService : IClientService
 {

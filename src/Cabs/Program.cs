@@ -11,6 +11,7 @@ using LegacyFighter.Cabs.Contracts.Legacy;
 using LegacyFighter.Cabs.Contracts.Model;
 using LegacyFighter.Cabs.Contracts.Model.Content;
 using LegacyFighter.Cabs.Contracts.Model.State.Dynamic.Acme;
+using LegacyFighter.Cabs.Crm;
 using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.Crm.TransitAnalyzer;
 using LegacyFighter.Cabs.DriverFleet;
@@ -58,14 +59,8 @@ builder.Services.AddScoped<EventsPublisher>();
 builder.Services.AddTransient<ITransactions, Transactions>();
 builder.Services.AddTransient<IDriverSessionRepository, EfCoreDriverSessionRepository>();
 builder.Services.AddTransient<IDriverPositionRepository, EfCoreDriverPositionRepository>();
-builder.Services.AddTransient<IClientRepository, EfCoreClientRepository>();
 builder.Services.AddTransient<ITransitRepository, EfCoreTransitRepository>();
 builder.Services.AddTransient<ITransitDetailsRepository, EfCoreTransitDetailsRepository>();
-builder.Services.AddTransient<ClientService>();
-builder.Services.AddTransient<IClientService>(
-  ctx => new TransactionalClientService(
-    ctx.GetRequiredService<ClientService>(), 
-    ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddTransient<DriverTrackingService>();
 builder.Services.AddTransient<IDriverTrackingService>(ctx =>
   new TransactionalDriverTrackingService(
@@ -129,6 +124,7 @@ NotificationDependencies.AddTo(builder);
 DriverFleetDependencies.AddTo(builder);
 LoyaltyDependencies.AddTo(builder);
 GeolocationDependencies.AddTo(builder);
+CrmDependencies.AddTo(builder);
 
 var app = builder.Build();
 

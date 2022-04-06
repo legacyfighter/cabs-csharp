@@ -5,6 +5,7 @@ using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Contracts.Legacy;
 using LegacyFighter.Cabs.Contracts.Model;
 using LegacyFighter.Cabs.Contracts.Model.Content;
+using LegacyFighter.Cabs.Crm;
 using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.DriverFleet.DriverReports.TravelledDistances;
@@ -93,12 +94,6 @@ public class SqLiteDbContext : DbContext
 
     base.OnModelCreating(modelBuilder);
 
-    modelBuilder.Entity<Client>(builder =>
-    {
-      builder.MapBaseEntityProperties();
-      builder.Property(c => c.ClientType).HasConversion<string>();
-      builder.Property(c => c.DefaultPaymentType).HasConversion<string>();
-    });
     modelBuilder.Entity<DriverPosition>(builder =>
     {
       builder.MapBaseEntityProperties();
@@ -179,6 +174,7 @@ public class SqLiteDbContext : DbContext
     DriverFleetSchema.MapUsing(modelBuilder, instantConverter);
     LoyaltySchema.MapUsing(modelBuilder, instantConverter);
     GeolocationSchema.MapUsing(modelBuilder);
+    CrmSchema.MapUsing(modelBuilder);
     MapRepairEntities(modelBuilder);
     MapContractEntities(modelBuilder);
   }

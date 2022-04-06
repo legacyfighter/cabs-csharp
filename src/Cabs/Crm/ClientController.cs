@@ -1,52 +1,50 @@
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Service;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LegacyFighter.Cabs.Controllers;
+namespace LegacyFighter.Cabs.Crm;
 
 [ApiController]
 [Route("[controller]")]
 public class ClientController
 {
-  internal IClientService ClientService;
+  private readonly IClientService _clientService;
 
   public ClientController(IClientService clientService)
   {
-    ClientService = clientService;
+    _clientService = clientService;
   }
 
   [HttpPost("/clients")]
   public async Task<ClientDto> Register([FromBody] ClientDto dto)
   {
-    var c = await ClientService.RegisterClient(dto.Name, dto.LastName, dto.Type,
+    var c = await _clientService.RegisterClient(dto.Name, dto.LastName, dto.Type,
       dto.DefaultPaymentType);
-    return await ClientService.Load(c.Id);
+    return await _clientService.Load(c.Id);
   }
 
   [HttpGet("/clients/{clientId}")]
   public async Task<ClientDto> Find(long? clientId)
   {
-    return await ClientService.Load(clientId);
+    return await _clientService.Load(clientId);
   }
 
   [HttpPost("/clients/{clientId}/upgrade")]
   public async Task<ClientDto> UpgradeToVip(long? clientId)
   {
-    await ClientService.UpgradeToVip(clientId);
-    return await ClientService.Load(clientId);
+    await _clientService.UpgradeToVip(clientId);
+    return await _clientService.Load(clientId);
   }
 
   [HttpPost("/clients/{clientId}/downgrade")]
   public async Task<ClientDto> Downgrade(long? clientId)
   {
-    await ClientService.DowngradeToRegular(clientId);
-    return await ClientService.Load(clientId);
+    await _clientService.DowngradeToRegular(clientId);
+    return await _clientService.Load(clientId);
   }
 
   [HttpPost("/clients/{clientId}/changeDefaultPaymentType")]
   public async Task<ClientDto> ChangeDefaultPaymentType(long? clientId, [FromBody] ClientDto dto)
   {
-    await ClientService.ChangeDefaultPaymentType(clientId, dto.DefaultPaymentType);
-    return await ClientService.Load(clientId);
+    await _clientService.ChangeDefaultPaymentType(clientId, dto.DefaultPaymentType);
+    return await _clientService.Load(clientId);
   }
 }

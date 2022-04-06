@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using LegacyFighter.Cabs.CarFleet;
+using LegacyFighter.Cabs.Crm;
 using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.DriverFleet.DriverReports;

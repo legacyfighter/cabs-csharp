@@ -1,10 +1,10 @@
 ﻿using LegacyFighter.Cabs.Config;
-using LegacyFighter.Cabs.Entity;
 using LegacyFighter.CabsTests.Common;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 using System.Collections.Generic;
 using System.Linq;
+using LegacyFighter.Cabs.Crm;
 using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.Loyalty;
 

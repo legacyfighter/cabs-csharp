@@ -1,4 +1,5 @@
 ﻿using LegacyFighter.Cabs.CarFleet;
+using LegacyFighter.Cabs.Crm;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.Geolocation.Address;

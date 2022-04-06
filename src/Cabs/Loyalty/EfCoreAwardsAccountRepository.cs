@@ -1,4 +1,4 @@
-using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Crm;
 using LegacyFighter.Cabs.Repository;
 using Microsoft.EntityFrameworkCore;
 

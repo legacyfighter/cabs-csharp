@@ -1,7 +1,4 @@
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
-
-namespace LegacyFighter.Cabs.Service;
+namespace LegacyFighter.Cabs.Crm;
 
 public interface IClientService
 {
