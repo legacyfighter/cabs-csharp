@@ -37,19 +37,19 @@ public class ClaimsResolver : BaseEntity
 
   public Result Resolve(Claim claim, double automaticRefundForVipThreshold, int numberOfTransits, double noOfTransitsForClaimAutomaticRefund)
   {
-    var transitId = claim.Transit.Id;
+    var transitId = claim.TransitId;
     if (GetClaimedTransitsIds().Contains(transitId))
     {
       return new Result(WhoToAsk.AskNoOne, Claim.Statuses.Escalated);
     }
-    AddNewClaimFor(claim.Transit);
+    AddNewClaimFor(claim.TransitId);
     if (NumberOfClaims() <= 3)
     {
       return new Result(WhoToAsk.AskNoOne, Claim.Statuses.Refunded);
     }
     if (claim.Owner.Type == Client.Types.Vip)
     {
-      if (claim.Transit.Price.IntValue < automaticRefundForVipThreshold)
+      if (claim.TransitPrice.IntValue < automaticRefundForVipThreshold)
       {
         return new Result(WhoToAsk.AskNoOne, Claim.Statuses.Refunded);
       }
@@ -62,7 +62,7 @@ public class ClaimsResolver : BaseEntity
     {
       if (numberOfTransits >= noOfTransitsForClaimAutomaticRefund)
       {
-        if (claim.Transit.Price.IntValue < automaticRefundForVipThreshold)
+        if (claim.TransitPrice.IntValue < automaticRefundForVipThreshold)
         {
           return new Result(WhoToAsk.AskNoOne, Claim.Statuses.Refunded);
         }
@@ -78,10 +78,10 @@ public class ClaimsResolver : BaseEntity
     }
   }
 
-  private void AddNewClaimFor(Transit transit)
+  private void AddNewClaimFor(long? transitId)
   {
     var transitsIds = GetClaimedTransitsIds();
-    transitsIds.Add(transit.Id);
+    transitsIds.Add(transitId);
     ClaimedTransitsIds = JsonMapper.Serialize(transitsIds);
   }
 
@@ -94,7 +94,6 @@ public class ClaimsResolver : BaseEntity
   {
     return GetClaimedTransitsIds().Count;
   }
-
 }
 
 internal static class JsonMapper

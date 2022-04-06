@@ -1,6 +1,5 @@
 ﻿using LegacyFighter.Cabs.Config;
 using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.MoneyValue;
 using LegacyFighter.Cabs.Service;
 using LegacyFighter.CabsTests.Common;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +13,7 @@ namespace LegacyFighter.CabsTests.Integration;
 
 public class RemovingAwardMilesIntegrationTest
 {
+  private const long TransitId = 1L;
   private static readonly Instant DayBeforeYesterday = new LocalDateTime(1989, 12, 12, 12, 12).InUtc().ToInstant();
   private static readonly Instant Yesterday = DayBeforeYesterday.Plus(Duration.FromDays(1));
   private static readonly Instant Today = Yesterday.Plus(Duration.FromDays(1));
@@ -53,10 +53,8 @@ public class RemovingAwardMilesIntegrationTest
     //given
     var client = await ClientWithAnActiveMilesProgram(Client.Types.Normal);
     //and
-    var transit = await Fixtures.ATransit(new Money(80));
-    //and
-    var middle = await GrantedMilesThatWillExpireInDays(10, 365, Yesterday, client, transit);
-    var youngest = await GrantedMilesThatWillExpireInDays(10, 365, Today, client, transit);
+    var middle = await GrantedMilesThatWillExpireInDays(10, 365, Yesterday, client);
+    var youngest = await GrantedMilesThatWillExpireInDays(10, 365, Today, client);
     var oldestNonExpiringMiles = await GrantedNonExpiringMiles(5, DayBeforeYesterday, client);
 
     //when
@@ -77,11 +75,9 @@ public class RemovingAwardMilesIntegrationTest
     //and
     await Fixtures.ClientHasDoneTransits(client, 15, GeocodingService);
     //and
-    var transit = await Fixtures.ATransit(new Money(80));
-    //and
-    var oldest = await GrantedMilesThatWillExpireInDays(10, 60, DayBeforeYesterday, client, transit);
-    var middle = await GrantedMilesThatWillExpireInDays(10, 365, Yesterday, client, transit);
-    var youngest = await GrantedMilesThatWillExpireInDays(10, 30, Today, client, transit);
+    var oldest = await GrantedMilesThatWillExpireInDays(10, 60, DayBeforeYesterday, client);
+    var middle = await GrantedMilesThatWillExpireInDays(10, 365, Yesterday, client);
+    var youngest = await GrantedMilesThatWillExpireInDays(10, 30, Today, client);
 
     //when
     await AwardsService.RemoveMiles(client.Id, 15);
@@ -100,10 +96,8 @@ public class RemovingAwardMilesIntegrationTest
     var client = await ClientWithAnActiveMilesProgram(Client.Types.Normal);
     //and
     await Fixtures.ClientHasDoneTransits(client, 15, GeocodingService);
-    //and
-    var transit = await Fixtures.ATransit(new Money(80));
 
-    var regularMiles = await GrantedMilesThatWillExpireInDays(10, 365, Today, client, transit);
+    var regularMiles = await GrantedMilesThatWillExpireInDays(10, 365, Today, client);
     var oldestNonExpiringMiles = await GrantedNonExpiringMiles(5, DayBeforeYesterday, client);
 
     //when
@@ -121,11 +115,9 @@ public class RemovingAwardMilesIntegrationTest
     //given
     var client = await ClientWithAnActiveMilesProgram(Client.Types.Vip);
     //and
-    var transit = await Fixtures.ATransit(new Money(80));
-    //and
-    var secondToExpire = await GrantedMilesThatWillExpireInDays(10, 60, Yesterday, client, transit);
-    var thirdToExpire = await GrantedMilesThatWillExpireInDays(5, 365, DayBeforeYesterday, client, transit);
-    var firstToExpire = await GrantedMilesThatWillExpireInDays(15, 30, Today, client, transit);
+    var secondToExpire = await GrantedMilesThatWillExpireInDays(10, 60, Yesterday, client);
+    var thirdToExpire = await GrantedMilesThatWillExpireInDays(5, 365, DayBeforeYesterday, client);
+    var firstToExpire = await GrantedMilesThatWillExpireInDays(15, 30, Today, client);
     var nonExpiringMiles = await GrantedNonExpiringMiles(1, DayBeforeYesterday, client);
 
     //when
@@ -147,11 +139,9 @@ public class RemovingAwardMilesIntegrationTest
     //and
     await Fixtures.ClientHasDoneTransits(client, 15, GeocodingService);
     //and
-    var transit = await Fixtures.ATransit(new Money(80));
-    //and
-    var secondToExpire = await GrantedMilesThatWillExpireInDays(10, 60, Yesterday, client, transit);
-    var thirdToExpire = await GrantedMilesThatWillExpireInDays(5, 365, DayBeforeYesterday, client, transit);
-    var firstToExpire = await GrantedMilesThatWillExpireInDays(15, 10, Today, client, transit);
+    var secondToExpire = await GrantedMilesThatWillExpireInDays(10, 60, Yesterday, client);
+    var thirdToExpire = await GrantedMilesThatWillExpireInDays(5, 365, DayBeforeYesterday, client);
+    var firstToExpire = await GrantedMilesThatWillExpireInDays(15, 10, Today, client);
     var nonExpiringMiles = await GrantedNonExpiringMiles(100, Yesterday, client);
 
     //when
@@ -174,11 +164,9 @@ public class RemovingAwardMilesIntegrationTest
     //and
     await Fixtures.ClientHasDoneClaimsAfterCompletedTransit(client, 3);
     //and
-    var transit = await Fixtures.ATransit(new Money(80));
-    //and
-    var secondToExpire = await GrantedMilesThatWillExpireInDays(4, 60, Yesterday, client, transit);
-    var thirdToExpire = await GrantedMilesThatWillExpireInDays(10, 365, DayBeforeYesterday, client, transit);
-    var firstToExpire = await GrantedMilesThatWillExpireInDays(5, 10, Yesterday, client, transit);
+    var secondToExpire = await GrantedMilesThatWillExpireInDays(4, 60, Yesterday, client);
+    var thirdToExpire = await GrantedMilesThatWillExpireInDays(10, 365, DayBeforeYesterday, client);
+    var firstToExpire = await GrantedMilesThatWillExpireInDays(5, 10, Yesterday, client);
     var nonExpiringMiles = await GrantedNonExpiringMiles(10, Yesterday, client);
 
     //when
@@ -193,11 +181,11 @@ public class RemovingAwardMilesIntegrationTest
   }
 
   private async Task<AwardedMiles> GrantedMilesThatWillExpireInDays(int miles, int expirationInDays, Instant when,
-    Client client, Transit transit)
+    Client client)
   {
     MilesWillExpireInDays(expirationInDays);
     DefaultMilesBonusIs(miles);
-    return await MilesRegisteredAt(when, client, transit);
+    return await MilesRegisteredAt(when, client);
   }
 
   private async Task<AwardedMiles> GrantedNonExpiringMiles(int miles, Instant when, Client client)
@@ -218,10 +206,10 @@ public class RemovingAwardMilesIntegrationTest
     actual.First().Should().Be(milesAfterReduction);
   }
 
-  private async Task<AwardedMiles> MilesRegisteredAt(Instant when, Client client, Transit transit)
+  private async Task<AwardedMiles> MilesRegisteredAt(Instant when, Client client)
   {
     Clock.GetCurrentInstant().Returns(when);
-    return await AwardsService.RegisterMiles(client.Id, transit.Id);
+    return await AwardsService.RegisterMiles(client.Id, TransitId);
   }
 
   private async Task<Client> ClientWithAnActiveMilesProgram(Client.Types type)

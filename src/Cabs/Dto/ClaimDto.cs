@@ -35,7 +35,7 @@ public class ClaimDto
   public ClaimDto(Claim claim) : this(
     claim.Id,
     claim.Owner.Id,
-    claim.Transit.Id,
+    claim.TransitId,
     claim.Reason,
     claim.IncidentDescription,
     claim.CreationDate,

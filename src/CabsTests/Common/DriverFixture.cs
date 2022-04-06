@@ -31,7 +31,7 @@ public class DriverFixture
 
   public async Task<DriverFee> DriverHasFee(Driver driver, DriverFee.FeeTypes feeType, int amount, int min)
   {
-    var driverFee = await _feeRepository.FindByDriver(driver);
+    var driverFee = await _feeRepository.FindByDriverId(driver.Id);
     if (driverFee == null)
     {
       driverFee = new DriverFee();

@@ -1,6 +1,5 @@
 ﻿using LegacyFighter.Cabs.Config;
 using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.MoneyValue;
 using LegacyFighter.Cabs.Service;
 using LegacyFighter.CabsTests.Common;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +9,7 @@ namespace LegacyFighter.CabsTests.Integration;
 
 public class ExpiringMilesIntegrationTest
 {
+  private const long TransitId = 1L;
   private static readonly Instant _1989_12_12 = new LocalDateTime(1989, 12, 12, 12, 12).InUtc().ToInstant();
   private static readonly Instant _1989_12_13 = _1989_12_12.Plus(Duration.FromDays(1));
   private static readonly Instant _1989_12_14 = _1989_12_13.Plus(Duration.FromDays(1));
@@ -47,19 +47,17 @@ public class ExpiringMilesIntegrationTest
     DefaultMilesExpirationInDaysIs(365);
     //and
     await Fixtures.ActiveAwardsAccount(client);
-    //and
-    var transit = await Fixtures.ATransit(new Money(80));
 
     //when
-    await RegisterMilesAt(transit, client, _1989_12_12);
+    await RegisterMilesAt(client, _1989_12_12);
     //then
     Assert.AreEqual(10, await CalculateBalanceAt(client, _1989_12_12));
     //when
-    await RegisterMilesAt(transit, client, _1989_12_13);
+    await RegisterMilesAt(client, _1989_12_13);
     //then
     Assert.AreEqual(20, await CalculateBalanceAt(client, _1989_12_12));
     //when
-    await RegisterMilesAt(transit, client, _1989_12_14);
+    await RegisterMilesAt(client, _1989_12_14);
     //then
     Assert.AreEqual(30, await CalculateBalanceAt(client, _1989_12_14));
     Assert.AreEqual(30, await CalculateBalanceAt(client, _1989_12_12.Plus(Duration.FromDays(300))));
@@ -78,10 +76,10 @@ public class ExpiringMilesIntegrationTest
     AppProperties.MilesExpirationInDays.Returns(days);
   }
 
-  private async Task RegisterMilesAt(Transit transit, Client client, Instant when)
+  private async Task RegisterMilesAt(Client client, Instant when)
   {
     Clock.GetCurrentInstant().Returns(when);
-    await AwardsService.RegisterMiles(client.Id, transit.Id);
+    await AwardsService.RegisterMiles(client.Id, TransitId);
   }
 
   private async Task<int?> CalculateBalanceAt(Client client, Instant when)

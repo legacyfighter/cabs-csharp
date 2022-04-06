@@ -69,6 +69,20 @@ public class TransitDetailsFacade : ITransitDetailsFacade
     details.SetCompletedAt(when, price, driverFee);
   }
 
+  public async Task<List<TransitDetailsDto>> FindByClient(long? clientId) 
+  {
+    return (await _transitDetailsRepository.FindByClientId(clientId))
+      .Select(td => new TransitDetailsDto(td))
+      .ToList();
+  }
+
+  public async Task<List<TransitDetailsDto>> FindByDriver(long? driverId, Instant from, Instant to) 
+  {
+    return (await _transitDetailsRepository.FindAllByDriverAndDateTimeBetween(driverId, from, to))
+      .Select(td => new TransitDetailsDto(td))
+      .ToList();
+  }
+
   private Task<TransitDetails> Load(long? transitId)
   {
     return _transitDetailsRepository.FindByTransitId(transitId);

@@ -476,8 +476,7 @@ public class TransitService : ITransitService
     var distance = Distance.OfKm((float) _distanceCalculator.CalculateByMap(geoFrom[0], geoFrom[1], geoTo[0], geoTo[1]));
     var now = _clock.GetCurrentInstant();
     transit.CompleteTransitAt(now, destinationAddress, distance);
-    var driverFee = await _driverFeeService.CalculateDriverFee(transitId);
-    transit.DriversFee = driverFee;
+    var driverFee = await _driverFeeService.CalculateDriverFee(transit.Price, driverId);
     driver.Occupied = false;
     await _driverRepository.Save(driver);
     await _awardsService.RegisterMiles(transitDetails.Client.Id, transitId);

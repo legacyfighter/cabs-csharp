@@ -98,7 +98,7 @@ public class SqLiteDbContext : DbContext
       builder.HasOne(m => m.Client);
       builder.Property("MilesJson").IsRequired();
       builder.Ignore(m => m.Miles);
-      builder.HasOne(m => m.Transit);
+      builder.Property(m => m.TransitId);
       builder.HasOne<AwardsAccount>("Account").WithMany("Miles");
       builder.Property(x => x.Date).HasConversion(instantConverter).IsRequired();
       builder.Ignore(x => x.ExpirationDate);
@@ -130,7 +130,7 @@ public class SqLiteDbContext : DbContext
     {
       builder.MapBaseEntityProperties();
       builder.HasOne(c => c.Owner).WithMany(c => c.Claims);
-      builder.HasOne(c => c.Transit);
+      builder.Property(c => c.TransitId);
       builder.Property(x => x.ChangeDate).HasConversion(instantConverter);
       builder.Property(x => x.CompletionDate).HasConversion(instantConverter);
       builder.Property(x => x.CreationDate).HasConversion(instantConverter).IsRequired();
@@ -138,6 +138,10 @@ public class SqLiteDbContext : DbContext
       builder.Property(x => x.CompletionMode).HasConversion<string>();
       builder.Property(x => x.Status).HasConversion<string>().IsRequired();
       builder.Property(x => x.ClaimNo).IsRequired();
+      builder.OwnsOne(x => x.TransitPrice, navigation =>
+      {
+        navigation.Property(m => m.IntValue).HasColumnName(nameof(Claim.TransitPrice)).IsRequired();
+      });
     });
     modelBuilder.Entity<ClaimAttachment>(builder =>
     {
@@ -191,7 +195,6 @@ public class SqLiteDbContext : DbContext
         builder.Property(dl => dl.ValueAsString).HasColumnName(nameof(Driver.DriverLicense)).IsRequired();
       });
       e.HasMany(d => d.Attributes).WithOne(d => d.Driver);
-      e.HasMany(d => d.Transits).WithOne(t => t.Driver);
       e.HasOne(d => d.Fee).WithOne(f => f.Driver).HasForeignKey<DriverFee>(x => x.Id);
     });
     modelBuilder.Entity<DriverAttribute>(builder =>
@@ -239,13 +242,9 @@ public class SqLiteDbContext : DbContext
       builder.Property("Km");
       builder.Property("PickupAddressChangeCounter");
       builder.Property(x => x.Published).HasConversion(instantConverter);
-      builder.HasOne(t => t.Driver).WithMany(d => d.Transits);
+      builder.HasOne(t => t.Driver);
       builder.HasMany(t => t.ProposedDrivers).WithMany(d => d.ProposingTransits);
       builder.HasMany("DriversRejections").WithMany("RejectingTransits");
-      builder.OwnsOne(t => t.DriversFee, navigation =>
-      {
-        navigation.Property(m => m.IntValue).HasColumnName(nameof(Transit.DriversFee));
-      });
       builder.OwnsOne(t => t.EstimatedPrice, navigation =>
       {
         navigation.Property(m => m.IntValue).HasColumnName(nameof(Transit.EstimatedPrice));

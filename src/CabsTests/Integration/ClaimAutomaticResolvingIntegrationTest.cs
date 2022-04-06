@@ -57,13 +57,13 @@ public class ClaimAutomaticResolvingIntegrationTest
     var client = await Fixtures.AClient(Client.Types.Vip);
     //and
     var transit = await ATransit(pickup, client, driver, 39);
+    _app.EndReuseRequestScope();
     //and
     var claim = await Fixtures.CreateClaim(client, transit);
     //and
     claim = await ClaimService.TryToResolveAutomatically(claim.Id);
     //and
     var claim2 = await Fixtures.CreateClaim(client, transit);
-    _app.EndReuseRequestScope();
 
     //when
     claim2 = await ClaimService.TryToResolveAutomatically(claim2.Id);

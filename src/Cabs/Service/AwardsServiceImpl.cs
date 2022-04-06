@@ -78,11 +78,6 @@ public class AwardsServiceImpl : IAwardsService
   public async Task<AwardedMiles> RegisterMiles(long? clientId, long? transitId)
   {
     var account = await _accountRepository.FindByClient(await _clientRepository.Find(clientId));
-    var transit = await _transitRepository.Find(transitId);
-    if (transit == null)
-    {
-      throw new ArgumentException("transit does not exists, id = " + transitId);
-    }
 
     if (account == null || !account.Active)
     {
@@ -91,7 +86,7 @@ public class AwardsServiceImpl : IAwardsService
     else
     {
       var expireAt = _clock.GetCurrentInstant().Plus(Duration.FromDays(_appProperties.MilesExpirationInDays));
-      var miles = account.AddExpiringMiles(_appProperties.DefaultMilesBonus, expireAt, transit, _clock.GetCurrentInstant());
+      var miles = account.AddExpiringMiles(_appProperties.DefaultMilesBonus, expireAt, transitId, _clock.GetCurrentInstant());
       await _accountRepository.Save(account);
       return miles;
     }

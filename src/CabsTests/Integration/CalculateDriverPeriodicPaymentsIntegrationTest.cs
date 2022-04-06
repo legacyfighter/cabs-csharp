@@ -31,12 +31,12 @@ public class CalculateDriverPeriodicPaymentsIntegrationTest
     //given
     var driver = await Fixtures.ADriver();
     //and
-    await Fixtures.ATransit(driver, 60, new LocalDateTime(2000, 10, 1, 6, 30));
-    await Fixtures.ATransit(driver, 70, new LocalDateTime(2000, 10, 10, 2, 30));
-    await Fixtures.ATransit(driver, 80, new LocalDateTime(2000, 10, 30, 6, 30));
-    await Fixtures.ATransit(driver, 60, new LocalDateTime(2000, 11, 10, 1, 30));
-    await Fixtures.ATransit(driver, 30, new LocalDateTime(2000, 11, 10, 1, 30));
-    await Fixtures.ATransit(driver, 15, new LocalDateTime(2000, 12, 10, 2, 30));
+    await Fixtures.TransitDetails(driver, 60, new LocalDateTime(2000, 10, 1, 6, 30));
+    await Fixtures.TransitDetails(driver, 70, new LocalDateTime(2000, 10, 10, 2, 30));
+    await Fixtures.TransitDetails(driver, 80, new LocalDateTime(2000, 10, 30, 6, 30));
+    await Fixtures.TransitDetails(driver, 60, new LocalDateTime(2000, 11, 10, 1, 30));
+    await Fixtures.TransitDetails(driver, 30, new LocalDateTime(2000, 11, 10, 1, 30));
+    await Fixtures.TransitDetails(driver, 15, new LocalDateTime(2000, 12, 10, 2, 30));
     //and
     await Fixtures.DriverHasFee(driver, DriverFee.FeeTypes.Flat, 10);
     _app.EndReuseRequestScope();
@@ -64,12 +64,12 @@ public class CalculateDriverPeriodicPaymentsIntegrationTest
     //given
     var driver = await Fixtures.ADriver();
     //and
-    await Fixtures.ATransit(driver, 60, new LocalDateTime(2000, 10, 1, 6, 30));
-    await Fixtures.ATransit(driver, 70, new LocalDateTime(2000, 10, 10, 2, 30));
-    await Fixtures.ATransit(driver, 80, new LocalDateTime(2000, 10, 30, 6, 30));
-    await Fixtures.ATransit(driver, 60, new LocalDateTime(2000, 11, 10, 1, 30));
-    await Fixtures.ATransit(driver, 30, new LocalDateTime(2000, 11, 10, 1, 30));
-    await Fixtures.ATransit(driver, 15, new LocalDateTime(2000, 12, 10, 2, 30));
+    await Fixtures.TransitDetails(driver, 60, new LocalDateTime(2000, 10, 1, 6, 30));
+    await Fixtures.TransitDetails(driver, 70, new LocalDateTime(2000, 10, 10, 2, 30));
+    await Fixtures.TransitDetails(driver, 80, new LocalDateTime(2000, 10, 30, 6, 30));
+    await Fixtures.TransitDetails(driver, 60, new LocalDateTime(2000, 11, 10, 1, 30));
+    await Fixtures.TransitDetails(driver, 30, new LocalDateTime(2000, 11, 10, 1, 30));
+    await Fixtures.TransitDetails(driver, 15, new LocalDateTime(2000, 12, 10, 2, 30));
     //and
     await Fixtures.DriverHasFee(driver, DriverFee.FeeTypes.Flat, 10);
     _app.EndReuseRequestScope();

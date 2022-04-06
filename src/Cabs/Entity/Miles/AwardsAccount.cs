@@ -28,9 +28,9 @@ public class AwardsAccount : BaseEntity
 
   protected virtual ISet<AwardedMiles> Miles { get; set; } = new HashSet<AwardedMiles>();
 
-  public AwardedMiles AddExpiringMiles(int amount, Instant expireAt, Transit transit, Instant when) 
+  public AwardedMiles AddExpiringMiles(int amount, Instant expireAt, long? transitId, Instant when) 
   {
-    var expiringMiles = new AwardedMiles(this, transit, Client, when, ConstantUntil.Value(amount, expireAt));
+    var expiringMiles = new AwardedMiles(this, transitId, Client, when, ConstantUntil.Value(amount, expireAt));
     Miles.Add(expiringMiles);
     Transactions++;
     return expiringMiles;

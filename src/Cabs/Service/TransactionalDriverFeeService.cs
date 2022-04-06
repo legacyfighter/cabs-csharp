@@ -14,10 +14,10 @@ public class TransactionalDriverFeeService : IDriverFeeService
     _transactions = transactions;
   }
 
-  public async Task<Money> CalculateDriverFee(long? transitId)
+  public async Task<Money> CalculateDriverFee(Money transitPrice, long? driverId)
   {
     await using var tx = await _transactions.BeginTransaction();
-    var driverFee = await _inner.CalculateDriverFee(transitId);
+    var driverFee = await _inner.CalculateDriverFee(transitPrice, driverId);
     await tx.Commit();
     return driverFee;
   }

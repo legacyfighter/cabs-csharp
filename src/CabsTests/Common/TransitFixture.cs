@@ -5,7 +5,6 @@ using LegacyFighter.Cabs.MoneyValue;
 using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.TransitDetail;
 using NodaTime;
-using NodaTime.Extensions;
 
 namespace LegacyFighter.CabsTests.Common;
 
@@ -13,32 +12,38 @@ public class TransitFixture
 {
   private readonly ITransitRepository _transitRepository;
   private readonly ITransitDetailsFacade _transitDetailsFacade;
+  private readonly StubbedTransitPrice _stubbedTransitPrice;
 
   public TransitFixture(
     ITransitRepository transitRepository,
-    ITransitDetailsFacade transitDetailsFacade)
+    ITransitDetailsFacade transitDetailsFacade,
+    StubbedTransitPrice stubbedTransitPrice)
   {
     _transitRepository = transitRepository;
     _transitDetailsFacade = transitDetailsFacade;
+    _stubbedTransitPrice = stubbedTransitPrice;
   }
 
-  public async Task<Transit> ATransit(Driver driver, int price, LocalDateTime when, Client? client)
+  public async Task<Transit> TransitDetails(Driver driver, int price, LocalDateTime when, Client client, Address from,
+    Address to)
   {
-    var dateTime = when.InUtc().ToInstant();
-    var transit = new Transit(dateTime, Distance.Zero)
-    {
-      Price = new Money(price)
-    };
-    transit.ProposeTo(driver);
-    transit.AcceptBy(driver, SystemClock.Instance.GetCurrentInstant());
-    transit = await _transitRepository.Save(transit);
-    await _transitDetailsFacade.TransitRequested(dateTime, transit.Id, null, null, Distance.Zero, client, null, new Money(price), transit.Tariff);
+    var transit = await _transitRepository.Save(new Transit());
+    await _stubbedTransitPrice.Stub(transit.Id, new Money(price));
+    var transitId = transit.Id;
+    await _transitDetailsFacade.TransitRequested(
+      when.InUtc().ToInstant(),
+      transitId,
+      from,
+      to,
+      Distance.Zero,
+      client,
+      CarType.CarClasses.Van,
+      new Money(price),
+      Tariff.OfTime(when));
+    await _transitDetailsFacade.TransitAccepted(transitId, when.InUtc().ToInstant(), driver.Id);
+    await _transitDetailsFacade.TransitStarted(transitId, when.InUtc().ToInstant());
+    await _transitDetailsFacade.TransitCompleted(transitId, when.InUtc().ToInstant(), new Money(price), null);
     return transit;
-  }
-
-  public async Task<Transit> ATransit(Driver driver, int price)
-  {
-    return await ATransit(driver, price, SystemClock.Instance.InBclSystemDefaultZone().GetCurrentLocalDateTime(), null);
   }
 
   public TransitDto ATransitDto(Client client, AddressDto from, AddressDto to)

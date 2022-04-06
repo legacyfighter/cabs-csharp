@@ -76,4 +76,14 @@ public class TransactionalTransitDetailsFacade : ITransitDetailsFacade
     await _inner.TransitCompleted(transitId, when, price, driverFee);
     await tx.Commit();
   }
+
+  public async Task<List<TransitDetailsDto>> FindByClient(long? clientId)
+  {
+    return await _inner.FindByClient(clientId);
+  }
+
+  public async Task<List<TransitDetailsDto>> FindByDriver(long? driverId, Instant from, Instant to)
+  {
+    return await _inner.FindByDriver(driverId, from, to);
+  }
 }

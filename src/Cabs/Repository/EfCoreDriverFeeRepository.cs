@@ -5,7 +5,7 @@ namespace LegacyFighter.Cabs.Repository;
 
 public interface IDriverFeeRepository
 {
-  Task<DriverFee> FindByDriver(Driver driver);
+  Task<DriverFee> FindByDriverId(long? driverId);
   Task<DriverFee> Save(DriverFee driverFee);
 }
 
@@ -18,9 +18,9 @@ internal class EfCoreDriverFeeRepository : IDriverFeeRepository
     _context = context;
   }
 
-  public async Task<DriverFee> FindByDriver(Driver driver)
+  public async Task<DriverFee> FindByDriverId(long? driverId)
   {
-    return await _context.DriverFees.FirstOrDefaultAsync(f => f.Driver == driver);
+    return await _context.DriverFees.FirstOrDefaultAsync(f => f.Driver.Id == driverId);
   }
 
   public async Task<DriverFee> Save(DriverFee driverFee)

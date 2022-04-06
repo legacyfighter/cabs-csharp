@@ -287,9 +287,6 @@ public class Transit : BaseEntity
     return !Equals(left, right);
   }
 
-  public Money DriversFee { get; set; }
-
   public Money EstimatedPrice { get; private set; }
-
   public Instant? Published { get; private set; }
 }

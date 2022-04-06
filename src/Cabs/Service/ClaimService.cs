@@ -2,6 +2,7 @@ using LegacyFighter.Cabs.Config;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Repository;
+using LegacyFighter.Cabs.TransitDetail;
 using NodaTime;
 
 namespace LegacyFighter.Cabs.Service;
@@ -10,7 +11,7 @@ public class ClaimService : IClaimService
 {
   private readonly IClock _clock;
   private readonly IClientRepository _clientRepository;
-  private readonly ITransitRepository _transitRepository;
+  private readonly ITransitDetailsFacade _transitDetailsFacade;
   private readonly IClaimRepository _claimRepository;
   private readonly ClaimNumberGenerator _claimNumberGenerator;
   private readonly IAppProperties _appProperties;
@@ -21,7 +22,7 @@ public class ClaimService : IClaimService
 
   public ClaimService(IClock clock,
     IClientRepository clientRepository,
-    ITransitRepository transitRepository,
+    ITransitDetailsFacade transitDetailsFacade,
     IClaimRepository claimRepository,
     ClaimNumberGenerator claimNumberGenerator,
     IAppProperties appProperties,
@@ -32,7 +33,7 @@ public class ClaimService : IClaimService
   {
     _clock = clock;
     _clientRepository = clientRepository;
-    _transitRepository = transitRepository;
+    _transitDetailsFacade = transitDetailsFacade;
     _claimRepository = claimRepository;
     _claimNumberGenerator = claimNumberGenerator;
     _appProperties = appProperties;
@@ -68,7 +69,7 @@ public class ClaimService : IClaimService
   public async Task<Claim> Update(ClaimDto claimDto, Claim claim)
   {
     var client = await _clientRepository.Find(claimDto.ClientId);
-    var transit = await _transitRepository.Find(claimDto.TransitId);
+    var transit = await _transitDetailsFacade.Find(claimDto.TransitId);
     if (client == null)
     {
       throw new InvalidOperationException("Client does not exists");
@@ -89,7 +90,8 @@ public class ClaimService : IClaimService
     }
 
     claim.Owner = client;
-    claim.Transit = transit;
+    claim.TransitId = transit.TransitId;
+    claim.TransitPrice = transit.Price;
     claim.CreationDate = _clock.GetCurrentInstant();
     claim.Reason = claimDto.Reason;
     claim.IncidentDescription = claimDto.IncidentDescription;
@@ -108,7 +110,7 @@ public class ClaimService : IClaimService
     var claim = await Find(id);
 
     var claimsResolver = await FindOrCreateResolver(claim.Owner);
-    var transitsDoneByClient = await _transitRepository.FindByClient(claim.Owner);
+    var transitsDoneByClient = await _transitDetailsFacade.FindByClient(claim.Owner.Id);
     var result = claimsResolver.Resolve(claim, _appProperties.AutomaticRefundForVipThreshold,
       transitsDoneByClient.Count, _appProperties.NoOfTransitsForClaimAutomaticRefund);
 
@@ -129,7 +131,8 @@ public class ClaimService : IClaimService
 
     if (result.WhoToAsk == ClaimsResolver.WhoToAsk.AskDriver)
     {
-      _driverNotificationService.AskDriverForDetailsAboutClaim(claim.ClaimNo, claim.Transit.Driver.Id);
+      var transitDetailsDto = await _transitDetailsFacade.Find(claim.TransitId);
+      _driverNotificationService.AskDriverForDetailsAboutClaim(claim.ClaimNo, transitDetailsDto.DriverId);
     }
 
     if (result.WhoToAsk == ClaimsResolver.WhoToAsk.AskClient)

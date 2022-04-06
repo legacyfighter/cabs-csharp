@@ -178,7 +178,8 @@ public class ClaimAutomaticResolvingTest
   {
     var claim = new Claim
     {
-      Transit = transit
+      TransitId = transit.Id,
+      TransitPrice = transit.Price
     };
     return claim;
   }
@@ -187,7 +188,8 @@ public class ClaimAutomaticResolvingTest
   {
     var claim = new Claim
     {
-      Transit = transit,
+      TransitId = transit.Id,
+      TransitPrice = transit.Price,
       Owner = client
     };
     return claim;

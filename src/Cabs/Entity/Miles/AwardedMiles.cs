@@ -9,10 +9,10 @@ public class AwardedMiles : BaseEntity
   {
   }
 
-  public AwardedMiles(AwardsAccount awardsAccount, Transit transit, Client client, Instant when, IMiles constantUntil) 
+  public AwardedMiles(AwardsAccount awardsAccount, long? transitId, Client client, Instant when, IMiles constantUntil) 
   {
     Account = awardsAccount;
-    Transit = transit;
+    TransitId = transitId;
     Client = client;
     Date = when;
     Miles = constantUntil;
@@ -45,7 +45,7 @@ public class AwardedMiles : BaseEntity
 
   public bool CantExpire => ExpirationDate.Value.ToUnixTimeTicks() == Instant.MaxValue.ToUnixTimeTicks();
 
-  public virtual Transit Transit { get; }
+  public long? TransitId { get; }
 
   protected virtual AwardsAccount Account { get; set; }
 

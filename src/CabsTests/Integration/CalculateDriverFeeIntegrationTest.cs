@@ -30,13 +30,11 @@ public class CalculateDriverFeeIntegrationTest
     //given
     var driver = await Fixtures.ADriver();
     //and
-    var transit = await Fixtures.ATransit(driver, 60);
-    //and
     await Fixtures.DriverHasFee(driver, DriverFee.FeeTypes.Flat, 10);
     _app.EndReuseRequestScope();
 
     //when
-    var fee = await DriverFeeService.CalculateDriverFee(transit.Id);
+    var fee = await DriverFeeService.CalculateDriverFee(new Money(60), driver.Id);
 
     //then
     Assert.AreEqual(new Money(50), fee);
@@ -49,13 +47,11 @@ public class CalculateDriverFeeIntegrationTest
     //given
     var driver = await Fixtures.ADriver();
     //and
-    var transit = await Fixtures.ATransit(driver, 80);
-    //and
     await Fixtures.DriverHasFee(driver, DriverFee.FeeTypes.Percentage, 50);
     _app.EndReuseRequestScope();
 
     //when
-    var fee = await DriverFeeService.CalculateDriverFee(transit.Id);
+    var fee = await DriverFeeService.CalculateDriverFee(new Money(80), driver.Id);
 
     //then
     Assert.AreEqual(new Money(40), fee);
@@ -68,13 +64,11 @@ public class CalculateDriverFeeIntegrationTest
     //given
     var driver = await Fixtures.ADriver();
     //and
-    var transit = await Fixtures.ATransit(driver, 10);
-    //and
     await Fixtures.DriverHasFee(driver, DriverFee.FeeTypes.Percentage, 7, 5);
     _app.EndReuseRequestScope();
 
     //when
-    var fee = await DriverFeeService.CalculateDriverFee(transit.Id);
+    var fee = await DriverFeeService.CalculateDriverFee(new Money(10), driver.Id);
 
     //then
     Assert.AreEqual(new Money(5), fee);

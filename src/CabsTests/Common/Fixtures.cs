@@ -1,7 +1,6 @@
 using System.Linq;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.MoneyValue;
 using LegacyFighter.Cabs.Service;
 using NodaTime;
 using NodaTime.Extensions;
@@ -54,25 +53,28 @@ public class Fixtures
     return await _clientFixture.AClient(type);
   }
 
-  public async Task<Transit> ATransit(Driver driver, int price, LocalDateTime when, Client? client)
+  public async Task<Transit> TransitDetails(Driver driver, int price, LocalDateTime when, Client client) 
   {
-    return await _transitFixture.ATransit(driver, price, when, client);
+    return await _transitFixture.TransitDetails(
+      driver,
+      price,
+      when,
+      client,
+      await AnAddress(),
+      await AnAddress());
   }
 
-  public async Task<Transit> ATransit(Money price) 
+  public async Task<Transit> TransitDetails(Driver driver, int price, LocalDateTime when) 
   {
-    return await _transitFixture.ATransit(await _driverFixture.ADriver(), price.IntValue);
+    return await _transitFixture.TransitDetails(
+      driver,
+      price,
+      when,
+      await AClient(),
+      await AnAddress(),
+      await AnAddress());
   }
 
-  public async Task<Transit> ATransit(Driver driver, int price, LocalDateTime when)
-  {
-    return await _transitFixture.ATransit(driver, price, when, null);
-  }
-
-  public async Task<Transit> ATransit(Driver driver, int price)
-  {
-    return await _transitFixture.ATransit(driver, price, SystemClock.Instance.InBclSystemDefaultZone().GetCurrentLocalDateTime(), null);
-  }
 
   public async Task<TransitDto> ATransitDto(AddressDto from, AddressDto to)
   {
@@ -189,7 +191,7 @@ public class Fixtures
       .Select(async i =>
       {
         var driver = await _driverFixture.ADriver();
-        var transit = await ATransit(driver, 20, SystemClock.Instance.InBclSystemDefaultZone().GetCurrentLocalDateTime(), client);
+        var transit = await TransitDetails(driver, 20, SystemClock.Instance.InBclSystemDefaultZone().GetCurrentLocalDateTime(), client);
         await CreateAndResolveClaim(client, transit);
       }));
   }

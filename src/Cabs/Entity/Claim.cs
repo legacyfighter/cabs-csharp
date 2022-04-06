@@ -1,4 +1,5 @@
 using LegacyFighter.Cabs.Common;
+using LegacyFighter.Cabs.MoneyValue;
 using NodaTime;
 
 namespace LegacyFighter.Cabs.Entity;
@@ -29,7 +30,7 @@ public class Claim : BaseEntity
 
   public string ClaimNo { get; set; }
   public virtual Client Owner { get; set; }
-  public virtual Transit Transit { get; set; }
+  public long? TransitId { get; set; }
   public Instant CreationDate { get; set; }
   public Instant? CompletionDate { get; set; }
   public string IncidentDescription { get; set; }
@@ -37,6 +38,7 @@ public class Claim : BaseEntity
   public Statuses? Status { get; set; }
   public Instant? ChangeDate { get; set; }
   public string Reason { get; set; }
+  public Money TransitPrice { get; set; }
 
   public void Escalate() 
   {

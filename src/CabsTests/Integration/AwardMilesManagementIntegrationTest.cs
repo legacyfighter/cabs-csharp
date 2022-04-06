@@ -1,6 +1,5 @@
 ﻿using System;
 using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.MoneyValue;
 using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.Service;
 using LegacyFighter.CabsTests.Common;
@@ -11,6 +10,7 @@ namespace LegacyFighter.CabsTests.Integration;
 
 public class AwardMilesManagementIntegrationTest
 {
+  public const long TransitId = 1L;
   private static readonly Instant Now = new LocalDateTime(1989, 12, 12, 12, 12).InUtc().ToInstant();
   private CabsApp _app = default!;
   private Fixtures Fixtures => _app.Fixtures;
@@ -89,11 +89,9 @@ public class AwardMilesManagementIntegrationTest
     var client = await Fixtures.AClient();
     //and
     await Fixtures.ActiveAwardsAccount(client);
-    //and
-    var transit = await Fixtures.ATransit(new Money(80));
 
     //when
-    await AwardsService.RegisterMiles(client.Id, transit.Id);
+    await AwardsService.RegisterMiles(client.Id, TransitId);
 
     //then
     var account = await AwardsService.FindBy(client.Id);
@@ -132,13 +130,11 @@ public class AwardMilesManagementIntegrationTest
     var client = await Fixtures.AClient();
     //and
     await Fixtures.ActiveAwardsAccount(client);
-    //and
-    var transit = await Fixtures.ATransit(new Money(80));
 
     //when
     await AwardsService.RegisterNonExpiringMiles(client.Id, 20);
-    await AwardsService.RegisterMiles(client.Id, transit.Id);
-    await AwardsService.RegisterMiles(client.Id, transit.Id);
+    await AwardsService.RegisterMiles(client.Id, TransitId);
+    await AwardsService.RegisterMiles(client.Id, TransitId);
 
     //then
     var account = await AwardsService.FindBy(client.Id);
@@ -237,11 +233,9 @@ public class AwardMilesManagementIntegrationTest
     //and
     await Fixtures.ActiveAwardsAccount(client);
     //and
-    var transit = await Fixtures.ATransit(new Money(80));
-    //and
-    await AwardsService.RegisterMiles(client.Id, transit.Id);
-    await AwardsService.RegisterMiles(client.Id, transit.Id);
-    await AwardsService.RegisterMiles(client.Id, transit.Id);
+    await AwardsService.RegisterMiles(client.Id, TransitId);
+    await AwardsService.RegisterMiles(client.Id, TransitId);
+    await AwardsService.RegisterMiles(client.Id, TransitId);
 
     //when
     await AwardsService.RemoveMiles(client.Id, 20);
@@ -258,13 +252,11 @@ public class AwardMilesManagementIntegrationTest
     var client = await Fixtures.AClient(Client.Types.Normal);
     //and
     await Fixtures.ActiveAwardsAccount(client);
-    //and
-    var transit = await Fixtures.ATransit(new Money(80));
 
     //when
-    await AwardsService.RegisterMiles(client.Id, transit.Id);
-    await AwardsService.RegisterMiles(client.Id, transit.Id);
-    await AwardsService.RegisterMiles(client.Id, transit.Id);
+    await AwardsService.RegisterMiles(client.Id, TransitId);
+    await AwardsService.RegisterMiles(client.Id, TransitId);
+    await AwardsService.RegisterMiles(client.Id, TransitId);
 
     //then
     await AwardsService.Awaiting(s => s.RemoveMiles(client.Id, 40))
@@ -279,12 +271,10 @@ public class AwardMilesManagementIntegrationTest
     //and
     await AwardsService.RegisterToProgram(client.Id);
     //and
-    var transit = await Fixtures.ATransit(new Money(80));
-    //and
     var currentMiles = await AwardsService.CalculateBalance(client.Id);
 
     //when
-    await AwardsService.RegisterMiles(client.Id, transit.Id);
+    await AwardsService.RegisterMiles(client.Id, TransitId);
 
     //then
     Assert.AreEqual(currentMiles, await AwardsService.CalculateBalance(client.Id));
