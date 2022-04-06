@@ -267,6 +267,6 @@ public class AnalyzeNearbyTransitsIntegrationTest : TestWithGraphDb
 
       var expectedHashes = addresses.Select(a => a.Hash).ToList();
       analyzedAddressesDto.Addresses.Select(a => a.Hash).ToList().Should().Equal(expectedHashes);
-    })).Should().NotThrowAfterAsync(5.Seconds(), 1.Seconds());
+    })).Should().NotThrowAfterAsync(10.Seconds(), 1.Seconds());
   }
 }

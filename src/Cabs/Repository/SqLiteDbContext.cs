@@ -10,6 +10,7 @@ using LegacyFighter.Cabs.Entity.Miles;
 using LegacyFighter.Cabs.Parties.Model.Parties;
 using LegacyFighter.Cabs.Repair.Legacy.Parts;
 using LegacyFighter.Cabs.Repair.Legacy.User;
+using LegacyFighter.Cabs.TransitDetail;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -41,6 +42,7 @@ public class SqLiteDbContext : DbContext
   public DbSet<DriverSession> DriverSessions { get; set; }
   public DbSet<Invoice> Invoices { get; set; }
   public DbSet<Transit> Transits { get; set; }
+  public DbSet<TransitDetails> TransitsDetails { get; set; }
   public DbSet<ClaimsResolver> ClaimsResolvers { get; set; }
   public DbSet<TravelledDistance> TravelledDistances { get; set; }
   public DbSet<Party> Parties { get; set; }
@@ -236,15 +238,7 @@ public class SqLiteDbContext : DbContext
       builder.Ignore(x => x.KmDistance);
       builder.Property("Km");
       builder.Property("PickupAddressChangeCounter");
-      builder.Property(x => x.AcceptedAt).HasConversion(instantConverter);
-      builder.Property(x => x.CompleteAt).HasConversion(instantConverter);
-      builder.Property(x => x.DateTime).HasConversion(instantConverter);
-      builder.Property(x => x.Date).HasConversion(instantConverter);
       builder.Property(x => x.Published).HasConversion(instantConverter);
-      builder.Property(x => x.Started).HasConversion(instantConverter);
-      builder.Property(x => x.CarType).HasConversion<string>();
-      builder.HasOne(t => t.To);
-      builder.HasOne(t => t.Client);
       builder.HasOne(t => t.Driver).WithMany(d => d.Transits);
       builder.HasMany(t => t.ProposedDrivers).WithMany(d => d.ProposingTransits);
       builder.HasMany("DriversRejections").WithMany("RejectingTransits");
@@ -260,12 +254,43 @@ public class SqLiteDbContext : DbContext
       {
         navigation.Property(m => m.IntValue).HasColumnName(nameof(Transit.Price));
       });
-      builder.OwnsOne(t => t.Tariff, navigation =>
+      builder.OwnsOne(t => t.Tariff, MapTariffProperties);
+    });
+    modelBuilder.Entity<TransitDetails>(builder =>
+    {
+      builder.MapBaseEntityProperties();
+      builder.Property(d => d.DateTime).HasConversion(instantConverter);
+      builder.Property(d => d.CompleteAt).HasConversion(instantConverter);
+      builder.HasOne(d => d.Client);
+      builder.Navigation(d => d.Client).AutoInclude();
+      builder.Property(d => d.DriverId);
+      builder.Property(d => d.CarType).HasConversion<string>();
+      builder.HasOne(d => d.From);
+      builder.Navigation(d => d.From).AutoInclude();
+      builder.HasOne(d => d.To);
+      builder.Navigation(d => d.To).AutoInclude();
+      builder.Property(d => d.Started).HasConversion(instantConverter);
+      builder.Property(d => d.AcceptedAt).HasConversion(instantConverter);
+      builder.OwnsOne(d => d.DriversFee, navigationBuilder =>
       {
-        navigation.Property(m => m.BaseFee).HasColumnName(nameof(Tariff.BaseFee));
-        navigation.Property(m => m.KmRate).HasColumnName(nameof(Tariff.KmRate));
-        navigation.Property(m => m.Name).HasColumnName(nameof(Tariff.Name));
+        navigationBuilder.Property(m => m.IntValue).HasColumnName(nameof(TransitDetails.DriversFee));
       });
+      builder.OwnsOne(d => d.Price, navigationBuilder =>
+      {
+        navigationBuilder.Property(m => m.IntValue).HasColumnName(nameof(TransitDetails.Price));
+      });
+      builder.OwnsOne(d => d.EstimatedPrice, navigationBuilder =>
+      {
+        navigationBuilder.Property(m => m.IntValue).HasColumnName(nameof(TransitDetails.EstimatedPrice));
+      });
+      builder.Property(d => d.Status);
+      builder.Property(d => d.PublishedAt).HasConversion(instantConverter);
+      builder.Property(d => d.Distance).HasColumnName("Km")
+        .HasConversion(
+        distance => distance.ToKmInDouble(),
+        value => Distance.OfKm(value));
+      builder.Property(d => d.TransitId);
+      builder.OwnsOne<Tariff>("Tariff", MapTariffProperties);
     });
     modelBuilder.Entity<ClaimsResolver>(builder =>
     {
@@ -284,14 +309,21 @@ public class SqLiteDbContext : DbContext
         navigation.Property(s => s.Beginning).HasColumnName("Beginning").HasConversion(instantConverter);
         navigation.Property(s => s.End).HasColumnName("End").HasConversion(instantConverter);
       });
-      builder.OwnsOne<Distance>("Distance", navigation =>
-      {
-        navigation.Property("_km").HasColumnName("Km").IsRequired();
-      });
+      builder.Property<Distance>("Distance").HasColumnName("Km")
+        .HasConversion(
+          distance => distance.ToKmInDouble(),
+          value => Distance.OfKm(value)).IsRequired();
     });
 
     MapRepairEntities(modelBuilder);
     MapContractEntities(modelBuilder);
+  }
+
+  private static void MapTariffProperties<T>(OwnedNavigationBuilder<T, Tariff> navigation) where T : class
+  {
+    navigation.Property(m => m.BaseFee).HasColumnName(nameof(Tariff.BaseFee));
+    navigation.Property(m => m.KmRate).HasColumnName(nameof(Tariff.KmRate));
+    navigation.Property(m => m.Name).HasColumnName(nameof(Tariff.Name));
   }
 
   private void MapRepairEntities(ModelBuilder modelBuilder)

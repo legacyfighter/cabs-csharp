@@ -5,6 +5,7 @@ using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;
 using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.Service;
+using LegacyFighter.Cabs.TransitDetail;
 using NodaTime;
 using NodaTime.Extensions;
 
@@ -24,6 +25,7 @@ public class Fixtures
   private readonly IDriverSessionService _driverSessionService;
   private readonly IDriverTrackingService _driverTrackingService;
   private readonly IDriverAttributeRepository _driverAttributeRepository;
+  private readonly ITransitDetailsFacade _transitDetailsFacade;
 
   public Fixtures(
     ITransitRepository transitRepository,
@@ -37,7 +39,8 @@ public class Fixtures
     ITransitService transitService,
     IDriverSessionService driverSessionService,
     IDriverTrackingService driverTrackingService,
-    IDriverAttributeRepository driverAttributeRepository)
+    IDriverAttributeRepository driverAttributeRepository, 
+    ITransitDetailsFacade transitDetailsFacade)
   {
     _transitRepository = transitRepository;
     _feeRepository = feeRepository;
@@ -48,6 +51,7 @@ public class Fixtures
     _clientRepository = clientRepository;
     _addressRepository = addressRepository;
     _driverAttributeRepository = driverAttributeRepository;
+    _transitDetailsFacade = transitDetailsFacade;
     _transitService = transitService;
     _driverSessionService = driverSessionService;
     _driverTrackingService = driverTrackingService;
@@ -69,13 +73,16 @@ public class Fixtures
 
   public async Task<Transit> ATransit(Driver driver, int price, LocalDateTime when, Client? client)
   {
-    var transit = new Transit(null, null, client, null, when.InUtc().ToInstant(), Distance.Zero)
+    var dateTime = when.InUtc().ToInstant();
+    var transit = new Transit(dateTime, Distance.Zero)
     {
       Price = new Money(price)
     };
     transit.ProposeTo(driver);
     transit.AcceptBy(driver, SystemClock.Instance.GetCurrentInstant());
-    return await _transitRepository.Save(transit);
+    transit = await _transitRepository.Save(transit);
+    await _transitDetailsFacade.TransitRequested(dateTime, transit.Id, null, null, Distance.Zero, client, null, new Money(price), transit.Tariff);
+    return transit;
   }
 
   public async Task<Transit> ATransit(Money price) 
@@ -141,20 +148,19 @@ public class Fixtures
   {
     from = await _addressRepository.Save(from);
     destination = await _addressRepository.Save(destination);
-    var transit = new Transit(
-      from,
-      destination,
-      client,
-      null,
-      publishedAt,
-      Distance.Zero);
+    var transit = new Transit(publishedAt, Distance.Zero);
     transit.PublishAt(publishedAt);
     transit.ProposeTo(driver);
     transit.AcceptBy(driver, publishedAt);
     transit.Start(publishedAt);
     transit.CompleteTransitAt(completedAt, destination, Distance.OfKm(1));
     transit.Price = new Money(price);
-    return await _transitRepository.Save(transit);
+    transit = await _transitRepository.Save(transit);
+    await _transitDetailsFacade.TransitRequested(publishedAt, transit.Id, from, destination, Distance.Zero, client, null, new Money(price), transit.Tariff);
+    await _transitDetailsFacade.TransitAccepted(transit.Id, publishedAt, driver.Id);
+    await _transitDetailsFacade.TransitStarted(transit.Id, publishedAt);
+    await _transitDetailsFacade.TransitCompleted(transit.Id, publishedAt, new Money(price), new Money(0));
+    return transit;
   }
 
   public async Task<Transit> ACompletedTransitAt(int price, Instant when)

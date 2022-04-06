@@ -1,5 +1,6 @@
 ﻿using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Repository;
+using LegacyFighter.Cabs.TransitDetail;
 
 namespace LegacyFighter.Cabs.TransitAnalyzer;
 
@@ -7,11 +8,16 @@ public class PopulateGraphService : IPopulateGraphService
 {
   private readonly ITransitRepository _transitRepository;
   private readonly GraphTransitAnalyzer _graphTransitAnalyzer;
+  private readonly ITransitDetailsFacade _transitDetailsFacade;
 
-  public PopulateGraphService(ITransitRepository transitRepository, GraphTransitAnalyzer graphTransitAnalyzer)
+  public PopulateGraphService(
+    ITransitRepository transitRepository,
+    GraphTransitAnalyzer graphTransitAnalyzer,
+    ITransitDetailsFacade transitDetailsFacade)
   {
     _transitRepository = transitRepository;
     _graphTransitAnalyzer = graphTransitAnalyzer;
+    _transitDetailsFacade = transitDetailsFacade;
   }
 
   public async Task Populate()
@@ -24,13 +30,14 @@ public class PopulateGraphService : IPopulateGraphService
 
   private async Task AddToGraph(Transit transit)
   {
-    var clientId = transit.Client.Id;
+    var transitDetails = await _transitDetailsFacade.Find(transit.Id);
+    var clientId = transitDetails.Client.Id;
     await _graphTransitAnalyzer.AddTransitBetweenAddresses(
       clientId,
       transit.Id,
-      transit.From.Hash,
-      transit.To.Hash,
-      transit.Started!.Value,
-      transit.CompleteAt!.Value);
+      transitDetails.From.Hash,
+      transitDetails.To.Hash,
+      transitDetails.Started!.Value,
+      transitDetails.CompletedAt!.Value);
   }
 }

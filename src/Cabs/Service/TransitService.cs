@@ -4,6 +4,7 @@ using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Entity.Events;
 using LegacyFighter.Cabs.Repository;
+using LegacyFighter.Cabs.TransitDetail;
 using NodaTime;
 
 namespace LegacyFighter.Cabs.Service;
@@ -26,6 +27,7 @@ public class TransitService : ITransitService
   private readonly IClock _clock;
   private readonly IAwardsService _awardsService;
   private readonly EventsPublisher _eventsPublisher;
+  private readonly ITransitDetailsFacade _transitDetailsFacade;
 
   public TransitService(
     IDriverRepository driverRepository,
@@ -42,7 +44,8 @@ public class TransitService : ITransitService
     IDriverFeeService driverFeeService,
     IClock clock,
     IAwardsService awardsService,
-    EventsPublisher eventsPublisher)
+    EventsPublisher eventsPublisher, 
+    ITransitDetailsFacade transitDetailsFacade)
   {
     _driverRepository = driverRepository;
     _transitRepository = transitRepository;
@@ -59,6 +62,7 @@ public class TransitService : ITransitService
     _clock = clock;
     _awardsService = awardsService;
     _eventsPublisher = eventsPublisher;
+    _transitDetailsFacade = transitDetailsFacade;
   }
 
   public async Task<Transit> CreateTransit(TransitDto transitDto)
@@ -87,15 +91,19 @@ public class TransitService : ITransitService
     var geoFrom = _geocodingService.GeocodeAddress(from);
     var geoTo = _geocodingService.GeocodeAddress(to);
     var km = Distance.OfKm((float) _distanceCalculator.CalculateByMap(geoFrom[0], geoFrom[1], geoTo[0], geoTo[1]));
-    var transit = new Transit(from, to, client, carClass, _clock.GetCurrentInstant(), km);
-    transit.EstimateCost();
-    return await _transitRepository.Save(transit);
+    var now = _clock.GetCurrentInstant();
+    var transit = new Transit(now, km);
+    var estimatedPrice = transit.EstimateCost();
+    transit = await _transitRepository.Save(transit);
+    await _transitDetailsFacade.TransitRequested(now, transit.Id, from, to, km, client, carClass, estimatedPrice, transit.Tariff);
+    return transit;
   }
 
   public async Task ChangeTransitAddressFrom(long? transitId, Address newAddress)
   {
     newAddress = await _addressRepository.Save(newAddress);
     var transit = await _transitRepository.Find(transitId);
+    var transitDetails = await FindTransitDetails(transitId);
 
     if (transit == null)
     {
@@ -104,7 +112,7 @@ public class TransitService : ITransitService
 
     // TODO FIXME later: add some exceptions handling
     var geoFromNew = _geocodingService.GeocodeAddress(newAddress);
-    var geoFromOld = _geocodingService.GeocodeAddress(transit.From);
+    var geoFromOld = _geocodingService.GeocodeAddress(transitDetails.From.ToAddressEntity());
 
     // https://www.geeksforgeeks.org/program-distance-two-points-earth/
     // Using extension method ToRadians which converts from
@@ -132,6 +140,7 @@ public class TransitService : ITransitService
     var newDistance = Distance.OfKm((float) _distanceCalculator.CalculateByMap(geoFromNew[0], geoFromNew[1], geoFromOld[0], geoFromOld[1]));
     transit.ChangePickupTo(newAddress, newDistance, distanceInKMeters);
     await _transitRepository.Save(transit);
+    await _transitDetailsFacade.PickupChangedTo(transit.Id, newAddress, newDistance);
 
     foreach (var driver in transit.ProposedDrivers) 
     {
@@ -153,6 +162,7 @@ public class TransitService : ITransitService
   {
     await _addressRepository.Save(newAddress);
     var transit = await _transitRepository.Find(transitId);
+    var transitDetails = await FindTransitDetails(transitId);
 
     if (transit == null)
     {
@@ -160,11 +170,12 @@ public class TransitService : ITransitService
     }
 
     // TODO FIXME later: add some exceptions handling
-    var geoFrom = _geocodingService.GeocodeAddress(transit.From);
+    var geoFrom = _geocodingService.GeocodeAddress(transitDetails.From.ToAddressEntity());
     var geoTo = _geocodingService.GeocodeAddress(newAddress);
 
     var newDistance = Distance.OfKm((float) _distanceCalculator.CalculateByMap(geoFrom[0], geoFrom[1], geoTo[0], geoTo[1]));
     transit.ChangeDestinationTo(newAddress, newDistance);
+    await _transitDetailsFacade.DestinationChanged(transit.Id, newAddress, newDistance);
 
     if (transit.Driver != null)
     {
@@ -187,6 +198,7 @@ public class TransitService : ITransitService
     }
 
     transit.Cancel();
+    await _transitDetailsFacade.TransitCancelled(transitId);
     await _transitRepository.Save(transit);
   }
 
@@ -199,8 +211,10 @@ public class TransitService : ITransitService
       throw new ArgumentException("Transit does not exist, id = " + transitId);
     }
 
-    transit.PublishAt(_clock.GetCurrentInstant());
+    var now = _clock.GetCurrentInstant();
+    transit.PublishAt(now);
     await _transitRepository.Save(transit);
+    await _transitDetailsFacade.TransitPublished(transitId, now);
     return await FindDriversForTransit(transitId);
   }
 
@@ -208,6 +222,7 @@ public class TransitService : ITransitService
   public async Task<Transit> FindDriversForTransit(long? transitId)
   {
     var transit = await _transitRepository.Find(transitId);
+    var transitDetails = await FindTransitDetails(transitId);
 
     if (transit != null)
     {
@@ -243,7 +258,7 @@ public class TransitService : ITransitService
 
           try
           {
-            geocoded = _geocodingService.GeocodeAddress(transit.From);
+            geocoded = _geocodingService.GeocodeAddress(await _addressRepository.GetByHash(transitDetails.From.Hash));
           }
           catch (Exception e)
           {
@@ -294,13 +309,13 @@ public class TransitService : ITransitService
               return transit;
             }
 
-            if (transit.CarType
+            if (transitDetails.CarType
 
                 != null)
             {
-              if (activeCarClasses.Contains(transit.CarType))
+              if (activeCarClasses.Contains(transitDetails.CarType))
               {
-                carClasses.Add(transit.CarType);
+                carClasses.Add(transitDetails.CarType);
               }
               else
               {
@@ -381,7 +396,9 @@ public class TransitService : ITransitService
       }
       else
       {
-        transit.AcceptBy(driver, _clock.GetCurrentInstant());
+        var now = _clock.GetCurrentInstant();
+        transit.AcceptBy(driver, now);
+        await _transitDetailsFacade.TransitAccepted(transitId, now, driverId);
         await _transitRepository.Save(transit);
         await _driverRepository.Save(driver);
       }
@@ -404,7 +421,9 @@ public class TransitService : ITransitService
       throw new ArgumentException("Transit does not exist, id = " + transitId);
     }
 
-    transit.Start(_clock.GetCurrentInstant());
+    var now = _clock.GetCurrentInstant();
+    transit.Start(now);
+    await _transitDetailsFacade.TransitStarted(transitId, now);
     await _transitRepository.Save(transit);
   }
 
@@ -437,6 +456,7 @@ public class TransitService : ITransitService
   {
     destinationAddress = await _addressRepository.Save(destinationAddress);
     var driver = await _driverRepository.Find(driverId);
+    var transitDetails = await FindTransitDetails(transitId);
 
     if (driver == null)
     {
@@ -451,30 +471,38 @@ public class TransitService : ITransitService
     }
 
     // TODO FIXME later: add some exceptions handling
-    var geoFrom = _geocodingService.GeocodeAddress(transit.From);
-    var geoTo = _geocodingService.GeocodeAddress(transit.To);
+    var geoFrom = _geocodingService.GeocodeAddress(await _addressRepository.GetByHash(transitDetails.From.Hash));
+    var geoTo = _geocodingService.GeocodeAddress(await _addressRepository.GetByHash(transitDetails.To.Hash));
     var distance = Distance.OfKm((float) _distanceCalculator.CalculateByMap(geoFrom[0], geoFrom[1], geoTo[0], geoTo[1]));
-    transit.CompleteTransitAt(_clock.GetCurrentInstant(), destinationAddress, distance);
+    var now = _clock.GetCurrentInstant();
+    transit.CompleteTransitAt(now, destinationAddress, distance);
     var driverFee = await _driverFeeService.CalculateDriverFee(transitId);
     transit.DriversFee = driverFee;
     driver.Occupied = false;
     await _driverRepository.Save(driver);
-    await _awardsService.RegisterMiles(transit.Client.Id, transitId);
+    await _awardsService.RegisterMiles(transitDetails.Client.Id, transitId);
     await _transitRepository.Save(transit);
-    await _invoiceGenerator.Generate(transit.Price.IntValue, transit.Client.Name + " " + transit.Client.LastName);
+    await _transitDetailsFacade.TransitCompleted(transitId, now, transit.Price, driverFee);
+    await _invoiceGenerator.Generate(transit.Price.IntValue, transitDetails.Client.Name + " " + transitDetails.Client.LastName);
     await _eventsPublisher.Publish(
       new TransitCompleted(
-        transit.Client.Id,
+        transitDetails.Client.Id,
         transitId,
-        transit.From.Hash,
-        transit.To.Hash,
-        transit.Started.Value,
-        transit.CompleteAt.Value,
+        transitDetails.From.Hash,
+        transitDetails.To.Hash,
+        transitDetails.Started!.Value, 
+        now,
         _clock.GetCurrentInstant()));
   }
 
   public async Task<TransitDto> LoadTransit(long? id)
   {
-    return new TransitDto(await _transitRepository.Find(id));
+    var transitDetails = await FindTransitDetails(id);
+    return new TransitDto(await _transitRepository.Find(id), transitDetails);
+  }
+
+  private async Task<TransitDetailsDto> FindTransitDetails(long? transitId) 
+  {
+    return await _transitDetailsFacade.Find(transitId);
   }
 }

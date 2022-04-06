@@ -3,6 +3,7 @@ using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;
+using LegacyFighter.Cabs.TransitDetail;
 using NodaTime;
 
 namespace LegacyFighter.CabsTests.Ui;
@@ -45,10 +46,23 @@ public class CalculateTransitDistanceTest
 
   private TransitDto TransitForDistance(float km)
   {
-    var t = new Transit(new Address(), new Address(), new Client(), null, SystemClock.Instance.GetCurrentInstant(), Distance.OfKm(km))
+    var distance = Distance.OfKm(km);
+    var transit = new Transit(SystemClock.Instance.GetCurrentInstant(), distance)
     {
       Price = new Money(10)
     };
-    return new TransitDto(t);
+    var transitDetails = new TransitDetailsDto(
+      1L,
+      SystemClock.Instance.GetCurrentInstant(),
+      SystemClock.Instance.GetCurrentInstant(),
+      new ClientDto(),
+      null,
+      new AddressDto(),
+      new AddressDto(),
+      SystemClock.Instance.GetCurrentInstant(),
+      SystemClock.Instance.GetCurrentInstant(),
+      distance,
+      transit.Tariff);
+    return new TransitDto(transit, transitDetails);
   }
 }

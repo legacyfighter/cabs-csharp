@@ -122,7 +122,7 @@ public class CalculateTransitPriceTest
 
   private static Transit ATransit(Transit.Statuses status, int km)
   {
-    return new Transit(status, null, null, null, null, SystemClock.Instance.GetCurrentInstant(), Distance.OfKm(km));
+    return new Transit(status, SystemClock.Instance.GetCurrentInstant(), Distance.OfKm(km));
   }
 
   private static void TransitWasDoneOnNewYearsEve(Transit transit)

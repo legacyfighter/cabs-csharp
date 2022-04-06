@@ -1,13 +1,14 @@
 using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.TransitDetail;
 using NodaTime;
 
 namespace LegacyFighter.Cabs.Dto;
 
 public class TransitDto
 {
-  public DriverDto Driver;
-  public int? Factor;
+  public DriverDto Driver { get; set; }
+  public int? Factor { get; set; }
   private readonly Distance _distance;
   private string _distanceUnit;
   private decimal _baseFee;
@@ -18,28 +19,28 @@ public class TransitDto
 
   }
 
-  public TransitDto(Transit transit)
+  public TransitDto(Transit transit, TransitDetailsDto transitDetails)
 
-    : this(transit.Id, transit.Tariff.Name,
-      transit.Status, 
+    : this(transitDetails.TransitId, transitDetails.TariffName,
+      transitDetails.Status, 
       transit.Driver == null ? null : new DriverDto(transit.Driver),
-      transit.KmDistance, 
-      transit.Tariff.KmRate,
-      transit.Price != null ? new decimal(transit.Price.IntValue) : null,
-      transit.DriversFee != null ? new decimal(transit.DriversFee.IntValue) : null,
-      transit.EstimatedPrice != null ? new decimal(transit.EstimatedPrice.IntValue) : null,
-      new decimal(transit.Tariff.BaseFee),
-      transit.DateTime, 
-      transit.Published,
-      transit.AcceptedAt, 
-      transit.Started, 
-      transit.CompleteAt,
+      transitDetails.Distance, 
+      transitDetails.KmRate.Value,
+      transitDetails.Price != null ? new decimal(transitDetails.Price.IntValue) : null,
+      transitDetails.DriverFee != null ? new decimal(transitDetails.DriverFee.IntValue) : null,
+      transitDetails.EstimatedPrice != null ? new decimal(transitDetails.EstimatedPrice.IntValue) : null,
+      new decimal(transitDetails.BaseFee.Value),
+      transitDetails.DateTime, 
+      transitDetails.PublishedAt,
+      transitDetails.AcceptedAt, 
+      transitDetails.Started, 
+      transitDetails.CompletedAt,
       null, 
       new List<DriverDto>(), 
-      new AddressDto(transit.From),
-      new AddressDto(transit.To), 
-      transit.CarType, 
-      new ClientDto(transit.Client))
+      transitDetails.From,
+      transitDetails.To, 
+      transitDetails.CarType, 
+      transitDetails.Client)
   {
     foreach (var d in transit.ProposedDrivers)
     {

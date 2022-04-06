@@ -20,6 +20,7 @@ using LegacyFighter.Cabs.Repair.Legacy.Service;
 using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.Service;
 using LegacyFighter.Cabs.TransitAnalyzer;
+using LegacyFighter.Cabs.TransitDetail;
 using MediatR;
 using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
@@ -45,6 +46,11 @@ builder.Services.AddTransient<IPopulateGraphService>(ctx =>
   new TransactionalPopulateGraphService(
     ctx.GetRequiredService<PopulateGraphService>(),
     ctx.GetRequiredService<ITransactions>()));
+builder.Services.AddTransient<TransitDetailsFacade>();
+builder.Services.AddTransient<ITransitDetailsFacade>(ctx =>
+  new TransactionalTransitDetailsFacade(
+    ctx.GetRequiredService<TransitDetailsFacade>(),
+    ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddDbContext<SqLiteDbContext>();
 builder.Services.AddScoped<EventsPublisher>();
 builder.Services.AddTransient<ITransactions, Transactions>();
@@ -56,6 +62,7 @@ builder.Services.AddTransient<IDriverSessionRepository, EfCoreDriverSessionRepos
 builder.Services.AddTransient<IDriverPositionRepository, EfCoreDriverPositionRepository>();
 builder.Services.AddTransient<IClientRepository, EfCoreClientRepository>();
 builder.Services.AddTransient<ITransitRepository, EfCoreTransitRepository>();
+builder.Services.AddTransient<ITransitDetailsRepository, EfCoreTransitDetailsRepository>();
 builder.Services.AddTransient<IClaimRepository, EfCoreClaimRepository>();
 builder.Services.AddTransient<IAwardsAccountRepository, EfCoreAwardsAccountRepository>();
 builder.Services.AddTransient<IClaimsResolverRepository, EfCoreClaimsResolverRepository>();
@@ -124,11 +131,6 @@ builder.Services.AddTransient<TravelledDistanceService>();
 builder.Services.AddTransient<ITravelledDistanceService>(ctx =>
   new TransactionalTravelledDistanceService(
     ctx.GetRequiredService<TravelledDistanceService>(),
-    ctx.GetRequiredService<ITransactions>()));
-builder.Services.AddTransient<TransitAnalyzer>();
-builder.Services.AddTransient<ITransitAnalyzer>(ctx =>
-  new TransactionalTransitAnalyzer(
-    ctx.GetRequiredService<TransitAnalyzer>(),
     ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddTransient<InvoiceGenerator>();
 builder.Services.AddTransient<DistanceCalculator>();

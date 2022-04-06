@@ -20,24 +20,24 @@ public class SqlBasedDriverReportCreator : IDriverReportCreator
     "LEFT JOIN DriverAttributes attr ON d.id = attr.DriverId " +
     "WHERE d.id = :driverId AND attr.name <> :filteredAttr";
 
-  private static readonly string QueryForSessions =
+  private const string QueryForSessions =
     "SELECT ds.LoggedAt, ds.LoggedOutAt, ds.PlatesNumber, ds.CarClass, ds.CarBrand, " +
-    "t.Id as TransitId, t.name as TariffName, t.status as TransitStatus, t.Km, t.KmRate, " +
-    "t.Price, t.DriversFee, t.EstimatedPrice, t.BaseFee, " +
-    "t.DateTime, t.Published, t.AcceptedAt, t.Started, t.CompleteAt, t.CarType, " +
+    "td.TransitId as TransitId, td.Name as TariffName, td.Status as TransitStatus, td.Km, td.KmRate, " +
+    "td.Price, td.DriversFee, td.EstimatedPrice, td.BaseFee, " +
+    "td.DateTime, td.PublishedAt, td.AcceptedAt, td.Started, td.CompleteAt, td.CarType, " +
     "cl.Id as ClaimId, cl.OwnerId, cl.Reason, cl.IncidentDescription, cl.Status as ClaimStatus, cl.CreationDate, " +
     "cl.CompletionDate, cl.ChangeDate, cl.CompletionMode, cl.ClaimNo, " +
     "af.Country as AfCountry, af.City as AfCity, af.Street AS AfStreet, af.BuildingNumber AS AfNumber, " +
     "ato.Country as AtoCountry, ato.City as AtoCity, ato.Street AS AtoStreet, ato.BuildingNumber AS AtoNumber " +
     "FROM DriverSessions ds " +
-    "LEFT JOIN Transits t ON t.DriverId = ds.DriverId " +
-    "LEFT JOIN Addresses af ON t.FromId = af.Id " +
-    "LEFT JOIN Addresses ato ON t.ToId = ato.Id " +
-    "LEFT JOIN Claims cl ON cl.TransitId = t.Id " +
-    "WHERE ds.DriverId = :driverId AND t.status = :transitStatus " +
+    "LEFT JOIN TransitsDetails td ON ds.DriverId = td.DriverId " +
+    "LEFT JOIN Addresses af ON td.FromId = af.Id " +
+    "LEFT JOIN Addresses ato ON td.ToId = ato.Id " +
+    "LEFT JOIN Claims cl ON cl.TransitId = td.TransitId " +
+    "WHERE ds.DriverId = :driverId AND td.Status = :transitStatus " +
     "AND ds.LoggedAt >= :since " +
-    "AND t.CompleteAt >= ds.LoggedAt " +
-    "AND t.CompleteAt <= ds.LoggedOutAt GROUP BY ds.Id";
+    "AND td.CompleteAt >= ds.LoggedAt " +
+    "AND td.CompleteAt <= ds.LoggedOutAt GROUP BY ds.Id";
 
   private readonly SqLiteDbContext _dbContext;
   private readonly IClock _clock;
@@ -131,7 +131,7 @@ public class SqlBasedDriverReportCreator : IDriverReportCreator
       new decimal(row["EstimatedPrice"].ToInt()),
       new decimal(row["BaseFee"].ToInt()),
       row["DateTime"].ToNullableInstant(),
-      row["Published"].ToNullableInstant(),
+      row["PublishedAt"].ToNullableInstant(),
       row["AcceptedAt"].ToNullableInstant(),
       row["Started"].ToNullableInstant(),
       row["CompleteAt"].ToNullableInstant(),

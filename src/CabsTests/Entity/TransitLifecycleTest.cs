@@ -11,41 +11,25 @@ public class TransitLifeCycleTest
   public void CanCreateTransit()
   {
     //when
-    var transit = RequestTransitFromTo(
-      new Address("Polska", "Warszawa", "Młynarska", 20),
-      new Address("Polska", "Warszawa", "Żytnia", 25));
+    var transit = RequestTransit();
 
     //then
-    Assert.Null(transit.CarType);
     Assert.Null(transit.Price);
-    Assert.AreEqual("Polska", transit.From.Country);
-    Assert.AreEqual("Warszawa", transit.From.City);
-    Assert.AreEqual("Młynarska", transit.From.Street);
-    Assert.AreEqual(20, transit.From.BuildingNumber);
-    Assert.AreEqual("Polska", transit.To.Country);
-    Assert.AreEqual("Warszawa", transit.To.City);
-    Assert.AreEqual("Żytnia", transit.To.Street);
-    Assert.AreEqual(25, transit.To.BuildingNumber);
     Assert.AreEqual(Transit.Statuses.Draft, transit.Status);
     Assert.NotNull(transit.Tariff);
     Assert.AreNotEqual(0, transit.Tariff.KmRate);
-    Assert.NotNull(transit.DateTime);
   }
 
   [Test]
   public void CanChangeTransitDestination()
   {
     //given
-    var transit = RequestTransitFromTo(
-      new Address("Polska", "Warszawa", "Młynarska", 20),
-      new Address("Polska", "Warszawa", "Żytnia", 25));
+    var transit = RequestTransit();
     //when
     transit.ChangeDestinationTo(
       new Address("Polska", "Warszawa", "Mazowiecka", 30), Distance.OfKm(20));
 
     //then
-    Assert.AreEqual(30, transit.To.BuildingNumber);
-    Assert.AreEqual("Mazowiecka", transit.To.Street);
     Assert.NotNull(transit.EstimatedPrice);
     Assert.Null(transit.Price);
   }
@@ -58,8 +42,7 @@ public class TransitLifeCycleTest
     //and
     var driver = new Driver();
     //and
-    var transit = RequestTransitFromTo(new Address("Polska", "Warszawa", "Młynarska", 20),
-      destination);
+    var transit = RequestTransit();
     //and
     transit.PublishAt(Now());
     //and
@@ -81,17 +64,12 @@ public class TransitLifeCycleTest
   public void CanChangePickupPlace()
   {
     //given
-    var transit = RequestTransitFromTo(
-      new Address("Polska", "Warszawa", "Młynarska", 20),
-      new Address("Polska", "Warszawa", "Żytnia", 25));
+    var transit = RequestTransit();
 
-    //when
-    transit.ChangePickupTo(
-      new Address("Polska", "Warszawa", "Puławska", 28), Distance.OfKm(20), 0.2);
-
-    //then
-    Assert.AreEqual(28, transit.From.BuildingNumber);
-    Assert.AreEqual("Puławska", transit.From.Street);
+    //expect
+    transit.Invoking(t => t.ChangePickupTo(
+      new Address("Polska", "Warszawa", "Puławska", 28), Distance.OfKm(20), 0.2))
+      .Should().NotThrow();
   }
 
   [Test]
@@ -102,9 +80,7 @@ public class TransitLifeCycleTest
     //and
     var driver = new Driver();
     //and
-    var transit = RequestTransitFromTo(
-      new Address("Polska", "Warszawa", "Młynarska", 20),
-      destination);
+    var transit = RequestTransit();
     //and
     var changedTo = new Address("Polska", "Warszawa", "Żytnia", 27);
     //and
@@ -135,8 +111,7 @@ public class TransitLifeCycleTest
   public void CannotChangePickupPlaceMoreThanThreeTimes()
   {
     //given
-    var transit = RequestTransitFromTo(new Address("Polska", "Warszawa", "Młynarska", 20),
-      new Address("Polska", "Warszawa", "Żytnia", 25));
+    var transit = RequestTransit();
     //and
     transit.ChangePickupTo(
       new Address("Polska", "Warszawa", "Żytnia", 26), Distance.OfKm(20.1f), 0.1d);
@@ -157,8 +132,7 @@ public class TransitLifeCycleTest
   public void CannotChangePickupPlaceWhenItIsFarWayFromOriginal()
   {
     //given
-    var transit = RequestTransitFromTo(new Address("Polska", "Warszawa", "Młynarska", 20),
-      new Address("Polska", "Warszawa", "Żytnia", 25));
+    var transit = RequestTransit();
 
     //expect
     transit.Invoking(t => t.ChangePickupTo(new Address(), Distance.OfKm(20), 50))
@@ -169,8 +143,7 @@ public class TransitLifeCycleTest
   public void CanCancelTransit()
   {
     //given
-    var transit = RequestTransitFromTo(new Address("Polska", "Warszawa", "Młynarska", 20),
-      new Address("Polska", "Warszawa", "Żytnia", 25));
+    var transit = RequestTransit();
 
     //when
     transit.Cancel();
@@ -186,9 +159,7 @@ public class TransitLifeCycleTest
     var destination =
       new Address("Polska", "Warszawa", "Żytnia", 25);
     //and
-    var transit = RequestTransitFromTo(
-      new Address("Polska", "Warszawa", "Młynarska", 20),
-      destination);
+    var transit = RequestTransit();
     //and
     var driver = new Driver();
     //and
@@ -215,9 +186,7 @@ public class TransitLifeCycleTest
   public void CanPublishTransit()
   {
     //given
-    var transit = RequestTransitFromTo(
-      new Address("Polska", "Warszawa", "Młynarska", 20),
-      new Address("Polska", "Warszawa", "Żytnia", 25));
+    var transit = RequestTransit();
 
     //when
     transit.PublishAt(Now());
@@ -231,9 +200,7 @@ public class TransitLifeCycleTest
   public void CanAcceptTransit()
   {
     //given
-    var transit = RequestTransitFromTo(
-      new Address("Polska", "Warszawa", "Młynarska", 20),
-      new Address("Polska", "Warszawa", "Żytnia", 25));
+    var transit = RequestTransit();
     //and
     var driver = new Driver();
     //and
@@ -245,16 +212,13 @@ public class TransitLifeCycleTest
     transit.AcceptBy(driver, Now());
     //then
     Assert.AreEqual(Transit.Statuses.TransitToPassenger, transit.Status);
-    Assert.NotNull(transit.AcceptedAt);
   }
 
   [Test]
-  public void onlyOneDriverCanAcceptTransit()
+  public void OnlyOneDriverCanAcceptTransit()
   {
     //given
-    var transit = RequestTransitFromTo(
-      new Address("Polska", "Warszawa", "Młynarska", 20),
-      new Address("Polska", "Warszawa", "Żytnia", 25));
+    var transit = RequestTransit();
     //and
     var driver = new Driver();
     //and
@@ -275,9 +239,7 @@ public class TransitLifeCycleTest
   public void TransitCannotByAcceptedByDriverWhoAlreadyRejected()
   {
     //given
-    var transit = RequestTransitFromTo(
-      new Address("Polska", "Warszawa", "Młynarska", 20),
-      new Address("Polska", "Warszawa", "Żytnia", 25));
+    var transit = RequestTransit();
     //and
     var driver = new Driver();
     //and
@@ -294,9 +256,7 @@ public class TransitLifeCycleTest
   public void TransitCannotByAcceptedByDriverWhoHasNotSeenProposal()
   {
     //given
-    var transit = RequestTransitFromTo(
-      new Address("Polska", "Warszawa", "Młynarska", 20),
-      new Address("Polska", "Warszawa", "Żytnia", 25));
+    var transit = RequestTransit();
     //and
     var driver = new Driver();
     //and
@@ -311,9 +271,7 @@ public class TransitLifeCycleTest
   public void CanStartTransit()
   {
     //given
-    var transit = RequestTransitFromTo(
-      new Address("Polska", "Warszawa", "Młynarska", 20),
-      new Address("Polska", "Warszawa", "Żytnia", 25));
+    var transit = RequestTransit();
     //and
     var driver = new Driver();
     //and
@@ -327,16 +285,13 @@ public class TransitLifeCycleTest
 
     //then
     Assert.AreEqual(Transit.Statuses.InTransit, transit.Status);
-    Assert.NotNull(transit.Started);
   }
 
   [Test]
   public void CannotStartNotAcceptedTransit()
   {
     //given
-    var transit = RequestTransitFromTo(
-      new Address("Polska", "Warszawa", "Młynarska", 20),
-      new Address("Polska", "Warszawa", "Żytnia", 25));
+    var transit = RequestTransit();
     //and
     transit.PublishAt(Now());
 
@@ -352,9 +307,7 @@ public class TransitLifeCycleTest
     var destination =
       new Address("Polska", "Warszawa", "Żytnia", 25);
     //and
-    var transit = RequestTransitFromTo(
-      new Address("Polska", "Warszawa", "Młynarska", 20),
-      destination);
+    var transit = RequestTransit();
     //and
     var driver = new Driver();
     //and
@@ -373,7 +326,6 @@ public class TransitLifeCycleTest
     Assert.AreEqual(Transit.Statuses.Completed, transit.Status);
     Assert.NotNull(transit.Tariff);
     Assert.NotNull(transit.Price);
-    Assert.NotNull(transit.CompleteAt);
   }
 
   [Test]
@@ -383,9 +335,7 @@ public class TransitLifeCycleTest
     var addressTo =
       new Address("Polska", "Warszawa", "Żytnia", 25);
     //and
-    var transit = RequestTransitFromTo(
-      new Address("Polska", "Warszawa", "Młynarska", 20),
-      addressTo);
+    var transit = RequestTransit();
     //and
     var driver = new Driver();
     //and
@@ -404,9 +354,7 @@ public class TransitLifeCycleTest
   public void CanRejectTransit()
   {
     //given
-    var transit = RequestTransitFromTo(
-      new Address("Polska", "Warszawa", "Młynarska", 20),
-      new Address("Polska", "Warszawa", "Żytnia", 25));
+    var transit = RequestTransit();
     //and
     var driver = new Driver();
     //and
@@ -417,7 +365,6 @@ public class TransitLifeCycleTest
 
     //then
     Assert.AreEqual(Transit.Statuses.WaitingForDriverAssignment, transit.Status);
-    Assert.Null(transit.AcceptedAt);
   }
 
   private static Instant Now()
@@ -425,8 +372,8 @@ public class TransitLifeCycleTest
     return SystemClock.Instance.GetCurrentInstant();
   }
 
-  private static Transit RequestTransitFromTo(Address pickup, Address destination)
+  private static Transit RequestTransit()
   {
-    return new Transit(pickup, destination, new Client(), null, Now(), Distance.Zero);
+    return new Transit(Now(), Distance.Zero);
   }
 }

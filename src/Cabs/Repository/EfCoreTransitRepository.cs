@@ -8,12 +8,6 @@ public interface ITransitRepository
 {
   Task<List<Transit>> FindAllByDriverAndDateTimeBetween(Driver driver, Instant from, Instant to);
 
-  Task<List<Transit>> FindAllByClientAndFromAndStatusOrderByDateTimeDesc(Client client, Address from,
-    Transit.Statuses status);
-
-  Task<List<Transit>> FindAllByClientAndFromAndPublishedAfterAndStatusOrderByDateTimeDesc(Client client, Address from,
-    Instant? when, Transit.Statuses status);
-
   Task<List<Transit>> FindAllByStatus(Transit.Statuses status);
 
   Task<List<Transit>> FindByClient(Client client);
@@ -32,28 +26,16 @@ internal class EfCoreTransitRepository : ITransitRepository
 
   public async Task<List<Transit>> FindAllByDriverAndDateTimeBetween(Driver driver, Instant from, Instant to)
   {
-    return await _context.Transits.Where(t => 
-        t.Driver == driver && 
-        t.DateTime >= from && 
-        t.DateTime <= to)
+    return await _context.Transits.Join(
+        _context.TransitsDetails,
+        transit => transit.Id,
+        details => details.TransitId,
+        (transit, details) => new { Transit = transit, Details = details })
+      .Where(r => r.Transit.Driver == driver &&
+                  r.Details.DateTime >= from &&
+                  r.Details.DateTime <= to)
+      .Select(r => r.Transit)
       .ToListAsync();
-  }
-
-  public async Task<List<Transit>> FindAllByClientAndFromAndStatusOrderByDateTimeDesc(Client client, Address from,
-    Transit.Statuses status)
-  {
-    return await _context.Transits.Where(t => t.Client == client && t.From == from && t.Status == status)
-      .OrderByDescending(transit => transit.DateTime).ToListAsync();
-  }
-
-  public async Task<List<Transit>> FindAllByClientAndFromAndPublishedAfterAndStatusOrderByDateTimeDesc(Client client,
-    Address from,
-    Instant? when,
-    Transit.Statuses status)
-  {
-    return await _context.Transits
-      .Where(t => t.Client == client && t.From == from && t.Published > when && t.Status == status)
-      .OrderByDescending(t => t.DateTime).ToListAsync();
   }
 
   public async Task<List<Transit>> FindAllByStatus(Transit.Statuses status)
@@ -63,7 +45,14 @@ internal class EfCoreTransitRepository : ITransitRepository
 
   public async Task<List<Transit>> FindByClient(Client client)
   {
-    return await _context.Transits.Where(t => t.Client == client).ToListAsync();
+    return await _context.Transits.Join(
+        _context.TransitsDetails,
+        transit => transit.Id,
+        details => details.TransitId,
+        (transit, details) => new { Transit = transit, Details = details })
+      .Where(r => r.Details.Client == client)
+      .Select(r => r.Transit)
+      .ToListAsync();
   }
 
   public async Task<Transit> Find(long? transitId)

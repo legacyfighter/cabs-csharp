@@ -37,33 +37,25 @@ public class Transit : BaseEntity
   private DriverPaymentStatuses? DriverPaymentStatus { get; set; }
   private ClientPaymentStatuses? ClientPaymentStatus { get; set; }
   private Client.PaymentTypes? PaymentType { get; set; }
-  public Instant? Date { get; private set; }
   public Tariff Tariff { get; set; }
   private float _km;
-  private Instant? _dateTime;
 
-  public CarType.CarClasses? CarType { get; set; }
-  
   public Transit()
   {
   }
 
-  public Transit(long? id) 
+  public Transit(long? id)
   {
     Id = id;
   }
 
-  public Transit(Address from, Address to, Client client, CarType.CarClasses? carClass, Instant when, Distance distance)
-    : this(Statuses.Draft, from, to, client, carClass, when, distance)
+  public Transit(Instant when, Distance distance)
+    : this(Statuses.Draft, when, distance)
   {
   }
 
-  public Transit(Statuses status, Address from, Address to, Client client, CarType.CarClasses? carClass, Instant when, Distance distance)
+  public Transit(Statuses status, Instant when, Distance distance)
   {
-    From = from;
-    To = to;
-    Client = client;
-    CarType = carClass;
     DateTime = when;
     Km = distance.ToKmInFloat();
     Status = status;
@@ -86,7 +78,6 @@ public class Transit : BaseEntity
       throw new InvalidOperationException("Address 'from' cannot be changed, id = " + Id);
     }
 
-    From = newAddress;
     PickupAddressChangeCounter = PickupAddressChangeCounter + 1;
     Km = newDistance.ToKmInFloat();
     EstimateCost();
@@ -99,14 +90,14 @@ public class Transit : BaseEntity
       throw new InvalidOperationException("Address 'to' cannot be changed, id = " + Id);
     }
 
-    To = newAddress;
     Km = newDistance.ToKmInFloat();
     EstimateCost();
   }
 
   public void Cancel()
   {
-    if (!new HashSet<Statuses?> { Statuses.Draft, Statuses.WaitingForDriverAssignment, Statuses.TransitToPassenger }.Contains(Status))
+    if (!new HashSet<Statuses?> { Statuses.Draft, Statuses.WaitingForDriverAssignment, Statuses.TransitToPassenger }
+          .Contains(Status))
     {
       throw new InvalidOperationException("Transit cannot be cancelled, id = " + Id);
     }
@@ -167,7 +158,6 @@ public class Transit : BaseEntity
       Driver = driver;
       driver.Occupied = true;
       AwaitingDriversResponses = 0;
-      AcceptedAt = when;
       Status = Statuses.TransitToPassenger;
     }
   }
@@ -179,7 +169,6 @@ public class Transit : BaseEntity
       throw new InvalidOperationException("Transit cannot be started, id = " + Id);
     }
 
-    Started = when;
     Status = Statuses.InTransit;
   }
 
@@ -201,8 +190,6 @@ public class Transit : BaseEntity
     {
       Km = distance.ToKmInFloat();
       EstimateCost();
-      CompleteAt = when;
-      To = destinationAddress;
       Status = Statuses.Completed;
       CalculateFinalCosts();
     }
@@ -237,8 +224,6 @@ public class Transit : BaseEntity
     return estimated;
   }
 
-  public virtual Client Client { get; protected set; }
-
   public Money CalculateFinalCosts()
   {
     if (Status == Statuses.Completed)
@@ -260,20 +245,12 @@ public class Transit : BaseEntity
 
   public Instant? DateTime
   {
-    set
-    {
+    set =>
       Tariff = Tariff.OfTime(
         value.Value.InZone(DateTimeZoneProviders.Bcl.GetSystemDefault()).LocalDateTime);
-      _dateTime = value;
-    }
-    get => _dateTime;
   }
 
-  public Instant? Published { get; private set; }
-
-  public Instant? CompleteAt { get; set; }
-
-  public Distance KmDistance 
+  public Distance KmDistance
   {
     get => Distance.OfKm(Km);
     set => Km = value.ToKmInFloat();
@@ -292,11 +269,6 @@ public class Transit : BaseEntity
   public int AwaitingDriversResponses { get; private set; } = 0;
   protected virtual ISet<Driver> DriversRejections { get; set; } = new HashSet<Driver>();
   public virtual ISet<Driver> ProposedDrivers { get; protected set; } = new HashSet<Driver>();
-  public Instant? AcceptedAt { get; private set; }
-  public Instant? Started { get; private set; }
-  public virtual Address From { get; protected set; }
-  public virtual Address To { get; protected set; }
-
   private int PickupAddressChangeCounter { get; set; } = 0;
 
   public override bool Equals(object obj)
@@ -318,4 +290,6 @@ public class Transit : BaseEntity
   public Money DriversFee { get; set; }
 
   public Money EstimatedPrice { get; private set; }
+
+  public Instant? Published { get; private set; }
 }

@@ -1,10 +1,12 @@
 ﻿using System;
+using FluentAssertions.Equivalency;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Service;
 using LegacyFighter.CabsTests.Common;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
+using TddXt.XNSubstitute;
 
 namespace LegacyFighter.CabsTests.Integration;
 
@@ -180,12 +182,13 @@ public class TransitLifeCycleIntegrationTest
   public async Task CannotChangePickupPlaceWhenItIsFarWayFromOriginal()
   {
     //given
+    var from = new AddressDto("Polska", "Warszawa", "Młynarska", 20);
     var transit = await RequestTransitFromTo(
-      new AddressDto("Polska", "Warszawa", "Młynarska", 20),
+      from,
       new AddressDto("Polska", "Warszawa", "Żytnia", 25));
 
     //expect
-    await TransitService.Awaiting(s => s.ChangeTransitAddressFrom(transit.Id, FarAwayAddress(transit)))
+    await TransitService.Awaiting(s => s.ChangeTransitAddressFrom(transit.Id, FarAwayAddress(from)))
       .Should().ThrowExactlyAsync<InvalidOperationException>();
   }
 
@@ -439,12 +442,19 @@ public class TransitLifeCycleIntegrationTest
     Assert.IsNull(loaded.AcceptedAt);
   }
 
-  private AddressDto FarAwayAddress(Transit t)
+  private AddressDto FarAwayAddress(AddressDto from)
   {
     var addressDto = new AddressDto("Dania", "Kopenhaga", "Mylve", 2);
-    GeocodingService.GeocodeAddress(Arg.Is<Address>(address => !(address == t.From)))
-      .Returns(new double[] { 1000, 1000 });
-    GeocodingService.GeocodeAddress(t.From)
+
+    GeocodingService.GeocodeAddress(Arg.Any<Address>()).Returns(new double[] { 1000, 1000 });
+    GeocodingService.GeocodeAddress(Arg<Address>.That(
+        a => a.Should().BeEquivalentTo(from.ToAddressEntity(),
+          options => options
+            .Excluding(address => address.Id)
+            .Excluding(address => address.Hash)
+            .Excluding((IMemberInfo info) => info.Name == "Version")
+            .ComparingByMembers<Address>()
+          )))
       .Returns(new double[] { 1, 1 });
     return addressDto;
   }
