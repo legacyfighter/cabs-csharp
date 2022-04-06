@@ -16,4 +16,7 @@ public interface IDriverService
   Task<DriverDto> LoadDriver(long? driverId);
   Task AddAttribute(long driverId, DriverAttributeNames attr, string value);
   Task<ISet<DriverDto>> LoadDrivers(ICollection<long?> ids);
+  Task<bool> Exists(long? driverId);
+  Task MarkOccupied(long? driverId);
+  Task MarkNotOccupied(long? driverId);
 }

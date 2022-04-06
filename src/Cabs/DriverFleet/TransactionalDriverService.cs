@@ -65,4 +65,23 @@ public class TransactionalDriverService : IDriverService
   {
     return await _inner.LoadDrivers(ids);
   }
+
+  public async Task<bool> Exists(long? driverId)
+  {
+    return await _inner.Exists(driverId);
+  }
+
+  public async Task MarkOccupied(long? driverId)
+  {
+    await using var tx = await _transactions.BeginTransaction();
+    await _inner.MarkOccupied(driverId);
+    await tx.Commit();
+  }
+
+  public async Task MarkNotOccupied(long? driverId)
+  {
+    await using var tx = await _transactions.BeginTransaction();
+    await _inner.MarkNotOccupied(driverId);
+    await tx.Commit();
+  }
 }

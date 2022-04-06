@@ -1,5 +1,6 @@
 ﻿using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Geolocation.Address;
+using LegacyFighter.Cabs.Pricing;
 
 namespace LegacyFighter.Cabs.Ride;
 
@@ -22,5 +23,15 @@ public class TransactionalRequestTransitService : IRequestTransitService
     var requestForTransit = await _inner.CreateRequestForTransit(from, to);
     await tx.Commit();
     return requestForTransit;
+  }
+
+  public async Task<Guid> FindCalculationGuid(long? requestId)
+  {
+    return await _inner.FindCalculationGuid(requestId);
+  }
+
+  public async Task<Tariff> FindTariff(Guid requestGuid)
+  {
+    return await _inner.FindTariff(requestGuid);
   }
 }

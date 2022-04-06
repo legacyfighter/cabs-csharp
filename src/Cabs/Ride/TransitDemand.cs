@@ -45,7 +45,7 @@ public class TransitDemand : BaseEntity
     PickupAddressChangeCounter += 1;
   }
 
-  public void Accepted()
+  public void Accept()
   {
     Status = Statuses.TransitToPassenger;
   }

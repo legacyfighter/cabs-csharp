@@ -19,7 +19,7 @@ public static class AssignmentSchema
         .HasColumnName("DriversRejections");
       builder.Property("_proposedDrivers")
         .HasColumnName("ProposedDrivers");
-      builder.Property(x => x.RequestId);
+      builder.Property(x => x.RequestGuid);
       builder.Property(x => x.Status);
       builder.Property(x => x.AssignedDriver);
       builder.Property(x => x.AwaitingDriversResponses);

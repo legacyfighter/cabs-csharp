@@ -5,8 +5,8 @@ namespace LegacyFighter.Cabs.Assignment;
 
 public interface IDriverAssignmentRepository
 {
-  Task<DriverAssignment> FindByRequestId(Guid requestId);
-  Task<DriverAssignment> FindByRequestIdAndStatus(Guid requestId, AssignmentStatuses status);
+  Task<DriverAssignment> FindByRequestGuid(Guid requestGuid);
+  Task<DriverAssignment> FindByRequestGuidAndStatus(Guid requestGuid, AssignmentStatuses status);
   Task Save(DriverAssignment driverAssignment);
 }
 
@@ -19,15 +19,15 @@ public class EfCoreDriverAssignmentRepository : IDriverAssignmentRepository
     _dbContext = dbContext;
   }
 
-  public async Task<DriverAssignment> FindByRequestId(Guid requestId)
+  public async Task<DriverAssignment> FindByRequestGuid(Guid requestGuid)
   {
-    return await _dbContext.DriverAssignments.FirstOrDefaultAsync(a => a.RequestId == requestId);
+    return await _dbContext.DriverAssignments.FirstOrDefaultAsync(a => a.RequestGuid == requestGuid);
   }
 
-  public async Task<DriverAssignment> FindByRequestIdAndStatus(Guid requestId, AssignmentStatuses status)
+  public async Task<DriverAssignment> FindByRequestGuidAndStatus(Guid requestGuid, AssignmentStatuses status)
   {
     return await _dbContext.DriverAssignments.FirstOrDefaultAsync(
-      a => a.RequestId == requestId && a.Status == status);
+      a => a.RequestGuid == requestGuid && a.Status == status);
   }
 
   public async Task Save(DriverAssignment driverAssignment)

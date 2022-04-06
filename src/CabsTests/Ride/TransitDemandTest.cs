@@ -23,7 +23,7 @@ public class TransitDemandTest
     //given
     var transitDemand = NewTransitDemand();
     //and
-    transitDemand.Accepted();
+    transitDemand.Accept();
 
     //expect
     transitDemand.Invoking(t => t.ChangePickup(0.1))

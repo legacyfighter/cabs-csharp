@@ -1,5 +1,4 @@
 ﻿using LegacyFighter.Cabs.CarFleet;
-using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.Geolocation.Address;
 using LegacyFighter.Cabs.Notification;
@@ -30,7 +29,7 @@ public class DriverAssignmentFacade : IDriverAssignmentFacade
     _driverNotificationService = driverNotificationService;
   }
 
-  public async Task<InvolvedDriversSummary> CreateAssignment(
+  public async Task<InvolvedDriversSummary> StartAssigningDrivers(
     Guid transitRequestGuid,
     AddressDto from,
     CarClasses? carClass,
@@ -130,11 +129,10 @@ public class DriverAssignmentFacade : IDriverAssignmentFacade
     return carClasses;
   }
 
-  public async Task<InvolvedDriversSummary> AcceptTransit(Guid transitRequestGuid, Driver driver)
+  public async Task<InvolvedDriversSummary> AcceptTransit(Guid transitRequestGuid, long? driverId)
   {
     var driverAssignment = await Find(transitRequestGuid);
-    driverAssignment.AcceptBy(driver.Id);
-    driver.Occupied = true;
+    driverAssignment.AcceptBy(driverId);
     return LoadInvolvedDrivers(driverAssignment);
   }
 
@@ -155,7 +153,7 @@ public class DriverAssignmentFacade : IDriverAssignmentFacade
   public async Task<bool> IsDriverAssigned(Guid transitRequestGuid)
   {
     return await _driverAssignmentRepository
-             .FindByRequestIdAndStatus(
+             .FindByRequestGuidAndStatus(
                transitRequestGuid, 
                AssignmentStatuses.OnTheWay) != null;
   }
@@ -192,7 +190,7 @@ public class DriverAssignmentFacade : IDriverAssignmentFacade
 
   private async Task<DriverAssignment> Find(Guid transitRequestGuid)
   {
-    return await _driverAssignmentRepository.FindByRequestId(transitRequestGuid);
+    return await _driverAssignmentRepository.FindByRequestGuid(transitRequestGuid);
   }
 
   public async Task NotifyAssignedDriverAboutChangedDestination(Guid transitRequestGuid)

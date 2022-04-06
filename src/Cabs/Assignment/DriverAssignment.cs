@@ -9,7 +9,7 @@ public class DriverAssignment : BaseEntity
   private string _driversRejections;
   private string _proposedDrivers;
 
-  internal Guid RequestId { get; }
+  internal Guid RequestGuid { get; }
   internal AssignmentStatuses Status { get; private set; } = AssignmentStatuses.WaitingForDriverAssignment;
   internal long? AssignedDriver { get; private set; }
   internal int? AwaitingDriversResponses { get; private set; } = 0;
@@ -18,9 +18,9 @@ public class DriverAssignment : BaseEntity
   {
   }
 
-  public DriverAssignment(Guid requestId, Instant publishedAt)
+  public DriverAssignment(Guid requestGuid, Instant publishedAt)
   {
-    RequestId = requestId;
+    RequestGuid = requestGuid;
     _publishedAt = publishedAt;
   }
 

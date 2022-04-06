@@ -43,4 +43,14 @@ public class RequestTransitService : IRequestTransitService
   {
     return _tariffs.Choose(when);
   }
+
+  public async Task<Guid> FindCalculationGuid(long? requestId)
+  {
+    return (await _requestForTransitRepository.Find(requestId)).RequestGuid;
+  }
+
+  public async Task<Tariff> FindTariff(Guid requestGuid)
+  {
+    return (await _requestForTransitRepository.FindByRequestGuid(requestGuid)).Tariff;
+  }
 }

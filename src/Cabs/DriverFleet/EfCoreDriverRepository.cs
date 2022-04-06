@@ -1,3 +1,4 @@
+using Core.Maybe;
 using LegacyFighter.Cabs.Repository;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +9,7 @@ public interface IDriverRepository
   Task<Driver> Find(long? driverId);
   Task<Driver> Save(Driver driver);
   Task<List<Driver>> FindAllById(ICollection<long?> ids);
+  Task<Maybe<Driver>> FindById(long? driverId);
 }
 
 internal class EfCoreDriverRepository : IDriverRepository
@@ -23,6 +25,12 @@ internal class EfCoreDriverRepository : IDriverRepository
   {
     return await _context.Drivers.FindAsync(driverId);
   }
+
+  public async Task<Maybe<Driver>> FindById(long? driverId)
+  {
+    return await Find(driverId).ToMaybeAsync();
+  }
+
 
   public async Task<Driver> Save(Driver driver)
   {

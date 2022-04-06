@@ -1,6 +1,5 @@
 ﻿using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Common;
-using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.Geolocation.Address;
 using NodaTime;
 
@@ -19,11 +18,11 @@ public class TransactionalDriverAssignmentFacade : IDriverAssignmentFacade
     _transactions = transactions;
   }
 
-  public async Task<InvolvedDriversSummary> CreateAssignment(Guid transitRequestGuid, AddressDto from,
+  public async Task<InvolvedDriversSummary> StartAssigningDrivers(Guid transitRequestGuid, AddressDto from,
     CarClasses? carClass, Instant when)
   {    
     await using var tx = await _transactions.BeginTransaction();
-    var involvedDriversSummary = await _inner.CreateAssignment(transitRequestGuid, from, carClass, when);
+    var involvedDriversSummary = await _inner.StartAssigningDrivers(transitRequestGuid, from, carClass, when);
     await tx.Commit();
     return involvedDriversSummary;
   }
@@ -37,10 +36,10 @@ public class TransactionalDriverAssignmentFacade : IDriverAssignmentFacade
     return drivers;
   }
 
-  public async Task<InvolvedDriversSummary> AcceptTransit(Guid transitRequestGuid, Driver driver)
+  public async Task<InvolvedDriversSummary> AcceptTransit(Guid transitRequestGuid, long? driverId)
   {    
     await using var tx = await _transactions.BeginTransaction();
-    var involvedDriversSummary = await _inner.AcceptTransit(transitRequestGuid, driver);
+    var involvedDriversSummary = await _inner.AcceptTransit(transitRequestGuid, driverId);
     await tx.Commit();
     return involvedDriversSummary;
   }

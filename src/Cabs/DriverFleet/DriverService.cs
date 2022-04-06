@@ -167,6 +167,12 @@ public class DriverService : IDriverService
     return new DriverDto(driver);
   }
 
+  public async Task<ISet<DriverDto>> LoadDrivers(ICollection<long?> ids) 
+  {
+    return (await _driverRepository.FindAllById(ids))
+      .Select(d => new DriverDto(d)).ToHashSet();
+  }
+
   public async Task AddAttribute(long driverId, DriverAttributeNames attr, string value)
   {
     var driver = await _driverRepository.Find(driverId);
@@ -176,12 +182,22 @@ public class DriverService : IDriverService
     }
 
     await _driverAttributeRepository.Save(new DriverAttribute(driver, attr, value));
-
   }
 
-  public async Task<ISet<DriverDto>> LoadDrivers(ICollection<long?> ids) 
+  public async Task<bool> Exists(long? driverId)
   {
-    return (await _driverRepository.FindAllById(ids))
-      .Select(d => new DriverDto(d)).ToHashSet();
+    return (await _driverRepository.FindById(driverId)).HasValue;
+  }
+
+  public async Task MarkOccupied(long? driverId)
+  {
+    var driver = await _driverRepository.Find(driverId);
+    driver.Occupied = true;
+  }
+
+  public async Task MarkNotOccupied(long? driverId)
+  {
+    var driver = await _driverRepository.Find(driverId);
+    driver.Occupied = false;
   }
 }

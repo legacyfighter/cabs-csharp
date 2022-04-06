@@ -1,6 +1,7 @@
 using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Geolocation.Address;
+using LegacyFighter.Cabs.Ride.Details;
 
 namespace LegacyFighter.Cabs.Ride;
 
@@ -67,15 +68,14 @@ public class TransactionalRideService : IRideService
     await tx.Commit();
   }
 
-  public async Task<Transit> PublishTransit(Guid requestGuid)
+  public async Task PublishTransit(Guid requestGuid)
   {
     await using var tx = await _transactions.BeginTransaction();
-    var transit = await _inner.PublishTransit(requestGuid);
+    await _inner.PublishTransit(requestGuid);
     await tx.Commit();
-    return transit;
   }
 
-  public async Task<Transit> FindDriversForTransit(Guid requestGuid)
+  public async Task<TransitDetailsDto> FindDriversForTransit(Guid requestGuid)
   {
     await using var tx = await _transactions.BeginTransaction();
     var transit = await _inner.FindDriversForTransit(requestGuid);

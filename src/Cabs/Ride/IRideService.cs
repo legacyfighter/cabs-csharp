@@ -1,5 +1,6 @@
 using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Geolocation.Address;
+using LegacyFighter.Cabs.Ride.Details;
 
 namespace LegacyFighter.Cabs.Ride;
 
@@ -12,8 +13,8 @@ public interface IRideService
   Task ChangeTransitAddressTo(Guid requestGuid, AddressDto newAddress);
   Task ChangeTransitAddressTo(Guid requestGuid, Address newAddress);
   Task CancelTransit(Guid requestGuid);
-  Task<Transit> PublishTransit(Guid requestGuid);
-  Task<Transit> FindDriversForTransit(Guid requestGuid);
+  Task PublishTransit(Guid requestGuid);
+  Task<TransitDetailsDto> FindDriversForTransit(Guid requestGuid);
   Task AcceptTransit(long? driverId, Guid requestGuid);
   Task StartTransit(long? driverId, Guid requestGuid);
   Task RejectTransit(long? driverId, Guid requestGuid);
