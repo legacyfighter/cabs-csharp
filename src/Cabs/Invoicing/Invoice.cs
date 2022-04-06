@@ -1,21 +1,20 @@
 using LegacyFighter.Cabs.Common;
 
-namespace LegacyFighter.Cabs.Entity;
+namespace LegacyFighter.Cabs.Invoicing;
 
 public class Invoice : BaseEntity
 {
-  protected Invoice()
-  {
-
-  }
-
-  public decimal Amount { get; private set; }
-  public string SubjectName { get; private set; }
+  private decimal Amount { get; set; }
+  private string SubjectName { get; set; }
 
   public Invoice(decimal amount, string subjectName)
   {
     Amount = amount;
     SubjectName = subjectName;
+  }
+
+  protected Invoice()
+  {
   }
 
   public override bool Equals(object obj)

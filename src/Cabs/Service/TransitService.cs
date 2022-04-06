@@ -4,6 +4,7 @@ using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Entity.Events;
+using LegacyFighter.Cabs.Invoicing;
 using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.TransitDetail;
 using NodaTime;

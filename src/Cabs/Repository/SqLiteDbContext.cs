@@ -10,6 +10,7 @@ using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.DriverReports.TravelledDistances;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Entity.Miles;
+using LegacyFighter.Cabs.Invoicing;
 using LegacyFighter.Cabs.Parties.Model.Parties;
 using LegacyFighter.Cabs.Repair.Legacy.Parts;
 using LegacyFighter.Cabs.Repair.Legacy.User;
@@ -168,10 +169,6 @@ public class SqLiteDbContext : DbContext
       builder.Property(x => x.CarClass).HasConversion<string>();
       builder.HasOne(s => s.Driver);
     });
-    modelBuilder.Entity<Invoice>(builder =>
-    {
-      builder.MapBaseEntityProperties();
-    });
     modelBuilder.Entity<Transit>(builder =>
     {
       builder.MapBaseEntityProperties();
@@ -248,7 +245,7 @@ public class SqLiteDbContext : DbContext
     AgreementsSchema.MapUsing(modelBuilder, instantConverter);
     ClaimSchema.MapUsing(modelBuilder, instantConverter);
     CarFleetSchema.MapUsing(modelBuilder);
-
+    InvoicingSchema.MapUsing(modelBuilder);
     MapRepairEntities(modelBuilder);
     MapContractEntities(modelBuilder);
   }

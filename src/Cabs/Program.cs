@@ -14,6 +14,7 @@ using LegacyFighter.Cabs.Contracts.Model.State.Dynamic.Acme;
 using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.DriverReports;
 using LegacyFighter.Cabs.DriverReports.TravelledDistances;
+using LegacyFighter.Cabs.Invoicing;
 using LegacyFighter.Cabs.Parties.Api;
 using LegacyFighter.Cabs.Parties.Infra;
 using LegacyFighter.Cabs.Parties.Model.Parties;
@@ -69,7 +70,6 @@ builder.Services.AddTransient<IClientRepository, EfCoreClientRepository>();
 builder.Services.AddTransient<ITransitRepository, EfCoreTransitRepository>();
 builder.Services.AddTransient<ITransitDetailsRepository, EfCoreTransitDetailsRepository>();
 builder.Services.AddTransient<IAwardsAccountRepository, EfCoreAwardsAccountRepository>();
-builder.Services.AddTransient<IInvoiceRepository, EfCoreInvoiceRepository>();
 builder.Services.AddTransient<ITravelledDistanceRepository, EfCoreTravelledDistanceRepository>();
 builder.Services.AddTransient<SqlBasedDriverReportCreator>();
 builder.Services.AddTransient<AwardsServiceImpl>();
@@ -115,7 +115,6 @@ builder.Services.AddTransient<ITravelledDistanceService>(ctx =>
   new TransactionalTravelledDistanceService(
     ctx.GetRequiredService<TravelledDistanceService>(),
     ctx.GetRequiredService<ITransactions>()));
-builder.Services.AddTransient<InvoiceGenerator>();
 builder.Services.AddTransient<DistanceCalculator>();
 builder.Services.AddSingleton<IAppProperties, AppProperties>();
 builder.Services.AddSingleton<IClock>(_ => SystemClock.Instance);
@@ -166,6 +165,7 @@ builder.Services.AddControllers().AddControllersAsServices();
 ClaimDependencies.AddTo(builder);
 AgreementsDependencies.AddTo(builder);
 CarFleetDependencies.AddTo(builder);
+InvoicingDependencies.AddTo(builder);
 
 var app = builder.Build();
 

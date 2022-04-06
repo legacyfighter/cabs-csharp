@@ -1,6 +1,6 @@
-using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Repository;
 
-namespace LegacyFighter.Cabs.Repository;
+namespace LegacyFighter.Cabs.Invoicing;
 
 public interface IInvoiceRepository
 {
