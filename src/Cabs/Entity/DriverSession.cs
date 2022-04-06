@@ -9,7 +9,7 @@ public class DriverSession : BaseEntity
   public string CarBrand { get; set; }
   public Instant LoggedAt { get; set; }
   public Instant? LoggedOutAt { get; set; }
-  public virtual Driver Driver { get; set; }
+  public long? DriverId { get; set; }
   public string PlatesNumber { get; set; }
   public CarClasses? CarClass { get; set; }
 

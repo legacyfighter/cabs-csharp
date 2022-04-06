@@ -1,5 +1,6 @@
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.DistanceValue;
+using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.MoneyValue;
 using NodaTime;
 

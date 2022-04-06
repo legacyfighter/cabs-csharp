@@ -7,7 +7,8 @@ using LegacyFighter.Cabs.Contracts.Model;
 using LegacyFighter.Cabs.Contracts.Model.Content;
 using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.DistanceValue;
-using LegacyFighter.Cabs.DriverReports.TravelledDistances;
+using LegacyFighter.Cabs.DriverFleet;
+using LegacyFighter.Cabs.DriverFleet.DriverReports.TravelledDistances;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Entity.Miles;
 using LegacyFighter.Cabs.Invoicing;
@@ -123,35 +124,6 @@ public class SqLiteDbContext : DbContext
       builder.Property(c => c.ClientType).HasConversion<string>();
       builder.Property(c => c.DefaultPaymentType).HasConversion<string>();
     });
-    modelBuilder.Entity<Driver>(e =>
-    {
-      e.MapBaseEntityProperties();
-      e.Property(d => d.Status).HasConversion<string>().IsRequired();
-      e.Property(d => d.Type).HasConversion<string>();
-      e.OwnsOne(driver => driver.DriverLicense, builder =>
-      {
-        builder.Property(dl => dl.ValueAsString).HasColumnName(nameof(Driver.DriverLicense)).IsRequired();
-      });
-      e.HasMany(d => d.Attributes).WithOne(d => d.Driver);
-      e.HasOne(d => d.Fee).WithOne(f => f.Driver).HasForeignKey<DriverFee>(x => x.Id);
-    });
-    modelBuilder.Entity<DriverAttribute>(builder =>
-    {
-      builder.HasKey(x => x.Id);
-      builder.Property(a => a.Name).HasConversion<string>().IsRequired();
-      builder.Property(a => a.Value).IsRequired();
-      builder.HasOne(a => a.Driver).WithMany(d => d.Attributes);
-    });
-    modelBuilder.Entity<DriverFee>(builder =>
-    {
-      builder.MapBaseEntityProperties();
-      builder.Property(f => f.FeeType).IsRequired();
-      builder.Property(f => f.Amount).IsRequired();
-      builder.OwnsOne(f => f.Min, navigation =>
-      {
-        navigation.Property(m => m.IntValue).HasColumnName(nameof(DriverFee.Min));
-      });
-    });
     modelBuilder.Entity<DriverPosition>(builder =>
     {
       builder.MapBaseEntityProperties();
@@ -167,7 +139,7 @@ public class SqLiteDbContext : DbContext
       builder.Property(x => x.LoggedOutAt).HasConversion(instantConverter);
       builder.Property(x => x.PlatesNumber).IsRequired();
       builder.Property(x => x.CarClass).HasConversion<string>();
-      builder.HasOne(s => s.Driver);
+      builder.Property(s => s.DriverId);
     });
     modelBuilder.Entity<Transit>(builder =>
     {
@@ -225,27 +197,11 @@ public class SqLiteDbContext : DbContext
       builder.Property(d => d.TransitId);
       builder.OwnsOne<Tariff>("Tariff", MapTariffProperties);
     });
-    modelBuilder.Entity<TravelledDistance>(builder =>
-    {
-      builder.HasKey("IntervalId");
-      builder.Property<long>("_driverId").HasColumnName("DriverId").IsRequired();
-      builder.Property(e => e.LastLatitude).IsRequired();
-      builder.Property(e => e.LastLongitude).IsRequired();
-      builder.OwnsOne<TimeSlot>("TimeSlot", navigation =>
-      {
-        navigation.Property(s => s.Beginning).HasColumnName("Beginning").HasConversion(instantConverter);
-        navigation.Property(s => s.End).HasColumnName("End").HasConversion(instantConverter);
-      });
-      builder.Property<Distance>("Distance").HasColumnName("Km")
-        .HasConversion(
-          distance => distance.ToKmInDouble(),
-          value => Distance.OfKm(value)).IsRequired();
-
-    });
     AgreementsSchema.MapUsing(modelBuilder, instantConverter);
     ClaimSchema.MapUsing(modelBuilder, instantConverter);
     CarFleetSchema.MapUsing(modelBuilder);
     InvoicingSchema.MapUsing(modelBuilder);
+    DriverFleetSchema.MapUsing(modelBuilder, instantConverter);
     MapRepairEntities(modelBuilder);
     MapContractEntities(modelBuilder);
   }

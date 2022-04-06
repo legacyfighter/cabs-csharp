@@ -13,8 +13,7 @@ using LegacyFighter.Cabs.Contracts.Model.Content;
 using LegacyFighter.Cabs.Contracts.Model.State.Dynamic.Acme;
 using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.Crm.TransitAnalyzer;
-using LegacyFighter.Cabs.DriverReports;
-using LegacyFighter.Cabs.DriverReports.TravelledDistances;
+using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.Invoicing;
 using LegacyFighter.Cabs.Notification;
 using LegacyFighter.Cabs.Parties.Api;
@@ -56,17 +55,12 @@ builder.Services.AddTransient<DbContext>(ctx => ctx.GetRequiredService<SqLiteDbC
 builder.Services.AddScoped<EventsPublisher>();
 builder.Services.AddTransient<ITransactions, Transactions>();
 builder.Services.AddTransient<IAddressRepositoryInterface, EfCoreAddressRepository>();
-builder.Services.AddTransient<IDriverRepository, EfCoreDriverRepository>();
-builder.Services.AddTransient<IDriverFeeRepository, EfCoreDriverFeeRepository>();
-builder.Services.AddTransient<IDriverAttributeRepository, EfCoreDriverAttributeRepository>();
 builder.Services.AddTransient<IDriverSessionRepository, EfCoreDriverSessionRepository>();
 builder.Services.AddTransient<IDriverPositionRepository, EfCoreDriverPositionRepository>();
 builder.Services.AddTransient<IClientRepository, EfCoreClientRepository>();
 builder.Services.AddTransient<ITransitRepository, EfCoreTransitRepository>();
 builder.Services.AddTransient<ITransitDetailsRepository, EfCoreTransitDetailsRepository>();
 builder.Services.AddTransient<IAwardsAccountRepository, EfCoreAwardsAccountRepository>();
-builder.Services.AddTransient<ITravelledDistanceRepository, EfCoreTravelledDistanceRepository>();
-builder.Services.AddTransient<SqlBasedDriverReportCreator>();
 builder.Services.AddTransient<AwardsServiceImpl>();
 builder.Services.AddTransient<IAwardsService>(ctx =>
   new TransactionalAwardsService(
@@ -76,16 +70,6 @@ builder.Services.AddTransient<ClientService>();
 builder.Services.AddTransient<IClientService>(
   ctx => new TransactionalClientService(
     ctx.GetRequiredService<ClientService>(), 
-    ctx.GetRequiredService<ITransactions>()));
-builder.Services.AddTransient<DriverService>();
-builder.Services.AddTransient<IDriverService>(ctx =>
-  new TransactionalDriverService(
-    ctx.GetRequiredService<DriverService>(), 
-    ctx.GetRequiredService<ITransactions>()));
-builder.Services.AddTransient<DriverFeeService>();
-builder.Services.AddTransient<IDriverFeeService>(ctx =>
-  new TransactionalDriverFeeService(
-    ctx.GetRequiredService<DriverFeeService>(),
     ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddTransient<DriverTrackingService>();
 builder.Services.AddTransient<IDriverTrackingService>(ctx =>
@@ -102,11 +86,6 @@ builder.Services.AddTransient<TransitService>();
 builder.Services.AddTransient<ITransitService>(ctx =>
   new TransactionalTransitService(
     ctx.GetRequiredService<TransitService>(),
-    ctx.GetRequiredService<ITransactions>()));
-builder.Services.AddTransient<TravelledDistanceService>();
-builder.Services.AddTransient<ITravelledDistanceService>(ctx =>
-  new TransactionalTravelledDistanceService(
-    ctx.GetRequiredService<TravelledDistanceService>(),
     ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddTransient<DistanceCalculator>();
 builder.Services.AddSingleton<IAppProperties, AppProperties>();
@@ -159,6 +138,7 @@ CarFleetDependencies.AddTo(builder);
 InvoicingDependencies.AddTo(builder);
 TransitAnalyzerDependencies.AddTo(builder);
 NotificationDependencies.AddTo(builder);
+DriverFleetDependencies.AddTo(builder);
 
 var app = builder.Build();
 

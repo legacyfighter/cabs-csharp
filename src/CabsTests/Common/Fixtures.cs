@@ -1,6 +1,7 @@
 using System.Linq;
 using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Crm.Claims;
+using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Service;
@@ -141,7 +142,7 @@ public class Fixtures
       carBrand);
   }
 
-  public async Task DriverHasAttribute(Driver driver, DriverAttribute.DriverAttributeNames name, string value) 
+  public async Task DriverHasAttribute(Driver driver, DriverAttributeNames name, string value) 
   {
     await _driverFixture.DriverHasAttribute(driver, name, value);
   }

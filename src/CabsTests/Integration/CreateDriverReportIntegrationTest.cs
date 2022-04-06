@@ -1,7 +1,8 @@
 ﻿using System.Linq;
 using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Crm.Claims;
-using LegacyFighter.Cabs.DriverReports;
+using LegacyFighter.Cabs.DriverFleet;
+using LegacyFighter.Cabs.DriverFleet.DriverReports;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Repository;
@@ -58,9 +59,9 @@ public class CreateDriverReportIntegrationTest
     //and
     var driver = await ADriver(Driver.Statuses.Active, "JAN", "NOWAK", "FARME100165AB5EW");
     //and
-    await Fixtures.DriverHasAttribute(driver, DriverAttribute.DriverAttributeNames.CompanyName, "UBER");
-    await Fixtures.DriverHasAttribute(driver, DriverAttribute.DriverAttributeNames.PenaltyPoints, "21");
-    await Fixtures.DriverHasAttribute(driver, DriverAttribute.DriverAttributeNames.MedicalExaminationRemarks,
+    await Fixtures.DriverHasAttribute(driver, DriverAttributeNames.CompanyName, "UBER");
+    await Fixtures.DriverHasAttribute(driver, DriverAttributeNames.PenaltyPoints, "21");
+    await Fixtures.DriverHasAttribute(driver, DriverAttributeNames.MedicalExaminationRemarks,
       "private info");
     //and
     await DriverHasDoneSessionAndPicksSomeoneUpInCar(driver, client, CarClasses.Van, "WU1213", "SCODA FABIA",
@@ -89,10 +90,10 @@ public class CreateDriverReportIntegrationTest
     Assert.AreEqual(2, driverReportWithin2days.Attributes.Count);
     Assert.True(
       driverReportWithin2days.Attributes.Contains(
-        new DriverAttributeDto(DriverAttribute.DriverAttributeNames.CompanyName, "UBER")));
+        new DriverAttributeDto(DriverAttributeNames.CompanyName, "UBER")));
     Assert.True(
       driverReportWithin2days.Attributes.Contains(
-        new DriverAttributeDto(DriverAttribute.DriverAttributeNames.PenaltyPoints, "21")));
+        new DriverAttributeDto(DriverAttributeNames.PenaltyPoints, "21")));
 
     TransitsInSessionIn("SCODA FABIA", driverReportWithin2days).Should().HaveCount(1);
     TransitsInSessionIn("SCODA FABIA", driverReportWithin2days)[0].ClaimDto.Should().BeNull();

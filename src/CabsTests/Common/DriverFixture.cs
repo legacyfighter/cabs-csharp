@@ -1,8 +1,8 @@
 using System;
 using LegacyFighter.Cabs.CarFleet;
+using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;
-using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.Service;
 using NodaTime;
 
@@ -129,7 +129,7 @@ public class DriverFixture
 
   public async Task DriverHasAttribute(
     Driver driver,
-    DriverAttribute.DriverAttributeNames name,
+    DriverAttributeNames name,
     string value)
   {
     await _driverAttributeRepository.Save(new DriverAttribute(driver, name, value));

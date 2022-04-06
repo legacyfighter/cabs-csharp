@@ -1,5 +1,5 @@
 ﻿using LegacyFighter.Cabs.Crm.TransitAnalyzer;
-using LegacyFighter.Cabs.DriverReports;
+using LegacyFighter.Cabs.DriverFleet.DriverReports;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Service;
 using LegacyFighter.CabsTests.Common;

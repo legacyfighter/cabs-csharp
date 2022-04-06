@@ -1,5 +1,6 @@
 ﻿using System;
 using LegacyFighter.Cabs.DistanceValue;
+using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.Entity;
 using NodaTime;
 

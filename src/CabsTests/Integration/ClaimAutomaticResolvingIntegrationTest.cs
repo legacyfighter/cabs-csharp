@@ -1,5 +1,6 @@
 using LegacyFighter.Cabs.Config;
 using LegacyFighter.Cabs.Crm.Claims;
+using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Notification;
 using LegacyFighter.Cabs.Service;

@@ -1,7 +1,5 @@
 ﻿using System;
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.Service;
+using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.CabsTests.Common;
 
 namespace LegacyFighter.CabsTests.Integration;

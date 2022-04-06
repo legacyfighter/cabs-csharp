@@ -1,5 +1,6 @@
 using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.DistanceValue;
+using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;

@@ -1,4 +1,4 @@
-﻿using LegacyFighter.Cabs.DriverReports.TravelledDistances;
+﻿using LegacyFighter.Cabs.DriverFleet.DriverReports.TravelledDistances;
 using LegacyFighter.CabsTests.Common;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;

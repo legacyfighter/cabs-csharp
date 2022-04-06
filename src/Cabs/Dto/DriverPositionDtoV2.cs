@@ -1,4 +1,4 @@
-using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.DriverFleet;
 using NodaTime;
 
 namespace LegacyFighter.Cabs.Dto;

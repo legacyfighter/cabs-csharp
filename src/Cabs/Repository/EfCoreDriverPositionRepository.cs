@@ -1,3 +1,4 @@
+using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using Microsoft.EntityFrameworkCore;

@@ -1,4 +1,4 @@
-﻿using LegacyFighter.Cabs.Entity;
+﻿using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.MoneyValue;
 using LegacyFighter.Cabs.Service;
 using LegacyFighter.CabsTests.Common;

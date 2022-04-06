@@ -1,6 +1,7 @@
 using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.DistanceValue;
+using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Entity.Events;
@@ -330,12 +331,12 @@ public class TransitService : ITransitService
               carClasses.AddRange(activeCarClasses);
             }
 
-            var drivers = driversAvgPositions.Select(p => p.Driver).ToList();
+            var drivers = driversAvgPositions.Select(p => p.Driver.Id).ToList();
 
             var activeDriverIdsInSpecificCar = (await _driverSessionRepository
-              .FindAllByLoggedOutAtNullAndDriverInAndCarClassIn(drivers, carClasses))
+              .FindAllByLoggedOutAtNullAndDriverIdInAndCarClassIn(drivers, carClasses))
 
-              .Select(ds => ds.Driver.Id).ToList();
+              .Select(ds => ds.DriverId).ToList();
 
             driversAvgPositions = driversAvgPositions
               .Where(dp=>activeDriverIdsInSpecificCar.Contains(dp.Driver.Id)).ToList();

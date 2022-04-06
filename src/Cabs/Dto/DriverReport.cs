@@ -1,4 +1,4 @@
-using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.DriverFleet;
 
 namespace LegacyFighter.Cabs.Dto;
 
@@ -9,7 +9,7 @@ public class DriverReport
   public IDictionary<DriverSessionDto, List<TransitDto>> Sessions { get; set; } 
     = new Dictionary<DriverSessionDto, List<TransitDto>>();
 
-  public void AddAttr(DriverAttribute.DriverAttributeNames name, string value)
+  public void AddAttr(DriverAttributeNames name, string value)
   {
     Attributes.Add(new DriverAttributeDto(name, value));
   }
