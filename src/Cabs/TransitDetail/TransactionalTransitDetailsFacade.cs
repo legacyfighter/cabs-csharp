@@ -87,4 +87,9 @@ public class TransactionalTransitDetailsFacade : ITransitDetailsFacade
   {
     return await _inner.FindByDriver(driverId, from, to);
   }
+
+  public async Task<List<TransitDetailsDto>> FindCompleted()
+  {
+    return await _inner.FindCompleted();
+  }
 }

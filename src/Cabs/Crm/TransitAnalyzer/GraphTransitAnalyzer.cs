@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 using Neo4j.Driver;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.TransitAnalyzer;
+namespace LegacyFighter.Cabs.Crm.TransitAnalyzer;
 
 public class GraphTransitAnalyzer : INotificationHandler<TransitCompleted>
 {

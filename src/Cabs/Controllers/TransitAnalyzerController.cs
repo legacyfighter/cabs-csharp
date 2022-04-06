@@ -1,6 +1,6 @@
+using LegacyFighter.Cabs.Crm.TransitAnalyzer;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Repository;
-using LegacyFighter.Cabs.TransitAnalyzer;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LegacyFighter.Cabs.Controllers;

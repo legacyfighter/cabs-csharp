@@ -20,4 +20,5 @@ public interface ITransitDetailsFacade
   Task TransitCompleted(long? transitId, Instant when, Money price, Money driverFee);
   Task<List<TransitDetailsDto>> FindByClient(long? clientId);
   Task<List<TransitDetailsDto>> FindByDriver(long? driverId, Instant from, Instant to);
+  Task<List<TransitDetailsDto>> FindCompleted();
 }

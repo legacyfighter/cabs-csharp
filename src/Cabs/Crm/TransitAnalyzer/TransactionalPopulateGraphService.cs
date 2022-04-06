@@ -1,6 +1,6 @@
 ﻿using LegacyFighter.Cabs.Common;
 
-namespace LegacyFighter.Cabs.TransitAnalyzer;
+namespace LegacyFighter.Cabs.Crm.TransitAnalyzer;
 
 public class TransactionalPopulateGraphService : IPopulateGraphService
 {

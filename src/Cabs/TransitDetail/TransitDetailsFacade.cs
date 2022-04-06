@@ -70,6 +70,13 @@ public class TransitDetailsFacade : ITransitDetailsFacade
     details.SetCompletedAt(when, price, driverFee);
   }
 
+  public async Task<List<TransitDetailsDto>> FindCompleted() 
+  {
+    return (await _transitDetailsRepository.FindByStatus(Transit.Statuses.Completed))
+      .Select(t => new TransitDetailsDto(t))
+      .ToList();
+  }
+
   public async Task<List<TransitDetailsDto>> FindByClient(long? clientId) 
   {
     return (await _transitDetailsRepository.FindByClientId(clientId))

@@ -1,7 +1,7 @@
-﻿using LegacyFighter.Cabs.DriverReports;
+﻿using LegacyFighter.Cabs.Crm.TransitAnalyzer;
+using LegacyFighter.Cabs.DriverReports;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Service;
-using LegacyFighter.Cabs.TransitAnalyzer;
 using LegacyFighter.CabsTests.Common;
 using Microsoft.Extensions.DependencyInjection;
 

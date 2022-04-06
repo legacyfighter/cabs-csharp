@@ -1,4 +1,4 @@
-﻿using LegacyFighter.Cabs.TransitAnalyzer;
+﻿using LegacyFighter.Cabs.Crm.TransitAnalyzer;
 using LegacyFighter.CabsTests.Common;
 using NodaTime;
 

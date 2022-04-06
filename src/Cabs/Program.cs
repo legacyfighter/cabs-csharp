@@ -12,6 +12,7 @@ using LegacyFighter.Cabs.Contracts.Model;
 using LegacyFighter.Cabs.Contracts.Model.Content;
 using LegacyFighter.Cabs.Contracts.Model.State.Dynamic.Acme;
 using LegacyFighter.Cabs.Crm.Claims;
+using LegacyFighter.Cabs.Crm.TransitAnalyzer;
 using LegacyFighter.Cabs.DriverReports;
 using LegacyFighter.Cabs.DriverReports.TravelledDistances;
 using LegacyFighter.Cabs.Invoicing;
@@ -23,7 +24,6 @@ using LegacyFighter.Cabs.Repair.Legacy.Dao;
 using LegacyFighter.Cabs.Repair.Legacy.Service;
 using LegacyFighter.Cabs.Repository;
 using LegacyFighter.Cabs.Service;
-using LegacyFighter.Cabs.TransitAnalyzer;
 using LegacyFighter.Cabs.TransitDetail;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -45,12 +45,6 @@ builder.Services.AddSingleton(_ => SqLiteDbContext.CreateInMemoryDatabase());
 builder.Services.AddSingleton(ctx => GraphDatabase.Driver(
   ctx.GetRequiredService<IOptions<GraphDatabaseOptions>>().Value.Uri, 
   AuthTokens.None));
-builder.Services.AddTransient<GraphTransitAnalyzer>();
-builder.Services.AddTransient<PopulateGraphService>();
-builder.Services.AddTransient<IPopulateGraphService>(ctx => 
-  new TransactionalPopulateGraphService(
-    ctx.GetRequiredService<PopulateGraphService>(),
-    ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddTransient<TransitDetailsFacade>();
 builder.Services.AddTransient<ITransitDetailsFacade>(ctx =>
   new TransactionalTransitDetailsFacade(
@@ -123,7 +117,6 @@ builder.Services.AddTransient<IAddressRepository>(ctx =>
   new TransactionalAddressRepository(
     ctx.GetRequiredService<AddressRepository>(),
     ctx.GetRequiredService<ITransactions>()));
-
 builder.Services.AddTransient<UserDao>();
 builder.Services.AddTransient<JobDoer>();
 builder.Services.AddTransient<IJobDoer>(ctx => new TransactionalJobDoer(
@@ -137,7 +130,6 @@ builder.Services.AddTransient<RepairProcess>();
 builder.Services.AddTransient<PartyMapper>();
 builder.Services.AddTransient<IPartyRepository, EfCorePartyRepository>();
 builder.Services.AddTransient<IPartyRelationshipRepository, EfCorePartyRelationshipRepository>();
-
 builder.Services.AddTransient<IApplicationEventPublisher, MediatRApplicationEventPublisher>();
 builder.Services.AddTransient<IUserRepository, EfCoreUserRepository>();
 builder.Services.AddTransient<IDocumentContentRepository, EfCoreDocumentContentRepository>();
@@ -166,7 +158,7 @@ ClaimDependencies.AddTo(builder);
 AgreementsDependencies.AddTo(builder);
 CarFleetDependencies.AddTo(builder);
 InvoicingDependencies.AddTo(builder);
-
+TransitAnalyzerDependencies.AddTo(builder);
 var app = builder.Build();
 
 using (var serviceScope = app.Services.CreateScope())

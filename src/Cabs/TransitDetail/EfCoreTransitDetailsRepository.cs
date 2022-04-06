@@ -1,4 +1,5 @@
-﻿using LegacyFighter.Cabs.Repository;
+﻿using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Repository;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 
@@ -10,6 +11,7 @@ public interface ITransitDetailsRepository
   Task<List<TransitDetails>> FindByClientId(long? clientId);
   Task<List<TransitDetails>> FindAllByDriverAndDateTimeBetween(long? driverId, Instant from, Instant to);
   Task Save(TransitDetails transitDetails);
+  Task<List<TransitDetails>> FindByStatus(Transit.Statuses status);
 }
 
 public class EfCoreTransitDetailsRepository : ITransitDetailsRepository
@@ -29,6 +31,11 @@ public class EfCoreTransitDetailsRepository : ITransitDetailsRepository
   public async Task<List<TransitDetails>> FindByClientId(long? clientId)
   {
     return await _dbContext.TransitsDetails.Where(td => td.Client.Id == clientId).ToListAsync();
+  }
+
+  public async Task<List<TransitDetails>> FindByStatus(Transit.Statuses status)
+  {
+    return await _dbContext.TransitsDetails.Where(td => td.Status == status).ToListAsync();
   }
 
   public async Task<List<TransitDetails>> FindAllByDriverAndDateTimeBetween(long? driverId, Instant from, Instant to)
