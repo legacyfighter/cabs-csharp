@@ -1,8 +1,6 @@
 using LegacyFighter.Cabs.Common;
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
 
-namespace LegacyFighter.Cabs.Service;
+namespace LegacyFighter.Cabs.Agreements;
 
 public class TransactionalContractService : IContractService
 {
@@ -15,7 +13,7 @@ public class TransactionalContractService : IContractService
     _transactions = transactions;
   }
 
-  public async Task<Contract> CreateContract(ContractDto contractDto)
+  public async Task<ContractDto> CreateContract(ContractDto contractDto)
   {
     await using var tx = await _transactions.BeginTransaction();
     var contract = await _inner.CreateContract(contractDto);

@@ -1,7 +1,6 @@
-using LegacyFighter.Cabs.Entity;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.Dto;
+namespace LegacyFighter.Cabs.Agreements;
 
 public class ContractDto
 {
@@ -32,7 +31,7 @@ public class ContractDto
   public Instant? AcceptedAt { set; get; }
   public Instant? RejectedAt { set; get; }
   public Instant? ChangeDate { set; get; }
-  public Contract.Statuses Status { set; get; }
+  public ContractStatuses Status { set; get; }
   public string ContractNo { set; get; }
   public string PartnerName { set; get; }
   public string Subject { set; get; }

@@ -1,13 +1,13 @@
 ﻿using LegacyFighter.Cabs.Common;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.Entity;
+namespace LegacyFighter.Cabs.Agreements;
 
 public class ContractAttachmentData : BaseEntity
 {
-  public Guid ContractAttachmentNo { get; private set; }
-  public byte[] Data { get; private set; }
-  public Instant CreationDate { get; private set; } = SystemClock.Instance.GetCurrentInstant();
+  internal Guid ContractAttachmentNo { get; private set; }
+  internal byte[] Data { get; private set; }
+  internal Instant CreationDate { get; private set; } = SystemClock.Instance.GetCurrentInstant();
 
   public ContractAttachmentData()
   {

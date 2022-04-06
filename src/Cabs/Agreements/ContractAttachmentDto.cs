@@ -1,17 +1,16 @@
-using LegacyFighter.Cabs.Entity;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.Dto;
+namespace LegacyFighter.Cabs.Agreements;
 
 public class ContractAttachmentDto
 {
 
-  public ContractAttachmentDto()
+  internal ContractAttachmentDto()
   {
   }
 
 
-  public ContractAttachmentDto(ContractAttachment attachment, ContractAttachmentData data)
+  internal ContractAttachmentDto(ContractAttachment attachment, ContractAttachmentData data)
   {
     Id = attachment.Id;
     Data = data.Data;
@@ -30,5 +29,5 @@ public class ContractAttachmentDto
   public Instant AcceptedAt { get; set; }
   public Instant RejectedAt { get; set; }
   public Instant ChangeDate { get; set; }
-  public ContractAttachment.Statuses Status { get; set; }
+  public ContractAttachmentStatuses Status { get; set; }
 }

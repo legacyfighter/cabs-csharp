@@ -1,25 +1,16 @@
 using LegacyFighter.Cabs.Common;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.Entity;
+namespace LegacyFighter.Cabs.Agreements;
 
 public class ContractAttachment : BaseEntity
 {
-
-  public enum Statuses
-  {
-    Proposed,
-    AcceptedByOneSide,
-    AcceptedByBothSides,
-    Rejected
-  }
-
-  public Guid ContractAttachmentNo { get; private set; } = Guid.NewGuid();
-  public Instant AcceptedAt { get; set; }
-  public Instant RejectedAt { get; set; }
-  public Instant ChangeDate { get; set; }
-  public Statuses Status { get; set; } = Statuses.Proposed;
-  public virtual Contract Contract { get; set; }
+  internal Guid ContractAttachmentNo { get; private set; } = Guid.NewGuid();
+  internal Instant AcceptedAt { get; set; }
+  internal Instant RejectedAt { get; set; }
+  internal Instant ChangeDate { get; set; }
+  internal ContractAttachmentStatuses Status { get; set; } = ContractAttachmentStatuses.Proposed;
+  internal virtual Contract Contract { get; set; }
 
   public override bool Equals(object obj)
   {

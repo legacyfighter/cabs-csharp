@@ -1,3 +1,4 @@
+using LegacyFighter.Cabs.Agreements;
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Config;
 using LegacyFighter.Cabs.Contracts.Application;
@@ -68,8 +69,6 @@ builder.Services.AddTransient<ITransitRepository, EfCoreTransitRepository>();
 builder.Services.AddTransient<ITransitDetailsRepository, EfCoreTransitDetailsRepository>();
 builder.Services.AddTransient<IAwardsAccountRepository, EfCoreAwardsAccountRepository>();
 builder.Services.AddTransient<IInvoiceRepository, EfCoreInvoiceRepository>();
-builder.Services.AddTransient<IContractRepository, EfCoreContractRepository>();
-builder.Services.AddTransient<IContractAttachmentDataRepository, EfCoreContractAttachmentDataRepository>();
 builder.Services.AddTransient<ICarTypeEntityRepository, EfCoreCarTypeRepository>();
 builder.Services.AddTransient<ICarTypeRepository, CarTypeRepository>();
 builder.Services.AddTransient<ICarTypeActiveCounterRepository, EfCoreCarTypeActiveCounterRepository>();
@@ -113,11 +112,6 @@ builder.Services.AddTransient<IDriverSessionService>(ctx =>
     ctx.GetRequiredService<DriverSessionService>(),
     ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddTransient<IGeocodingService, GeocodingService>();
-builder.Services.AddTransient<ContractService>();
-builder.Services.AddTransient<IContractService>(ctx => 
-  new TransactionalContractService(
-    ctx.GetRequiredService<ContractService>(), 
-    ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddTransient<TransitService>();
 builder.Services.AddTransient<ITransitService>(ctx =>
   new TransactionalTransitService(
@@ -177,6 +171,8 @@ builder.Services.AddFeatureManagement();
 builder.Services.AddControllers().AddControllersAsServices();
 
 ClaimDependencies.AddTo(builder);
+AgreementsDependencies.AddTo(builder);
+
 
 var app = builder.Build();
 

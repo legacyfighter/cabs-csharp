@@ -1,11 +1,8 @@
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
-
-namespace LegacyFighter.Cabs.Service;
+namespace LegacyFighter.Cabs.Agreements;
 
 public interface IContractService
 {
-  Task<Contract> CreateContract(ContractDto contractDto);
+  Task<ContractDto> CreateContract(ContractDto contractDto);
   Task AcceptContract(long? id);
   Task RejectContract(long? id);
   Task RejectAttachment(long? attachmentId);

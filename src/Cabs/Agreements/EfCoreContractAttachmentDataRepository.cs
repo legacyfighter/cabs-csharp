@@ -1,7 +1,7 @@
-using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Repository;
 using Microsoft.EntityFrameworkCore;
 
-namespace LegacyFighter.Cabs.Repository;
+namespace LegacyFighter.Cabs.Agreements;
 
 public interface IContractAttachmentDataRepository
 {

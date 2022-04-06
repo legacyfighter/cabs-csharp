@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Text;
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.Service;
+using LegacyFighter.Cabs.Agreements;
 using LegacyFighter.CabsTests.Common;
 
 namespace LegacyFighter.CabsTests.Integration;
@@ -37,7 +35,7 @@ public class ContractLifecycleIntegrationTest
     Assert.AreEqual("partnerNameVeryUnique", loaded.PartnerName);
     Assert.AreEqual("umowa o cenę", loaded.Subject);
     Assert.AreEqual("C/1/partnerNameVeryUnique", loaded.ContractNo);
-    Assert.AreEqual(Contract.Statuses.NegotiationsInProgress, loaded.Status);
+    Assert.AreEqual(ContractStatuses.NegotiationsInProgress, loaded.Status);
     Assert.NotNull(loaded.Id);
     Assert.NotNull(loaded.CreationDate);
     Assert.NotNull(loaded.CreationDate);
@@ -76,7 +74,7 @@ public class ContractLifecycleIntegrationTest
     var loaded = await LoadContract(created.Id);
     Assert.AreEqual(1, loaded.Attachments.Count);
     CollectionAssert.AreEqual(Encoding.Default.GetBytes("content"), loaded.Attachments[0].Data);
-    Assert.AreEqual(ContractAttachment.Statuses.Proposed, loaded.Attachments[0].Status);
+    Assert.AreEqual(ContractAttachmentStatuses.Proposed, loaded.Attachments[0].Status);
   }
 
   [Test]
@@ -109,7 +107,7 @@ public class ContractLifecycleIntegrationTest
     //then
     var loaded = await LoadContract(created.Id);
     Assert.AreEqual(1, loaded.Attachments.Count);
-    Assert.AreEqual(ContractAttachment.Statuses.AcceptedByOneSide, loaded.Attachments[0].Status);
+    Assert.AreEqual(ContractAttachmentStatuses.AcceptedByOneSide, loaded.Attachments[0].Status);
   }
 
   [Test]
@@ -128,7 +126,7 @@ public class ContractLifecycleIntegrationTest
     //then
     var loaded = await LoadContract(created.Id);
     Assert.AreEqual(1, loaded.Attachments.Count);
-    Assert.AreEqual(ContractAttachment.Statuses.AcceptedByBothSides, loaded.Attachments[0].Status);
+    Assert.AreEqual(ContractAttachmentStatuses.AcceptedByBothSides, loaded.Attachments[0].Status);
   }
 
   [Test]
@@ -145,7 +143,7 @@ public class ContractLifecycleIntegrationTest
     //then
     var loaded = await LoadContract(created.Id);
     Assert.AreEqual(1, loaded.Attachments.Count);
-    Assert.AreEqual(ContractAttachment.Statuses.Rejected, loaded.Attachments[0].Status);
+    Assert.AreEqual(ContractAttachmentStatuses.Rejected, loaded.Attachments[0].Status);
   }
 
   [Test]
@@ -164,7 +162,7 @@ public class ContractLifecycleIntegrationTest
 
     //then
     var loaded = await LoadContract(created.Id);
-    Assert.AreEqual(Contract.Statuses.Accepted, loaded.Status);
+    Assert.AreEqual(ContractStatuses.Accepted, loaded.Status);
   }
 
   [Test]
@@ -183,7 +181,7 @@ public class ContractLifecycleIntegrationTest
 
     //then
     var loaded = await LoadContract(created.Id);
-    Assert.AreEqual(Contract.Statuses.Rejected, loaded.Status);
+    Assert.AreEqual(ContractStatuses.Rejected, loaded.Status);
   }
 
   [Test]
@@ -200,7 +198,7 @@ public class ContractLifecycleIntegrationTest
     await this.Awaiting(_ => AcceptContract(created))
       .Should().ThrowExactlyAsync<InvalidOperationException>();
     var loaded = await LoadContract(created.Id);
-    Assert.AreNotEqual(Contract.Statuses.Accepted, loaded.Status);
+    Assert.AreNotEqual(ContractStatuses.Accepted, loaded.Status);
   }
 
   private async Task<ContractDto> LoadContract(long? id)
@@ -215,8 +213,7 @@ public class ContractLifecycleIntegrationTest
       PartnerName = partnerName,
       Subject = subject
     };
-    var contract = await ContractService.CreateContract(dto);
-    return await LoadContract(contract.Id);
+    return await ContractService.CreateContract(dto);
   }
 
   private async Task<ContractAttachmentDto> AddAttachmentToContract(ContractDto created, string content)

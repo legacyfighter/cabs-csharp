@@ -1,8 +1,4 @@
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.Repository;
-
-namespace LegacyFighter.Cabs.Service;
+namespace LegacyFighter.Cabs.Agreements;
 
 public class ContractService : IContractService
 {
@@ -15,11 +11,11 @@ public class ContractService : IContractService
     _contractAttachmentDataRepository = contractAttachmentDataRepository;
   }
 
-  public async Task<Contract> CreateContract(ContractDto contractDto)
+  public async Task<ContractDto> CreateContract(ContractDto contractDto)
   {
     var partnerContractsCount = (await _contractRepository.FindByPartnerName(contractDto.PartnerName)).Count + 1;
     var contract = new Contract(contractDto.PartnerName, contractDto.Subject, "C/" + partnerContractsCount + "/" + contractDto.PartnerName);
-    return await _contractRepository.Save(contract);
+    return await FindDto((await _contractRepository.Save(contract)).Id);
   }
 
   public async Task AcceptContract(long? id)

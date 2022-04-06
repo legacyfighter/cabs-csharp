@@ -1,6 +1,6 @@
 ﻿using System;
-using LegacyFighter.Cabs.Entity;
-using static LegacyFighter.Cabs.Entity.ContractAttachment.Statuses;
+using LegacyFighter.Cabs.Agreements;
+using static LegacyFighter.Cabs.Agreements.ContractAttachmentStatuses;
 
 namespace LegacyFighter.CabsTests.Entity;
 
@@ -15,7 +15,7 @@ public class ContractLifecycleTest
     //then
     Assert.AreEqual("partnerNameVeryUnique", contract.PartnerName);
     Assert.AreEqual("umowa o cenę", contract.Subject);
-    Assert.AreEqual(Contract.Statuses.NegotiationsInProgress, contract.Status);
+    Assert.AreEqual(ContractStatuses.NegotiationsInProgress, contract.Status);
     Assert.NotNull(contract.CreationDate);
     Assert.NotNull(contract.CreationDate);
     Assert.Null(contract.ChangeDate);
@@ -117,7 +117,7 @@ public class ContractLifecycleTest
     contract.Accept();
 
     //then
-    Assert.AreEqual(Contract.Statuses.Accepted, contract.Status);
+    Assert.AreEqual(ContractStatuses.Accepted, contract.Status);
   }
 
   [Test]
@@ -135,7 +135,7 @@ public class ContractLifecycleTest
     contract.Reject();
 
     //then
-    Assert.AreEqual(Contract.Statuses.Rejected, contract.Status);
+    Assert.AreEqual(ContractStatuses.Rejected, contract.Status);
   }
 
   [Test]
@@ -150,7 +150,7 @@ public class ContractLifecycleTest
 
     //expect
     contract.Invoking(c => c.Accept()).Should().ThrowExactly<InvalidOperationException>();
-    Assert.AreNotEqual(Contract.Statuses.Accepted, contract.Status);
+    Assert.AreNotEqual(ContractStatuses.Accepted, contract.Status);
   }
 
 

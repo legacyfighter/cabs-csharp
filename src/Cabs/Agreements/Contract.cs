@@ -1,18 +1,10 @@
 using LegacyFighter.Cabs.Common;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.Entity;
+namespace LegacyFighter.Cabs.Agreements;
 
 public class Contract : BaseEntity
 {
-
-  public enum Statuses
-  {
-    NegotiationsInProgress,
-    Rejected,
-    Accepted
-  }
-
   public Contract()
   {
   }
@@ -24,21 +16,21 @@ public class Contract : BaseEntity
     ContractNo = contractNo;
   }
 
-  public Instant CreationDate { get; } = SystemClock.Instance.GetCurrentInstant();
-  public Instant? AcceptedAt { get; private set; }
-  public Instant? RejectedAt { get; private set; }
-  public Instant? ChangeDate { get; private set; }
-  public Statuses Status { get; private set; } = Statuses.NegotiationsInProgress;
-  public string ContractNo { get; private set; }
+  internal Instant CreationDate { get; } = SystemClock.Instance.GetCurrentInstant();
+  internal Instant? AcceptedAt { get; private set; }
+  internal Instant? RejectedAt { get; private set; }
+  internal Instant? ChangeDate { get; private set; }
+  internal ContractStatuses Status { get; private set; } = ContractStatuses.NegotiationsInProgress;
+  internal string ContractNo { get; private set; }
   protected virtual ISet<ContractAttachment> Attachments { get; set; } = new HashSet<ContractAttachment>();
-  public string PartnerName { get; private set; }
-  public string Subject { get; private set; }
+  internal string PartnerName { get; private set; }
+  internal string Subject { get; private set; }
 
-  public List<Guid> AttachmentIds => Attachments
+  internal List<Guid> AttachmentIds => Attachments
       .Select(a => a.ContractAttachmentNo)
       .ToList();
 
-  public ContractAttachment ProposeAttachment()
+  internal ContractAttachment ProposeAttachment()
   {
     var contractAttachment = new ContractAttachment();
     contractAttachment.Contract = this;
@@ -46,11 +38,11 @@ public class Contract : BaseEntity
     return contractAttachment;
   }
 
-  public void Accept()
+  internal void Accept()
   {
-    if (Attachments.All(a => a.Status == ContractAttachment.Statuses.AcceptedByBothSides))
+    if (Attachments.All(a => a.Status == ContractAttachmentStatuses.AcceptedByBothSides))
     {
-      Status = Statuses.Accepted;
+      Status = ContractStatuses.Accepted;
     }
     else
     {
@@ -58,40 +50,40 @@ public class Contract : BaseEntity
     }
   }
 
-  public void Reject()
+  internal void Reject()
   {
-    Status = Statuses.Rejected;
+    Status = ContractStatuses.Rejected;
   }
 
-  public void AcceptAttachment(Guid contractAttachmentNo)
+  internal void AcceptAttachment(Guid contractAttachmentNo)
   {
     var contractAttachment = FindAttachment(contractAttachmentNo);
     if (contractAttachment.Status
-        is ContractAttachment.Statuses.AcceptedByOneSide
-        or ContractAttachment.Statuses.AcceptedByBothSides)
+        is ContractAttachmentStatuses.AcceptedByOneSide
+        or ContractAttachmentStatuses.AcceptedByBothSides)
     {
-      contractAttachment.Status = ContractAttachment.Statuses.AcceptedByBothSides;
+      contractAttachment.Status = ContractAttachmentStatuses.AcceptedByBothSides;
     }
     else
     {
-      contractAttachment.Status = ContractAttachment.Statuses.AcceptedByOneSide;
+      contractAttachment.Status = ContractAttachmentStatuses.AcceptedByOneSide;
     }
   }
 
-  public void RejectAttachment(Guid contractAttachmentNo) 
+  internal void RejectAttachment(Guid contractAttachmentNo) 
   {
     var contractAttachment = FindAttachment(contractAttachmentNo);
-    contractAttachment.Status = ContractAttachment.Statuses.Rejected;
+    contractAttachment.Status = ContractAttachmentStatuses.Rejected;
   }
 
-  public void Remove(Guid contractAttachmentNo) 
+  internal void Remove(Guid contractAttachmentNo) 
   {
     Attachments = Attachments
       .Where(attachment => attachment.ContractAttachmentNo != contractAttachmentNo)
       .ToHashSet();
   }
 
-  public ContractAttachment FindAttachment(Guid? attachmentNo) 
+  internal ContractAttachment FindAttachment(Guid? attachmentNo) 
   {
     return Attachments.FirstOrDefault(a => a.ContractAttachmentNo == attachmentNo);
   }
