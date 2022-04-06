@@ -15,6 +15,7 @@ using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.Crm.TransitAnalyzer;
 using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.Invoicing;
+using LegacyFighter.Cabs.Loyalty;
 using LegacyFighter.Cabs.Notification;
 using LegacyFighter.Cabs.Parties.Api;
 using LegacyFighter.Cabs.Parties.Infra;
@@ -60,12 +61,6 @@ builder.Services.AddTransient<IDriverPositionRepository, EfCoreDriverPositionRep
 builder.Services.AddTransient<IClientRepository, EfCoreClientRepository>();
 builder.Services.AddTransient<ITransitRepository, EfCoreTransitRepository>();
 builder.Services.AddTransient<ITransitDetailsRepository, EfCoreTransitDetailsRepository>();
-builder.Services.AddTransient<IAwardsAccountRepository, EfCoreAwardsAccountRepository>();
-builder.Services.AddTransient<AwardsServiceImpl>();
-builder.Services.AddTransient<IAwardsService>(ctx =>
-  new TransactionalAwardsService(
-    ctx.GetRequiredService<AwardsServiceImpl>(),
-    ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddTransient<ClientService>();
 builder.Services.AddTransient<IClientService>(
   ctx => new TransactionalClientService(
@@ -139,6 +134,7 @@ InvoicingDependencies.AddTo(builder);
 TransitAnalyzerDependencies.AddTo(builder);
 NotificationDependencies.AddTo(builder);
 DriverFleetDependencies.AddTo(builder);
+LoyaltyDependencies.AddTo(builder);
 
 var app = builder.Build();
 

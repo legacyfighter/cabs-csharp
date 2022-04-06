@@ -1,5 +1,5 @@
 using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.Service;
+using LegacyFighter.Cabs.Loyalty;
 
 namespace LegacyFighter.CabsTests.Common;
 

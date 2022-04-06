@@ -1,8 +1,8 @@
 ﻿using System;
-using LegacyFighter.Cabs.Entity.Miles;
+using LegacyFighter.Cabs.Loyalty;
 using NodaTime;
 
-namespace LegacyFighter.CabsTests.Entity.Miles;
+namespace LegacyFighter.CabsTests.Loyalty;
 
 public class MilesTest
 {

@@ -1,8 +1,6 @@
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Service;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LegacyFighter.Cabs.Controllers;
+namespace LegacyFighter.Cabs.Loyalty;
 
 [ApiController]
 [Route("[controller]")]

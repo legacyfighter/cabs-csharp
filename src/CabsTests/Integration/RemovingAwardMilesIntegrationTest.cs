@@ -6,8 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 using System.Collections.Generic;
 using System.Linq;
-using LegacyFighter.Cabs.Entity.Miles;
-using LegacyFighter.Cabs.Repository;
+using LegacyFighter.Cabs.Loyalty;
 
 namespace LegacyFighter.CabsTests.Integration;
 

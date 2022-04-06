@@ -1,12 +1,11 @@
 using LegacyFighter.Cabs.Config;
 using LegacyFighter.Cabs.Crm.Claims;
-using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.Entity.Miles;
 using LegacyFighter.Cabs.Repository;
+using LegacyFighter.Cabs.Service;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.Service;
+namespace LegacyFighter.Cabs.Loyalty;
 
 public class AwardsServiceImpl : IAwardsService
 {

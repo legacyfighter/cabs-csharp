@@ -1,6 +1,6 @@
 ﻿using NodaTime;
 
-namespace LegacyFighter.Cabs.Entity.Miles;
+namespace LegacyFighter.Cabs.Loyalty;
 
 public interface IMiles 
 {

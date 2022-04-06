@@ -10,8 +10,8 @@ using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.DriverFleet.DriverReports.TravelledDistances;
 using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.Entity.Miles;
 using LegacyFighter.Cabs.Invoicing;
+using LegacyFighter.Cabs.Loyalty;
 using LegacyFighter.Cabs.Parties.Model.Parties;
 using LegacyFighter.Cabs.Repair.Legacy.Parts;
 using LegacyFighter.Cabs.Repair.Legacy.User;
@@ -97,27 +97,6 @@ public class SqLiteDbContext : DbContext
       builder.MapBaseEntityProperties();
       builder.HasIndex(u => u.Hash).IsUnique();
     });
-    modelBuilder.Entity<AwardedMiles>(builder =>
-    {
-      builder.MapBaseEntityProperties();
-      builder.Property(m => m.ClientId);
-      builder.Property("MilesJson").IsRequired();
-      builder.Ignore(m => m.Miles);
-      builder.Property(m => m.TransitId);
-      builder.HasOne<AwardsAccount>("Account").WithMany("Miles");
-      builder.Property(x => x.Date).HasConversion(instantConverter).IsRequired();
-      builder.Ignore(x => x.ExpirationDate);
-    });
-    modelBuilder.Entity<AwardsAccount>(builder =>
-    {
-      builder.MapBaseEntityProperties();
-      builder.Property(a => a.ClientId);
-      builder.HasMany<AwardedMiles>("Miles").WithOne("Account");
-      builder.Property(x => x.Date).HasConversion(instantConverter).IsRequired();
-      builder.Property(x => x.Transactions).IsRequired();
-      builder.Property(x => x.Active).IsRequired();
-    });
-
     modelBuilder.Entity<Client>(builder =>
     {
       builder.MapBaseEntityProperties();
@@ -202,6 +181,7 @@ public class SqLiteDbContext : DbContext
     CarFleetSchema.MapUsing(modelBuilder);
     InvoicingSchema.MapUsing(modelBuilder);
     DriverFleetSchema.MapUsing(modelBuilder, instantConverter);
+    LoyaltySchema.MapUsing(modelBuilder, instantConverter);
     MapRepairEntities(modelBuilder);
     MapContractEntities(modelBuilder);
   }

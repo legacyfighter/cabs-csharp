@@ -1,8 +1,8 @@
 using LegacyFighter.Cabs.Config;
 using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Loyalty;
 using LegacyFighter.Cabs.Notification;
 using LegacyFighter.Cabs.Repository;
-using LegacyFighter.Cabs.Service;
 using LegacyFighter.Cabs.TransitDetail;
 using NodaTime;
 

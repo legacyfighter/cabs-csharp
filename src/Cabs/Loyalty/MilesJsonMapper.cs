@@ -2,16 +2,16 @@
 using System.Text.Json;
 using NodaTime;
 
-namespace LegacyFighter.Cabs.Entity.Miles;
+namespace LegacyFighter.Cabs.Loyalty;
 
-public static class MilesJsonMapper
+internal static class MilesJsonMapper
 {
-  public static IMiles Deserialize(string json)
+  internal static IMiles Deserialize(string json)
   {
     return JsonSerializer.Deserialize<MilesData>(json).ToMiles();
   }
 
-  public static string Serialize(IMiles value)
+  internal static string Serialize(IMiles value)
   {
     return JsonSerializer.Serialize(new MilesData(value));
   }
@@ -29,7 +29,7 @@ public static class MilesJsonMapper
     {
     }
 
-    public MilesData(IMiles miles)
+    internal MilesData(IMiles miles)
     {
       if (miles is ConstantUntil c)
       {
@@ -55,7 +55,7 @@ public static class MilesJsonMapper
       return (T)typeof(TwoStepExpiringMiles).GetField(amount, BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(m);
     }
 
-    public IMiles ToMiles()
+    internal IMiles ToMiles()
     {
       if (Type == ExpiringType)
       {

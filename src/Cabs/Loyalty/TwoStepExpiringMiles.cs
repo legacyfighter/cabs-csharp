@@ -1,14 +1,14 @@
 ﻿using NodaTime;
 
-namespace LegacyFighter.Cabs.Entity.Miles;
+namespace LegacyFighter.Cabs.Loyalty;
 
-public class TwoStepExpiringMiles : IMiles, IEquatable<TwoStepExpiringMiles>
+internal class TwoStepExpiringMiles : IMiles, IEquatable<TwoStepExpiringMiles>
 {
   private readonly int? _amount;
   private readonly Instant _whenFirstHalfExpires;
   private readonly Instant _whenExpires;
 
-  public TwoStepExpiringMiles(int? amount)
+  public TwoStepExpiringMiles()
   {
   }
 

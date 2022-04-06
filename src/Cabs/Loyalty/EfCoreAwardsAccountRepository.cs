@@ -1,8 +1,8 @@
 using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.Entity.Miles;
+using LegacyFighter.Cabs.Repository;
 using Microsoft.EntityFrameworkCore;
 
-namespace LegacyFighter.Cabs.Repository;
+namespace LegacyFighter.Cabs.Loyalty;
 
 public interface IAwardsAccountRepository
 {

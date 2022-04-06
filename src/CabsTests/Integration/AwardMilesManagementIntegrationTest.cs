@@ -1,7 +1,6 @@
 ﻿using System;
 using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.Repository;
-using LegacyFighter.Cabs.Service;
+using LegacyFighter.Cabs.Loyalty;
 using LegacyFighter.CabsTests.Common;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;

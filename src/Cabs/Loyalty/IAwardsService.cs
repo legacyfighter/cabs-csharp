@@ -1,7 +1,4 @@
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity.Miles;
-
-namespace LegacyFighter.Cabs.Service;
+namespace LegacyFighter.Cabs.Loyalty;
 
 public interface IAwardsService
 {

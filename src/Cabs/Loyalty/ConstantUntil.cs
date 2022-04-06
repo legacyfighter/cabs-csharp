@@ -1,8 +1,8 @@
 ﻿using NodaTime;
 
-namespace LegacyFighter.Cabs.Entity.Miles;
+namespace LegacyFighter.Cabs.Loyalty;
 
-public class ConstantUntil : IMiles, IEquatable<ConstantUntil>
+internal class ConstantUntil : IMiles, IEquatable<ConstantUntil>
 {
   public static ConstantUntil Forever(int amount)
   {

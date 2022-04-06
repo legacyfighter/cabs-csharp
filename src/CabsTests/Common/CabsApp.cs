@@ -12,6 +12,7 @@ using LegacyFighter.Cabs.Crm.TransitAnalyzer;
 using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.DriverFleet.DriverReports;
 using LegacyFighter.Cabs.DriverFleet.DriverReports.TravelledDistances;
+using LegacyFighter.Cabs.Loyalty;
 using LegacyFighter.Cabs.Repair.Api;
 using LegacyFighter.Cabs.Repair.Legacy.Service;
 using LegacyFighter.Cabs.Repository;
