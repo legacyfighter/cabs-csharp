@@ -1,6 +1,6 @@
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.MoneyValue;
-using LegacyFighter.Cabs.TransitDetail;
+using LegacyFighter.Cabs.Ride.Details;
 using NodaTime;
 
 namespace LegacyFighter.Cabs.DriverFleet;

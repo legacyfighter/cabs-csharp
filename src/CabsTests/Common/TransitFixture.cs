@@ -1,14 +1,14 @@
+using System;
 using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Crm;
 using LegacyFighter.Cabs.DriverFleet;
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.Geolocation.Address;
 using LegacyFighter.Cabs.MoneyValue;
-using LegacyFighter.Cabs.Repository;
-using LegacyFighter.Cabs.TransitDetail;
-using NodaTime;
+using LegacyFighter.Cabs.Pricing;
+using LegacyFighter.Cabs.Ride;
+using LegacyFighter.Cabs.Ride.Details;
+using LocalDateTime = NodaTime.LocalDateTime;
 
 namespace LegacyFighter.CabsTests.Common;
 
@@ -28,25 +28,39 @@ public class TransitFixture
     _stubbedTransitPrice = stubbedTransitPrice;
   }
 
-  public async Task<Transit> TransitDetails(Driver driver, int price, LocalDateTime when, Client client, Address from,
+  public async Task<Transit> TransitDetails(
+    Driver driver,
+    int price,
+    LocalDateTime when,
+    Client client,
+    Address from,
     Address to)
   {
-    var transit = await _transitRepository.Save(new Transit());
-    await _stubbedTransitPrice.Stub(transit.Id, new Money(price));
-    var transitId = transit.Id;
+    var transit = await _transitRepository.Save(new Transit(null, Guid.NewGuid()));
+    _stubbedTransitPrice.Stub(new Money(price));
     await _transitDetailsFacade.TransitRequested(
       when.InUtc().ToInstant(),
-      transitId,
+      transit.RequestGuid,
       from,
       to,
-      Distance.Zero,
+      Distance.OfKm(20),
       client,
       CarClasses.Van,
       new Money(price),
       Tariff.OfTime(when));
-    await _transitDetailsFacade.TransitAccepted(transitId, when.InUtc().ToInstant(), driver.Id);
-    await _transitDetailsFacade.TransitStarted(transitId, when.InUtc().ToInstant());
-    await _transitDetailsFacade.TransitCompleted(transitId, when.InUtc().ToInstant(), new Money(price), null);
+    await _transitDetailsFacade.TransitAccepted(
+      transit.RequestGuid,
+      driver.Id,
+      when.InUtc().ToInstant());
+    await _transitDetailsFacade.TransitStarted(
+      transit.RequestGuid,
+      transit.Id,
+      when.InUtc().ToInstant());
+    await _transitDetailsFacade.TransitCompleted(
+      transit.RequestGuid,
+      when.InUtc().ToInstant(),
+      new Money(price),
+      null);
     return transit;
   }
 

@@ -3,10 +3,9 @@ using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Crm;
 using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.DriverFleet;
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.Geolocation.Address;
+using LegacyFighter.Cabs.Ride;
 using NodaTime;
 using NodaTime.Extensions;
 
@@ -182,7 +181,7 @@ public class Fixtures
     return await _rideFixture.ARide(price, client, driver, from, destination);
   }
 
-  public async Task<Transit> ARideWithFixedClock(int price, Instant publishedAt, Instant completedAt, Client client, Driver driver, Address from, Address destination, IClock clock) 
+  public async Task<TransitDto> ARideWithFixedClock(int price, Instant publishedAt, Instant completedAt, Client client, Driver driver, Address from, Address destination, IClock clock) 
   {
     return await _rideFixture.ARideWithFixedClock(price, publishedAt, completedAt, client, driver, from, destination, clock);
   }

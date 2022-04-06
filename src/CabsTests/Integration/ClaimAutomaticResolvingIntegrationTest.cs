@@ -2,14 +2,15 @@ using LegacyFighter.Cabs.Config;
 using LegacyFighter.Cabs.Crm;
 using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.DriverFleet;
-using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.Geolocation.Address;
 using LegacyFighter.Cabs.Loyalty;
 using LegacyFighter.Cabs.Notification;
+using LegacyFighter.Cabs.Ride;
 using LegacyFighter.CabsTests.Common;
 using Microsoft.Extensions.DependencyInjection;
 using TddXt.XNSubstitute;
+using Statuses = LegacyFighter.Cabs.Crm.Claims.Statuses;
 
 namespace LegacyFighter.CabsTests.Integration;
 

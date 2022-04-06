@@ -1,5 +1,3 @@
-using LegacyFighter.Cabs.Dto;
-
 namespace LegacyFighter.Cabs.DriverFleet.DriverReports;
 
 public interface IDriverReportCreator

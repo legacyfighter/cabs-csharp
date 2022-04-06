@@ -1,10 +1,9 @@
 ﻿using System;
 using LegacyFighter.Cabs.CarFleet;
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.Geolocation.Address;
-using LegacyFighter.Cabs.Service;
+using LegacyFighter.Cabs.Ride;
+using LegacyFighter.Cabs.Ride.Details;
 using LegacyFighter.CabsTests.Common;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
@@ -40,7 +39,7 @@ public class TransitLifeCycleIntegrationTest
     var transit = await RequestTransitFromTo(pickup, destination);
 
     //then
-    var loaded = await TransitService.LoadTransit(transit.Id);
+    var loaded = await TransitService.LoadTransit(transit.RequestId);
     Assert.IsNull(loaded.CarClass);
     Assert.IsNull(loaded.ClaimDto);
     Assert.NotNull(loaded.EstimatedPrice);
@@ -53,7 +52,7 @@ public class TransitLifeCycleIntegrationTest
     Assert.AreEqual("Warszawa", loaded.To.City);
     Assert.AreEqual("Żytnia", loaded.To.Street);
     Assert.AreEqual(25, loaded.To.BuildingNumber);
-    Assert.AreEqual(Transit.Statuses.Draft, loaded.Status);
+    Assert.AreEqual(Statuses.Draft, loaded.Status);
     Assert.NotNull(loaded.Tariff);
     Assert.AreNotEqual(0, loaded.KmRate);
     Assert.NotNull(loaded.DateTime);
@@ -74,10 +73,10 @@ public class TransitLifeCycleIntegrationTest
     //when
     var newDestination = await NewAddress("Polska", "Warszawa", "Mazowiecka", 30);
     //and
-    await TransitService.ChangeTransitAddressTo(transit.Id, newDestination);
+    await TransitService.ChangeTransitAddressTo(transit.RequestId, newDestination);
 
     //then
-    var loaded = await TransitService.LoadTransit(transit.Id);
+    var loaded = await TransitService.LoadTransit(transit.RequestId);
     Assert.AreEqual(30, loaded.To.BuildingNumber);
     Assert.AreEqual("Mazowiecka", loaded.To.Street);
     Assert.NotNull(loaded.EstimatedPrice);
@@ -96,17 +95,17 @@ public class TransitLifeCycleIntegrationTest
     //and
     var transit = await RequestTransitFromTo(pickup, destination);
     //and
-    await TransitService.PublishTransit(transit.Id);
+    await TransitService.PublishTransit(transit.RequestId);
     //and
-    await TransitService.AcceptTransit(driver, transit.Id);
+    await TransitService.AcceptTransit(driver, transit.RequestId);
     //and
-    await TransitService.StartTransit(driver, transit.Id);
+    await TransitService.StartTransit(driver, transit.RequestId);
     //and
-    await TransitService.CompleteTransit(driver, transit.Id, destination);
+    await TransitService.CompleteTransit(driver, transit.RequestId, destination);
 
     //expect
     var newAddress = await NewAddress("Polska", "Warszawa", "Żytnia", 23);
-    await TransitService.Awaiting(s => s.ChangeTransitAddressTo(transit.Id, newAddress))
+    await TransitService.Awaiting(s => s.ChangeTransitAddressTo(transit.RequestId, newAddress))
       .Should().ThrowExactlyAsync<InvalidOperationException>();
   }
 
@@ -122,15 +121,15 @@ public class TransitLifeCycleIntegrationTest
     //and
     var transit = await RequestTransitFromTo(pickup, destination);
     //and
-    await TransitService.PublishTransit(transit.Id);
+    await TransitService.PublishTransit(transit.RequestId);
 
     //when
     var newPickup = NewPickupAddress("Puławska", 28);
     //and
-    await TransitService.ChangeTransitAddressFrom(transit.Id, newPickup);
+    await TransitService.ChangeTransitAddressFrom(transit.RequestId, newPickup);
 
     //then
-    var loaded = await TransitService.LoadTransit(transit.Id);
+    var loaded = await TransitService.LoadTransit(transit.RequestId);
     Assert.AreEqual(28, loaded.From.BuildingNumber);
     Assert.AreEqual("Puławska", loaded.From.Street);
   }
@@ -149,24 +148,24 @@ public class TransitLifeCycleIntegrationTest
     //and
     var changedTo = NewPickupAddress(10);
     //and
-    await TransitService.PublishTransit(transit.Id);
+    await TransitService.PublishTransit(transit.RequestId);
     //and
-    await TransitService.AcceptTransit(driver, transit.Id);
+    await TransitService.AcceptTransit(driver, transit.RequestId);
 
     //expect
-    await TransitService.Awaiting(s => s.ChangeTransitAddressFrom(transit.Id, changedTo))
+    await TransitService.Awaiting(s => s.ChangeTransitAddressFrom(transit.RequestId, changedTo))
       .Should().ThrowExactlyAsync<InvalidOperationException>();
 
     //and
-    await TransitService.StartTransit(driver, transit.Id);
+    await TransitService.StartTransit(driver, transit.RequestId);
     //expect
-    await TransitService.Awaiting(s => s.ChangeTransitAddressFrom(transit.Id, changedTo))
+    await TransitService.Awaiting(s => s.ChangeTransitAddressFrom(transit.RequestId, changedTo))
       .Should().ThrowExactlyAsync<InvalidOperationException>();
 
     //and
-    await TransitService.CompleteTransit(driver, transit.Id, destination);
+    await TransitService.CompleteTransit(driver, transit.RequestId, destination);
     //expect
-    await TransitService.Awaiting(s => s.ChangeTransitAddressFrom(transit.Id, changedTo))
+    await TransitService.Awaiting(s => s.ChangeTransitAddressFrom(transit.RequestId, changedTo))
       .Should().ThrowExactlyAsync<InvalidOperationException>();
   }
 
@@ -182,20 +181,20 @@ public class TransitLifeCycleIntegrationTest
     //and
     var transit = await RequestTransitFromTo(pickup, destination);
     //and
-    await TransitService.PublishTransit(transit.Id);
+    await TransitService.PublishTransit(transit.RequestId);
     //and
     var newPickup1 = NewPickupAddress(10);
-    await TransitService.ChangeTransitAddressFrom(transit.Id, newPickup1);
+    await TransitService.ChangeTransitAddressFrom(transit.RequestId, newPickup1);
     //and
     var newPickup2 = NewPickupAddress(11);
-    await TransitService.ChangeTransitAddressFrom(transit.Id, newPickup2);
+    await TransitService.ChangeTransitAddressFrom(transit.RequestId, newPickup2);
     //and
     var newPickup3 = NewPickupAddress(12);
-    await TransitService.ChangeTransitAddressFrom(transit.Id, newPickup3);
+    await TransitService.ChangeTransitAddressFrom(transit.RequestId, newPickup3);
 
     //expect
     await TransitService.Awaiting(
-        s => s.ChangeTransitAddressFrom(transit.Id, NewPickupAddress(13)))
+        s => s.ChangeTransitAddressFrom(transit.RequestId, NewPickupAddress(13)))
       .Should().ThrowExactlyAsync<InvalidOperationException>();
   }
 
@@ -211,12 +210,12 @@ public class TransitLifeCycleIntegrationTest
     //and
     var transit = await RequestTransitFromTo(pickup, destination);
     //and
-    await TransitService.PublishTransit(transit.Id);
+    await TransitService.PublishTransit(transit.RequestId);
 
     //expect
     var farawayAddress = await FarAwayAddress();
     await TransitService.Awaiting(
-        s => s.ChangeTransitAddressFrom(transit.Id, farawayAddress))
+        s => s.ChangeTransitAddressFrom(transit.RequestId, farawayAddress))
       .Should().ThrowExactlyAsync<InvalidOperationException>();
   }
 
@@ -233,11 +232,11 @@ public class TransitLifeCycleIntegrationTest
     var transit = await RequestTransitFromTo(pickup, destination);
 
     //when
-    await TransitService.CancelTransit(transit.Id);
+    await TransitService.CancelTransit(transit.RequestId);
 
     //then
-    var loaded = await TransitService.LoadTransit(transit.Id);
-    Assert.AreEqual(Transit.Statuses.Cancelled, loaded.Status);
+    var loaded = await TransitService.LoadTransit(transit.RequestId);
+    Assert.AreEqual(Statuses.Cancelled, loaded.Status);
   }
 
   [Test]
@@ -252,20 +251,20 @@ public class TransitLifeCycleIntegrationTest
     //and
     var transit = await RequestTransitFromTo(pickup, destination);
     //and
-    await TransitService.PublishTransit(transit.Id);
+    await TransitService.PublishTransit(transit.RequestId);
     //and
-    await TransitService.AcceptTransit(driver, transit.Id);
+    await TransitService.AcceptTransit(driver, transit.RequestId);
 
     //and
-    await TransitService.StartTransit(driver, transit.Id);
+    await TransitService.StartTransit(driver, transit.RequestId);
     //expect
-    await TransitService.Awaiting(s => s.CancelTransit(transit.Id))
+    await TransitService.Awaiting(s => s.CancelTransit(transit.RequestId))
       .Should().ThrowExactlyAsync<InvalidOperationException>();
 
     //and
-    await TransitService.CompleteTransit(driver, transit.Id, destination);
+    await TransitService.CompleteTransit(driver, transit.RequestId, destination);
     //expect
-    await TransitService.Awaiting(s => s.CancelTransit(transit.Id))
+    await TransitService.Awaiting(s => s.CancelTransit(transit.RequestId))
       .Should().ThrowExactlyAsync<InvalidOperationException>();
   }
 
@@ -282,11 +281,11 @@ public class TransitLifeCycleIntegrationTest
     var transit = await RequestTransitFromTo(pickup, destination);
 
     //when
-    await TransitService.PublishTransit(transit.Id);
+    await TransitService.PublishTransit(transit.RequestId);
 
     //then
-    var loaded = await TransitService.LoadTransit(transit.Id);
-    Assert.AreEqual(Transit.Statuses.WaitingForDriverAssignment, loaded.Status);
+    var loaded = await TransitService.LoadTransit(transit.RequestId);
+    Assert.AreEqual(Statuses.WaitingForDriverAssignment, loaded.Status);
     Assert.NotNull(loaded.Published);
   }
 
@@ -302,14 +301,14 @@ public class TransitLifeCycleIntegrationTest
     //and
     var transit = await RequestTransitFromTo(pickup, destination);
     //and
-    await TransitService.PublishTransit(transit.Id);
+    await TransitService.PublishTransit(transit.RequestId);
 
     //when
-    await TransitService.AcceptTransit(driver, transit.Id);
+    await TransitService.AcceptTransit(driver, transit.RequestId);
 
     //then
-    var loaded = await TransitService.LoadTransit(transit.Id);
-    Assert.AreEqual(Transit.Statuses.TransitToPassenger, loaded.Status);
+    var loaded = await TransitService.LoadTransit(transit.RequestId);
+    Assert.AreEqual(Statuses.TransitToPassenger, loaded.Status);
     Assert.NotNull(loaded.AcceptedAt);
   }
 
@@ -327,12 +326,12 @@ public class TransitLifeCycleIntegrationTest
     //and
     var secondDriver = await ANearbyDriver(pickup);
     //and
-    await TransitService.PublishTransit(transit.Id);
+    await TransitService.PublishTransit(transit.RequestId);
     //and
-    await TransitService.AcceptTransit(driver, transit.Id);
+    await TransitService.AcceptTransit(driver, transit.RequestId);
 
     //expect
-    await TransitService.Awaiting(s => s.AcceptTransit(secondDriver, transit.Id))
+    await TransitService.Awaiting(s => s.AcceptTransit(secondDriver, transit.RequestId))
       .Should().ThrowExactlyAsync<InvalidOperationException>();
   }
 
@@ -348,13 +347,13 @@ public class TransitLifeCycleIntegrationTest
     //and
     var transit = await RequestTransitFromTo(pickup, destination);
     //and
-    await TransitService.PublishTransit(transit.Id);
+    await TransitService.PublishTransit(transit.RequestId);
 
     //and
-    await TransitService.RejectTransit(driver, transit.Id);
+    await TransitService.RejectTransit(driver, transit.RequestId);
 
     //expect
-    await TransitService.Awaiting(s => s.AcceptTransit(driver, transit.Id))
+    await TransitService.Awaiting(s => s.AcceptTransit(driver, transit.RequestId))
       .Should().ThrowExactlyAsync<InvalidOperationException>();
   }
 
@@ -370,10 +369,10 @@ public class TransitLifeCycleIntegrationTest
     //and
     var transit = await RequestTransitFromTo(pickup, destination);
     //and
-    await TransitService.PublishTransit(transit.Id);
+    await TransitService.PublishTransit(transit.RequestId);
 
     //expect
-    await TransitService.Awaiting(s => s.AcceptTransit(farAwayDriver, transit.Id))
+    await TransitService.Awaiting(s => s.AcceptTransit(farAwayDriver, transit.RequestId))
       .Should().ThrowExactlyAsync<InvalidOperationException>();
   }
 
@@ -389,15 +388,15 @@ public class TransitLifeCycleIntegrationTest
     //and
     var transit = await RequestTransitFromTo(pickup, destination);
     //and
-    await TransitService.PublishTransit(transit.Id);
+    await TransitService.PublishTransit(transit.RequestId);
     //and
-    await TransitService.AcceptTransit(driver, transit.Id);
+    await TransitService.AcceptTransit(driver, transit.RequestId);
     //when
-    await TransitService.StartTransit(driver, transit.Id);
+    await TransitService.StartTransit(driver, transit.RequestId);
 
     //then
-    var loaded = await TransitService.LoadTransit(transit.Id);
-    Assert.AreEqual(Transit.Statuses.InTransit, loaded.Status);
+    var loaded = await TransitService.LoadTransit(transit.RequestId);
+    Assert.AreEqual(Statuses.InTransit, loaded.Status);
     Assert.NotNull(loaded.Started);
   }
 
@@ -413,10 +412,10 @@ public class TransitLifeCycleIntegrationTest
     //and
     var transit = await RequestTransitFromTo(pickup, destination);
     //and
-    await TransitService.PublishTransit(transit.Id);
+    await TransitService.PublishTransit(transit.RequestId);
 
     //expect
-    await TransitService.Awaiting(s => s.StartTransit(driver, transit.Id))
+    await TransitService.Awaiting(s => s.StartTransit(driver, transit.RequestId))
       .Should().ThrowExactlyAsync<InvalidOperationException>();
   }
 
@@ -432,18 +431,18 @@ public class TransitLifeCycleIntegrationTest
     //and
     var transit = await RequestTransitFromTo(pickup, destination);
     //and
-    await TransitService.PublishTransit(transit.Id);
+    await TransitService.PublishTransit(transit.RequestId);
     //and
-    await TransitService.AcceptTransit(driver, transit.Id);
+    await TransitService.AcceptTransit(driver, transit.RequestId);
     //and
-    await TransitService.StartTransit(driver, transit.Id);
+    await TransitService.StartTransit(driver, transit.RequestId);
 
     //when
-    await TransitService.CompleteTransit(driver, transit.Id, destination);
+    await TransitService.CompleteTransit(driver, transit.RequestId, destination);
 
     //then
-    var loaded = await TransitService.LoadTransit(transit.Id);
-    Assert.AreEqual(Transit.Statuses.Completed, loaded.Status);
+    var loaded = await TransitService.LoadTransit(transit.RequestId);
+    Assert.AreEqual(Statuses.Completed, loaded.Status);
     Assert.NotNull(loaded.Tariff);
     Assert.NotNull(loaded.Price);
     Assert.NotNull(loaded.DriverFee);
@@ -462,12 +461,12 @@ public class TransitLifeCycleIntegrationTest
     //and
     var transit = await RequestTransitFromTo(pickup, addressTo);
     //and
-    await TransitService.PublishTransit(transit.Id);
+    await TransitService.PublishTransit(transit.RequestId);
     //and
-    await TransitService.AcceptTransit(driver, transit.Id);
+    await TransitService.AcceptTransit(driver, transit.RequestId);
 
     //expect
-    await TransitService.Awaiting(s => s.CompleteTransit(driver, transit.Id, addressTo))
+    await TransitService.Awaiting(s => s.CompleteTransit(driver, transit.RequestId, addressTo))
       .Should().ThrowExactlyAsync<ArgumentException>();
   }
 
@@ -483,14 +482,14 @@ public class TransitLifeCycleIntegrationTest
     //and
     var transit = await RequestTransitFromTo(pickup, destination);
     //and
-    await TransitService.PublishTransit(transit.Id);
+    await TransitService.PublishTransit(transit.RequestId);
 
     //when
-    await TransitService.RejectTransit(driver, transit.Id);
+    await TransitService.RejectTransit(driver, transit.RequestId);
 
     //then
-    var loaded = await TransitService.LoadTransit(transit.Id);
-    Assert.AreEqual(Transit.Statuses.WaitingForDriverAssignment, loaded.Status);
+    var loaded = await TransitService.LoadTransit(transit.RequestId);
+    Assert.AreEqual(Statuses.WaitingForDriverAssignment, loaded.Status);
     Assert.IsNull(loaded.AcceptedAt);
   }
 

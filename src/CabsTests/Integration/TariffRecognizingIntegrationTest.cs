@@ -1,7 +1,6 @@
-﻿using LegacyFighter.Cabs.Controllers;
-using LegacyFighter.Cabs.Crm;
-using LegacyFighter.Cabs.Dto;
+﻿using LegacyFighter.Cabs.Crm;
 using LegacyFighter.Cabs.Geolocation.Address;
+using LegacyFighter.Cabs.Ride;
 using LegacyFighter.CabsTests.Common;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
@@ -35,7 +34,7 @@ public class TariffRecognizingIntegrationTest
     var transitDto = await CreateTransit(new LocalDateTime(2021, 12, 31, 8, 30).InUtc().ToInstant());
 
     //when
-    transitDto = await TransitController.GetTransit(transitDto.Id);
+    transitDto = await TransitController.GetTransit(transitDto.RequestId);
 
     //then
     Assert.AreEqual("Sylwester", transitDto.Tariff);
@@ -50,7 +49,7 @@ public class TariffRecognizingIntegrationTest
     var transitDto = await CreateTransit(new LocalDateTime(2021, 4, 17, 8, 30).InUtc().ToInstant());
 
     //when
-    transitDto = await TransitController.GetTransit(transitDto.Id);
+    transitDto = await TransitController.GetTransit(transitDto.RequestId);
 
     //then
     Assert.AreEqual("Weekend", transitDto.Tariff);
@@ -64,7 +63,7 @@ public class TariffRecognizingIntegrationTest
     var transitDto = await CreateTransit(new LocalDateTime(2021, 4, 17, 22, 30).InUtc().ToInstant());
 
     //when
-    transitDto = await TransitController.GetTransit(transitDto.Id);
+    transitDto = await TransitController.GetTransit(transitDto.RequestId);
 
     //then
     Assert.AreEqual("Weekend+", transitDto.Tariff);
@@ -78,7 +77,7 @@ public class TariffRecognizingIntegrationTest
     var transitDto = await CreateTransit(new LocalDateTime(2021, 4, 13, 22, 30).InUtc().ToInstant());
 
     //when
-    transitDto = await TransitController.GetTransit(transitDto.Id);
+    transitDto = await TransitController.GetTransit(transitDto.RequestId);
 
     //then
     Assert.AreEqual("Standard", transitDto.Tariff);

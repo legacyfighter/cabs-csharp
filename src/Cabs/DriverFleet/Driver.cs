@@ -1,5 +1,5 @@
 using LegacyFighter.Cabs.Common;
-using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Ride;
 
 namespace LegacyFighter.Cabs.DriverFleet;
 

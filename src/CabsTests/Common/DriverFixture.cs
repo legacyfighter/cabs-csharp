@@ -62,12 +62,14 @@ public class DriverFixture
       status, "");
   }
 
-  public async Task<Driver> ANearbyDriver(IGeocodingService stubbedGeocodingService, Address pickup)
+  public async Task<Driver> ANearbyDriver(
+    IGeocodingService stubbedGeocodingService,
+    Address pickup,
+    double latitude,
+    double longitude)
   {
-    var random = new Random();
-    var latitude = random.NextDouble();
-    var longitude = random.NextDouble();
-    stubbedGeocodingService.GeocodeAddress(pickup).Returns(new[] { latitude, longitude });
+    stubbedGeocodingService.GeocodeAddress(Arg.Is<Address>(a => new AddressMatcher(pickup).Matches(a)))
+      .Returns(new[] { latitude, longitude });
     return await ANearbyDriver(
       "WU DAMIAN",
       latitude,
@@ -77,16 +79,12 @@ public class DriverFixture
       "brand");
   }
 
-  public async Task<Driver> ANearbyDriver(
-    IGeocodingService stubbedGeocodingService,
-    Address pickup,
-    double latitude,
-    double longitude)
+  public async Task<Driver> ANearbyDriver(IGeocodingService stubbedGeocodingService, Address pickup)
   {
-    stubbedGeocodingService.GeocodeAddress(Arg.Is<Address>(a => new AddressMatcher(pickup).Matches(a)))
-      .Returns(new[] { latitude, longitude });
-    return await ANearbyDriver("WU DAMIAN", latitude, longitude, CarClasses.Van,
-      SystemClock.Instance.GetCurrentInstant(), "brand");
+    var random = new Random();
+    var latitude = random.NextDouble();
+    var longitude = random.NextDouble();
+    return await ANearbyDriver(stubbedGeocodingService, pickup, latitude, longitude);
   }
 
   public async Task<Driver> ANearbyDriver(
@@ -103,7 +101,7 @@ public class DriverFixture
     return await DriverIsAtGeoLocalization(plateNumber, latitude, longitude, carClass, driver, when, carBrand);
   }
 
-  private async Task<Driver> DriverIsAtGeoLocalization(
+  public async Task<Driver> DriverIsAtGeoLocalization(
     string plateNumber,
     double latitude,
     double longitude,
@@ -116,7 +114,7 @@ public class DriverFixture
     return driver;
   }
 
-  private async Task DriverLogsIn(
+  public async Task DriverLogsIn(
     string plateNumber,
     CarClasses carClass,
     Driver driver,

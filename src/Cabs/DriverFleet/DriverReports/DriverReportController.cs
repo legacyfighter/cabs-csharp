@@ -19,7 +19,7 @@ public class DriverReportController
   }
 
   [HttpGet("/driverreport/{driverId}")]
-  public async Task<Dto.DriverReport> LoadReportForDriver(long? driverId, [FromQuery] int lastDays)
+  public async Task<DriverReport> LoadReportForDriver(long? driverId, [FromQuery] int lastDays)
   {
     await using var tx = await _transactions.BeginTransaction();
     var driverReport = await _driverReportCreator.CreateReport(driverId, lastDays);

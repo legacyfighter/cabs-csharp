@@ -1,5 +1,5 @@
 ﻿using LegacyFighter.Cabs.Config;
-using LegacyFighter.Cabs.Entity.Events;
+using LegacyFighter.Cabs.Ride.Events;
 using MediatR;
 using Microsoft.Extensions.Options;
 using Neo4j.Driver;

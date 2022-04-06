@@ -2,16 +2,16 @@
 using System.Data.Common;
 using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Crm.Claims;
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.Geolocation.Address;
 using LegacyFighter.Cabs.Repository;
+using LegacyFighter.Cabs.Ride;
 using LegacyFighter.Cabs.Tracking;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using NodaTime.TimeZones;
+using Statuses = LegacyFighter.Cabs.Crm.Claims.Statuses;
 
 namespace LegacyFighter.Cabs.DriverFleet.DriverReports;
 
@@ -26,7 +26,7 @@ public class SqlBasedDriverReportCreator : IDriverReportCreator
 
   private const string QueryForSessions =
     "SELECT ds.LoggedAt, ds.LoggedOutAt, ds.PlatesNumber, ds.CarClass, ds.CarBrand, " +
-    "td.TransitId as TransitId, td.Name as TariffName, td.Status as TransitStatus, td.Km, td.KmRate, " +
+    "td.TransitId as TransitId, td.requestGuid as RequestId, td.Name as TariffName, td.Status as TransitStatus, td.Km, td.KmRate, " +
     "td.Price, td.DriversFee, td.EstimatedPrice, td.BaseFee, " +
     "td.DateTime, td.PublishedAt, td.AcceptedAt, td.Started, td.CompleteAt, td.CarType, " +
     "cl.Id as ClaimId, cl.OwnerId, cl.Reason, cl.IncidentDescription, cl.Status as ClaimStatus, cl.CreationDate, " +
@@ -41,7 +41,7 @@ public class SqlBasedDriverReportCreator : IDriverReportCreator
     "WHERE ds.DriverId = :driverId AND td.Status = :transitStatus " +
     "AND ds.LoggedAt >= :since " +
     "AND td.CompleteAt >= ds.LoggedAt " +
-    "AND td.CompleteAt <= ds.LoggedOutAt GROUP BY ds.LoggedAt";
+    "AND td.CompleteAt <= ds.LoggedOutAt GROUP BY ds.Id, ds.LoggedAt";
 
   private readonly SqLiteDbContext _dbContext;
   private readonly IClock _clock;
@@ -76,7 +76,7 @@ public class SqlBasedDriverReportCreator : IDriverReportCreator
     var queryForSessions = _dbContext.Database.GetDbConnection().CreateCommand();
     queryForSessions.CommandText = QueryForSessions;
     queryForSessions.Parameters.Add(new SqliteParameter("driverId", driverId));
-    queryForSessions.Parameters.Add(new SqliteParameter("transitStatus", (int)Transit.Statuses.Completed));
+    queryForSessions.Parameters.Add(new SqliteParameter("transitStatus", (int)Ride.Details.Statuses.Completed));
     queryForSessions.Parameters.Add(new SqliteParameter("since", CalculateStartingPoint(lastDays).ToUnixTimeTicks()));
     var resultEnumerable = await Execute(queryForSessions);
 
@@ -125,8 +125,9 @@ public class SqlBasedDriverReportCreator : IDriverReportCreator
   {
     return new TransitDto(
       row["TransitId"].ToNullableLong(),
+      row["RequestId"].ToGuid(),
       row["TariffName"].ToString(),
-      Enum.Parse<Transit.Statuses>(row["TransitStatus"].ToString()),
+      Enum.Parse<Ride.Details.Statuses>(row["TransitStatus"].ToString()),
       null,
       Distance.OfKm(row["Km"].ToFloat()),
       row["KmRate"].ToFloat(),
@@ -249,6 +250,11 @@ public static class RowElementConversions
   public static Instant ToInstant(this object obj)
   {
     return Instant.FromUnixTimeTicks(long.Parse(obj.ToString()));
+  }
+
+  public static Guid ToGuid(this object obj)
+  {
+    return Guid.Parse(obj.ToString());
   }
 
   public static Instant? ToNullableInstant(this object? obj)

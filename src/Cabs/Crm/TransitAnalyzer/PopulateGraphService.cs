@@ -1,4 +1,4 @@
-﻿using LegacyFighter.Cabs.TransitDetail;
+﻿using LegacyFighter.Cabs.Ride.Details;
 
 namespace LegacyFighter.Cabs.Crm.TransitAnalyzer;
 

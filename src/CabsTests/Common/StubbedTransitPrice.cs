@@ -1,27 +1,21 @@
-using LegacyFighter.Cabs.Common;
-using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;
-using LegacyFighter.Cabs.Repository;
+using LegacyFighter.Cabs.Pricing;
+using NodaTime;
 
 namespace LegacyFighter.CabsTests.Common;
 
-public class StubbedTransitPrice 
+public class StubbedTransitPrice
 {
-  private readonly ITransitRepository _transitRepository;
-  private readonly ITransactions _transactions;
+  private readonly Tariffs _tariffs;
 
-  public StubbedTransitPrice(ITransitRepository transitRepository, ITransactions transactions)
+  public StubbedTransitPrice(Tariffs tariffs)
   {
-    _transitRepository = transitRepository;
-    _transactions = transactions;
+    _tariffs = tariffs;
   }
 
-  public async Task<Transit> Stub(long? transitId, Money faked)
+  public void Stub(Money faked)
   {
-    await using var tx = await _transactions.BeginTransaction();
-    var transit = await _transitRepository.Find(transitId);
-    transit.Price = faked;
-    await tx.Commit();
-    return transit;
+    var fakeTariff = new Tariff(0, "fake", faked);
+    _tariffs.Choose(Arg.Any<Instant>()).Returns(fakeTariff);
   }
 }

@@ -1,7 +1,7 @@
 using LegacyFighter.Cabs.Config;
 using LegacyFighter.Cabs.Crm;
 using LegacyFighter.Cabs.Crm.Claims;
-using LegacyFighter.Cabs.Repository;
+using LegacyFighter.Cabs.Ride;
 using NodaTime;
 
 namespace LegacyFighter.Cabs.Loyalty;

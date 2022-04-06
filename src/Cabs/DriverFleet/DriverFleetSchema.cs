@@ -42,7 +42,7 @@ public static class DriverFleetSchema
     modelBuilder.Entity<TravelledDistance>(builder =>
     {
       builder.HasKey("IntervalId");
-      builder.Property<long>("_driverId").HasColumnName("DriverId").IsRequired();
+      builder.Property("_driverId").HasColumnName("DriverId").IsRequired();
       builder.Property(e => e.LastLatitude).IsRequired();
       builder.Property(e => e.LastLongitude).IsRequired();
       builder.OwnsOne<TimeSlot>("TimeSlot", navigation =>

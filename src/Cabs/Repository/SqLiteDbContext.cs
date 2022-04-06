@@ -1,7 +1,9 @@
 using System.Data.Common;
 using LegacyFighter.Cabs.Agreements;
+using LegacyFighter.Cabs.Assignment;
 using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Common;
+using LegacyFighter.Cabs.Contracts;
 using LegacyFighter.Cabs.Contracts.Legacy;
 using LegacyFighter.Cabs.Contracts.Model;
 using LegacyFighter.Cabs.Contracts.Model.Content;
@@ -9,20 +11,18 @@ using LegacyFighter.Cabs.Crm;
 using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.DriverFleet;
 using LegacyFighter.Cabs.DriverFleet.DriverReports.TravelledDistances;
-using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.Geolocation.Address;
 using LegacyFighter.Cabs.Invoicing;
 using LegacyFighter.Cabs.Loyalty;
+using LegacyFighter.Cabs.Parties;
 using LegacyFighter.Cabs.Parties.Model.Parties;
-using LegacyFighter.Cabs.Repair.Legacy.Parts;
-using LegacyFighter.Cabs.Repair.Legacy.User;
+using LegacyFighter.Cabs.Ride;
+using LegacyFighter.Cabs.Ride.Details;
 using LegacyFighter.Cabs.Tracking;
-using LegacyFighter.Cabs.TransitDetail;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
 
@@ -52,10 +52,13 @@ public class SqLiteDbContext : DbContext
   public DbSet<Transit> Transits { get; set; }
   public DbSet<TransitDetails> TransitsDetails { get; set; }
   public DbSet<ClaimsResolver> ClaimsResolvers { get; set; }
+  public DbSet<RequestForTransit> RequestsForTransit { get; set; }
+  public DbSet<DriverAssignment> DriverAssignments { get; set; }
   public DbSet<TravelledDistance> TravelledDistances { get; set; }
   public DbSet<Party> Parties { get; set; }
   public DbSet<PartyRelationship> PartyRelationships { get; set; }
   public DbSet<PartyRole> PartyRoles { get; set; }
+  public DbSet<TransitDemand> TransitDemands { get; set; }
   public DbSet<User> Users { get; set; }
   public DbSet<DocumentContent> DocumentContents { get; set; }
   public DbSet<DocumentHeader> DocumentHeaders { get; set; }
@@ -95,65 +98,7 @@ public class SqLiteDbContext : DbContext
 
     base.OnModelCreating(modelBuilder);
 
-    modelBuilder.Entity<Transit>(builder =>
-    {
-      builder.MapBaseEntityProperties();
-      builder.Ignore(x => x.KmDistance);
-      builder.Property("DriverPaymentStatus");
-      builder.Property("ClientPaymentStatus");
-      builder.Property("PaymentType");
-      builder.Property("Km");
-      builder.Property("PickupAddressChangeCounter");
-      builder.Property(x => x.Published).HasConversion(instantConverter);
-      builder.Property(t => t.DriverId);
-      builder.Property("_proposedDrivers");
-      builder.Property("_driversRejections");
-      builder.OwnsOne(t => t.EstimatedPrice, navigation =>
-      {
-        navigation.Property(m => m.IntValue).HasColumnName(nameof(Transit.EstimatedPrice));
-      });
-      builder.OwnsOne(t => t.Price, navigation =>
-      {
-        navigation.Property(m => m.IntValue).HasColumnName(nameof(Transit.Price));
-      });
-      builder.OwnsOne(t => t.Tariff, MapTariffProperties);
-    });
-    modelBuilder.Entity<TransitDetails>(builder =>
-    {
-      builder.MapBaseEntityProperties();
-      builder.Property(d => d.DateTime).HasConversion(instantConverter);
-      builder.Property(d => d.CompleteAt).HasConversion(instantConverter);
-      builder.HasOne(d => d.Client);
-      builder.Navigation(d => d.Client).AutoInclude();
-      builder.Property(d => d.DriverId);
-      builder.Property(d => d.CarType).HasConversion<string>();
-      builder.HasOne(d => d.From);
-      builder.Navigation(d => d.From).AutoInclude();
-      builder.HasOne(d => d.To);
-      builder.Navigation(d => d.To).AutoInclude();
-      builder.Property(d => d.Started).HasConversion(instantConverter);
-      builder.Property(d => d.AcceptedAt).HasConversion(instantConverter);
-      builder.OwnsOne(d => d.DriversFee, navigationBuilder =>
-      {
-        navigationBuilder.Property(m => m.IntValue).HasColumnName(nameof(TransitDetails.DriversFee));
-      });
-      builder.OwnsOne(d => d.Price, navigationBuilder =>
-      {
-        navigationBuilder.Property(m => m.IntValue).HasColumnName(nameof(TransitDetails.Price));
-      });
-      builder.OwnsOne(d => d.EstimatedPrice, navigationBuilder =>
-      {
-        navigationBuilder.Property(m => m.IntValue).HasColumnName(nameof(TransitDetails.EstimatedPrice));
-      });
-      builder.Property(d => d.Status);
-      builder.Property(d => d.PublishedAt).HasConversion(instantConverter);
-      builder.Property(d => d.Distance).HasColumnName("Km")
-        .HasConversion(
-        distance => distance.ToKmInDouble(),
-        value => Distance.OfKm(value));
-      builder.Property(d => d.TransitId);
-      builder.OwnsOne<Tariff>("Tariff", MapTariffProperties);
-    });
+    RideSchema.MapUsing(modelBuilder, instantConverter);
     AgreementsSchema.MapUsing(modelBuilder, instantConverter);
     ClaimSchema.MapUsing(modelBuilder, instantConverter);
     CarFleetSchema.MapUsing(modelBuilder);
@@ -163,102 +108,9 @@ public class SqLiteDbContext : DbContext
     GeolocationSchema.MapUsing(modelBuilder);
     CrmSchema.MapUsing(modelBuilder);
     TrackingSchema.MapUsing(modelBuilder, instantConverter);
-    MapRepairEntities(modelBuilder);
-    MapContractEntities(modelBuilder);
-  }
-
-  private static void MapTariffProperties<T>(OwnedNavigationBuilder<T, Tariff> navigation) where T : class
-  {
-    navigation.Property(m => m.BaseFee).HasColumnName(nameof(Tariff.BaseFee));
-    navigation.Property(m => m.KmRate).HasColumnName(nameof(Tariff.KmRate));
-    navigation.Property(m => m.Name).HasColumnName(nameof(Tariff.Name));
-  }
-
-  private void MapRepairEntities(ModelBuilder modelBuilder)
-  {
-    modelBuilder.Entity<EmployeeDriverWithOwnCar>(builder =>
-    {
-      builder.MapBaseEntityProperties();
-      builder.HasOne<SignedContract>(nameof(EmployeeDriverWithOwnCar.Contract));
-    });
-    modelBuilder.Entity<SignedContract>(builder =>
-    {
-      builder.Property(c => c.CoverageRatio);
-      builder.Property(c => c.CoveredParts)
-        .HasConversion( //https://github.com/dotnet/efcore/issues/4179#issuecomment-447993816
-          parts => string.Join(",", parts.Select(p => p.ToString())),
-          str => str.Split(",", StringSplitOptions.None).Select(Enum.Parse<Part>).ToHashSet());
-    });
-    modelBuilder.Entity<Party>(builder =>
-    {
-      builder.HasKey(p => p.Id);
-      builder.Property(p => p.Id).ValueGeneratedNever();
-    });
-    modelBuilder.Entity<PartyRelationship>(builder =>
-    {
-      builder.HasKey(p => p.Id);
-      builder.Property(p => p.Name);
-      builder.Property(p => p.RoleA);
-      builder.Property(p => p.RoleB);
-      builder.HasOne(p => p.PartyA);
-      builder.HasOne(p => p.PartyB);
-    });
-    modelBuilder.Entity<PartyRole>(builder =>
-    {
-      builder.HasKey(p => p.Id);
-      builder.Property(p => p.Name);
-    });
-  }
-
-  private void MapContractEntities(ModelBuilder modelBuilder)
-  {
-    modelBuilder.Entity<Document>(builder =>
-    {
-      builder.MapBaseEntityProperties();
-      builder.HasMany<User>("AssignedUsers").WithMany("AssignedDocuments");
-      builder.HasOne<User>("Creator").WithMany("CreatedDocuments");
-      builder.HasOne<User>("Verifier").WithMany("VerifiedDocuments");
-      builder.Property("Content");
-      builder.Property("Number");
-      builder.Property(x => x.Status).HasConversion<string>();
-    });
-    modelBuilder.Entity<User>(builder =>
-    {
-      builder.MapBaseEntityProperties();
-      builder.HasMany<Document>("AssignedDocuments").WithMany("AssignedUsers");
-      builder.HasMany<Document>("CreatedDocuments").WithOne("Creator");
-      builder.HasMany<Document>("VerifiedDocuments").WithOne("Verifier");
-    });
-    modelBuilder.Entity<DocumentContent>(builder =>
-    {
-      builder.HasKey(c => c.Id);
-      builder.Property("PreviousId");
-      builder.Property(c => c.PhysicalContent);
-      builder.OwnsOne(c => c.DocumentVersion, navigationBuilder =>
-      {
-        navigationBuilder.Property("_contentVersion")
-          .HasColumnName(nameof(DocumentContent.DocumentVersion))
-          .UsePropertyAccessMode(PropertyAccessMode.Field);
-      });
-    });
-    modelBuilder.Entity<DocumentHeader>(builder =>
-    {
-      builder.MapBaseEntityProperties();
-      builder.OwnsOne(h => h.DocumentNumber, navigationBuilder =>
-      {
-        navigationBuilder.Property("_number")
-          .HasColumnName(nameof(DocumentHeader.DocumentNumber))
-          .UsePropertyAccessMode(PropertyAccessMode.Field);
-      });
-      builder.Property("VerifierId");
-      builder.Property(h => h.AuthorId);
-      builder.Property(h => h.StateDescriptor);
-      builder.OwnsOne(h => h.ContentId, navigationBuilder =>
-      {
-        navigationBuilder.Property("_contentId")
-          .HasColumnName(nameof(DocumentHeader.ContentId))
-          .UsePropertyAccessMode(PropertyAccessMode.Field);
-      });
-    });
+    AssignmentSchema.MapUsing(modelBuilder, instantConverter);
+    PartiesSchema.MapUsing(modelBuilder);
+    RepairSchema.MapUsing(modelBuilder);
+    ContractsSchema.MapUsing(modelBuilder);
   }
 }

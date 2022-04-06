@@ -1,16 +1,9 @@
 using LegacyFighter.Cabs.Agreements;
+using LegacyFighter.Cabs.Assignment;
 using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Config;
-using LegacyFighter.Cabs.Contracts.Application;
-using LegacyFighter.Cabs.Contracts.Application.Acme.Dynamic;
-using LegacyFighter.Cabs.Contracts.Application.Acme.Straightforward;
-using LegacyFighter.Cabs.Contracts.Application.Editor;
-using LegacyFighter.Cabs.Contracts.Infra;
-using LegacyFighter.Cabs.Contracts.Legacy;
-using LegacyFighter.Cabs.Contracts.Model;
-using LegacyFighter.Cabs.Contracts.Model.Content;
-using LegacyFighter.Cabs.Contracts.Model.State.Dynamic.Acme;
+using LegacyFighter.Cabs.Contracts;
 using LegacyFighter.Cabs.Crm;
 using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.Crm.TransitAnalyzer;
@@ -19,16 +12,12 @@ using LegacyFighter.Cabs.Geolocation;
 using LegacyFighter.Cabs.Invoicing;
 using LegacyFighter.Cabs.Loyalty;
 using LegacyFighter.Cabs.Notification;
-using LegacyFighter.Cabs.Parties.Api;
-using LegacyFighter.Cabs.Parties.Infra;
-using LegacyFighter.Cabs.Parties.Model.Parties;
-using LegacyFighter.Cabs.Repair.Api;
-using LegacyFighter.Cabs.Repair.Legacy.Dao;
-using LegacyFighter.Cabs.Repair.Legacy.Service;
+using LegacyFighter.Cabs.Parties;
+using LegacyFighter.Cabs.Pricing;
+using LegacyFighter.Cabs.Repair;
 using LegacyFighter.Cabs.Repository;
-using LegacyFighter.Cabs.Service;
+using LegacyFighter.Cabs.Ride;
 using LegacyFighter.Cabs.Tracking;
-using LegacyFighter.Cabs.TransitDetail;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -38,7 +27,6 @@ using NodaTime;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddOptions();
 builder.Services.AddSingleton<EventLoop>();
 builder.Services.AddHostedService(ctx => ctx.GetRequiredService<EventLoop>());
@@ -49,61 +37,14 @@ builder.Services.AddSingleton(_ => SqLiteDbContext.CreateInMemoryDatabase());
 builder.Services.AddSingleton(ctx => GraphDatabase.Driver(
   ctx.GetRequiredService<IOptions<GraphDatabaseOptions>>().Value.Uri, 
   AuthTokens.None));
-builder.Services.AddTransient<TransitDetailsFacade>();
-builder.Services.AddTransient<ITransitDetailsFacade>(ctx =>
-  new TransactionalTransitDetailsFacade(
-    ctx.GetRequiredService<TransitDetailsFacade>(),
-    ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddDbContext<SqLiteDbContext>();
 builder.Services.AddTransient<DbContext>(ctx => ctx.GetRequiredService<SqLiteDbContext>());
 builder.Services.AddScoped<EventsPublisher>();
 builder.Services.AddTransient<ITransactions, Transactions>();
-builder.Services.AddTransient<ITransitRepository, EfCoreTransitRepository>();
-builder.Services.AddTransient<ITransitDetailsRepository, EfCoreTransitDetailsRepository>();
-builder.Services.AddTransient<TransitService>();
-builder.Services.AddTransient<ITransitService>(ctx =>
-  new TransactionalTransitService(
-    ctx.GetRequiredService<TransitService>(),
-    ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddSingleton<IAppProperties, AppProperties>();
 builder.Services.AddSingleton<IClock>(_ => SystemClock.Instance);
-builder.Services.AddTransient<UserDao>();
-builder.Services.AddTransient<JobDoer>();
-builder.Services.AddTransient<IJobDoer>(ctx => new TransactionalJobDoer(
-  ctx.GetRequiredService<JobDoer>(),
-  ctx.GetRequiredService<ITransactions>()));
-builder.Services.AddTransient<ContractManager>();
-builder.Services.AddTransient<IContractManager>(ctx => new TransactionalContractManager(
-  ctx.GetRequiredService<ContractManager>(),
-  ctx.GetRequiredService<ITransactions>()));
-builder.Services.AddTransient<RepairProcess>();
-builder.Services.AddTransient<PartyMapper>();
-builder.Services.AddTransient<IPartyRepository, EfCorePartyRepository>();
-builder.Services.AddTransient<IPartyRelationshipRepository, EfCorePartyRelationshipRepository>();
-builder.Services.AddTransient<IApplicationEventPublisher, MediatRApplicationEventPublisher>();
-builder.Services.AddTransient<IUserRepository, EfCoreUserRepository>();
-builder.Services.AddTransient<IDocumentContentRepository, EfCoreDocumentContentRepository>();
-builder.Services.AddTransient<IDocumentHeaderRepository, EfCoreDocumentHeaderRepository>();
-builder.Services.AddTransient<DocumentEditor>();
-builder.Services.AddTransient<IDocumentEditor>(ctx => new TransactionalDocumentEditor(
-  ctx.GetRequiredService<DocumentEditor>(),
-  ctx.GetRequiredService<ITransactions>()));
-builder.Services.AddTransient<DocumentResourceManager>();
-builder.Services.AddTransient<IDocumentResourceManager>(ctx => 
-  new TransactionalDocumentResourceManager(
-    ctx.GetRequiredService<DocumentResourceManager>(),
-    ctx.GetRequiredService<ITransactions>()));
-builder.Services.AddTransient<AcmeContractProcessBasedOnStraightforwardDocumentModel>();
-builder.Services.AddTransient<IAcmeContractProcessBasedOnStraightforwardDocumentModel>(ctx =>
-  new TransactionalAcmeContractProcessBasedOnStraightforwardDocumentModel(
-    ctx.GetRequiredService<AcmeContractProcessBasedOnStraightforwardDocumentModel>(),
-    ctx.GetRequiredService<ITransactions>()));
-builder.Services.AddTransient<AcmeContractStateAssembler>();
-builder.Services.AddTransient<AcmeStateFactory>();
-
 builder.Services.AddFeatureManagement();
 builder.Services.AddControllers().AddControllersAsServices();
-
 ClaimDependencies.AddTo(builder);
 AgreementsDependencies.AddTo(builder);
 CarFleetDependencies.AddTo(builder);
@@ -115,6 +56,12 @@ LoyaltyDependencies.AddTo(builder);
 GeolocationDependencies.AddTo(builder);
 CrmDependencies.AddTo(builder);
 TrackingDependencies.AddTo(builder);
+PricingDependencies.AddTo(builder);
+AsignmentDependencies.AddTo(builder);
+RideDependencies.AddTo(builder);
+ContractsDependencies.AddTo(builder);
+PartiesDependencies.AddTo(builder);
+RepairDependencies.AddTo(builder);
 
 var app = builder.Build();
 

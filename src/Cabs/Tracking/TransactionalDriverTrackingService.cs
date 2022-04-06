@@ -1,6 +1,7 @@
 using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Geolocation;
+using LegacyFighter.Cabs.Geolocation.Address;
 using NodaTime;
 
 namespace LegacyFighter.Cabs.Tracking;
@@ -27,6 +28,11 @@ public class TransactionalDriverTrackingService : IDriverTrackingService
   public async Task<Distance> CalculateTravelledDistance(long? driverId, Instant from, Instant to)
   {
     return await _inner.CalculateTravelledDistance(driverId, from, to);
+  }
+
+  public async Task<List<DriverPositionDtoV2>> FindActiveDriversNearby(AddressDto address, Distance distance, List<CarClasses> carClasses)
+  {
+    return await _inner.FindActiveDriversNearby(address, distance, carClasses);
   }
 
   public async Task<List<DriverPositionDtoV2>> FindActiveDriversNearby(double latitudeMin,
