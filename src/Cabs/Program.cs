@@ -1,4 +1,5 @@
 using LegacyFighter.Cabs.Agreements;
+using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Config;
 using LegacyFighter.Cabs.Contracts.Application;
@@ -69,9 +70,6 @@ builder.Services.AddTransient<ITransitRepository, EfCoreTransitRepository>();
 builder.Services.AddTransient<ITransitDetailsRepository, EfCoreTransitDetailsRepository>();
 builder.Services.AddTransient<IAwardsAccountRepository, EfCoreAwardsAccountRepository>();
 builder.Services.AddTransient<IInvoiceRepository, EfCoreInvoiceRepository>();
-builder.Services.AddTransient<ICarTypeEntityRepository, EfCoreCarTypeRepository>();
-builder.Services.AddTransient<ICarTypeRepository, CarTypeRepository>();
-builder.Services.AddTransient<ICarTypeActiveCounterRepository, EfCoreCarTypeActiveCounterRepository>();
 builder.Services.AddTransient<ITravelledDistanceRepository, EfCoreTravelledDistanceRepository>();
 builder.Services.AddTransient<SqlBasedDriverReportCreator>();
 builder.Services.AddTransient<AwardsServiceImpl>();
@@ -81,11 +79,6 @@ builder.Services.AddTransient<IAwardsService>(ctx =>
     ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddTransient<IClientNotificationService, ClientNotificationService>();
 builder.Services.AddTransient<IDriverNotificationService, DriverNotificationService>();
-builder.Services.AddTransient<CarTypeService>();
-builder.Services.AddTransient<ICarTypeService>(
-  ctx => new TransactionalCarTypeService(
-    ctx.GetRequiredService<CarTypeService>(), 
-    ctx.GetRequiredService<ITransactions>()));
 builder.Services.AddTransient<ClientService>();
 builder.Services.AddTransient<IClientService>(
   ctx => new TransactionalClientService(
@@ -172,7 +165,7 @@ builder.Services.AddControllers().AddControllersAsServices();
 
 ClaimDependencies.AddTo(builder);
 AgreementsDependencies.AddTo(builder);
-
+CarFleetDependencies.AddTo(builder);
 
 var app = builder.Build();
 

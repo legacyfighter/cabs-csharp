@@ -1,4 +1,5 @@
-﻿using LegacyFighter.Cabs.DistanceValue;
+﻿using LegacyFighter.Cabs.CarFleet;
+using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;
@@ -15,7 +16,7 @@ public class TransitDetailsDto
   public Instant? AcceptedAt { get; set; }
   public Instant? PublishedAt { get; set; }
   public ClientDto Client { get; set; }
-  public CarType.CarClasses? CarType { get; set; }
+  public CarClasses? CarType { get; set; }
   public AddressDto From { get; set; }
   public AddressDto To { get; set; }
   public Money Price { get; set; }
@@ -56,7 +57,7 @@ public class TransitDetailsDto
     Instant dateTime,
     Instant completedAt,
     ClientDto client,
-    CarType.CarClasses? carType,
+    CarClasses? carType,
     AddressDto from,
     AddressDto to,
     Instant started,

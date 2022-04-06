@@ -1,6 +1,4 @@
-using LegacyFighter.Cabs.Entity;
-
-namespace LegacyFighter.Cabs.Dto;
+namespace LegacyFighter.Cabs.CarFleet;
 
 public class CarTypeDto
 {
@@ -21,7 +19,7 @@ public class CarTypeDto
   }
 
   public long? Id { get; }
-  public CarType.CarClasses CarClass { get; set; }
+  public CarClasses CarClass { get; set; }
   public CarType.Statuses? Status { get; set; }
   public int CarsCounter { get; set; }
   public string Description { get; set; }

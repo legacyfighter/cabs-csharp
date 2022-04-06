@@ -1,3 +1,4 @@
+using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
@@ -23,7 +24,7 @@ public class TransactionalTransitService : ITransitService
     return transit;
   }
 
-  public async Task<Transit> CreateTransit(long? clientId, Address from, Address to, CarType.CarClasses? carClass)
+  public async Task<Transit> CreateTransit(long? clientId, Address from, Address to, CarClasses? carClass)
   {
     await using var tx = await _transactions.BeginTransaction();
     var transit = await _inner.CreateTransit(clientId, from, to, carClass);

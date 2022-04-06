@@ -1,3 +1,4 @@
+using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Common;
 using NodaTime;
 
@@ -10,7 +11,7 @@ public class DriverSession : BaseEntity
   public Instant? LoggedOutAt { get; set; }
   public virtual Driver Driver { get; set; }
   public string PlatesNumber { get; set; }
-  public CarType.CarClasses? CarClass { get; set; }
+  public CarClasses? CarClass { get; set; }
 
   public override bool Equals(object obj)
   {

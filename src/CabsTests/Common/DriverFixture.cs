@@ -1,4 +1,5 @@
 using System;
+using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;
 using LegacyFighter.Cabs.Repository;
@@ -70,7 +71,7 @@ public class DriverFixture
       "WU DAMIAN",
       latitude,
       longitude,
-      CarType.CarClasses.Van,
+      CarClasses.Van,
       SystemClock.Instance.GetCurrentInstant(),
       "brand");
   }
@@ -79,7 +80,7 @@ public class DriverFixture
     string plateNumber,
     double latitude,
     double longitude,
-    CarType.CarClasses carClass,
+    CarClasses carClass,
     Instant when)
   {
     return await ANearbyDriver(plateNumber, latitude, longitude, carClass, when, "brand");
@@ -89,7 +90,7 @@ public class DriverFixture
     string plateNumber,
     double latitude,
     double longitude,
-    CarType.CarClasses carClass,
+    CarClasses carClass,
     Instant when,
     string carBrand)
   {
@@ -103,7 +104,7 @@ public class DriverFixture
     string plateNumber,
     double latitude,
     double longitude,
-    CarType.CarClasses carClass,
+    CarClasses carClass,
     Driver driver,
     Instant when,
     string carBrand)
@@ -114,7 +115,7 @@ public class DriverFixture
 
   private async Task DriverLogsIn(
     string plateNumber,
-    CarType.CarClasses carClass,
+    CarClasses carClass,
     Driver driver,
     string carBrand)
   {

@@ -1,9 +1,6 @@
 using LegacyFighter.Cabs.Config;
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.Repository;
 
-namespace LegacyFighter.Cabs.Service;
+namespace LegacyFighter.Cabs.CarFleet;
 
 public class CarTypeService : ICarTypeService
 {
@@ -33,19 +30,19 @@ public class CarTypeService : ICarTypeService
     return new CarTypeDto(loaded, (await _carTypeRepository.FindActiveCounter(loaded.CarClass)).ActiveCarsCounter);
   }
 
-  public async Task<CarType> Create(CarTypeDto carTypeDto)
+  public async Task<CarTypeDto> Create(CarTypeDto carTypeDto)
   {
     var byCarClass = await _carTypeRepository.FindByCarClass(carTypeDto.CarClass);
     if (byCarClass == null)
     {
       var type = new CarType(carTypeDto.CarClass, carTypeDto.Description,
         GetMinNumberOfCars(carTypeDto.CarClass));
-      return await _carTypeRepository.Save(type);
+      return await LoadDto((await _carTypeRepository.Save(type)).Id);
     }
     else
     {
       byCarClass.Description = carTypeDto.Description;
-      return await _carTypeRepository.FindByCarClass(carTypeDto.CarClass);
+      return await LoadDto((await _carTypeRepository.FindByCarClass(carTypeDto.CarClass)).Id);
     }
   }
 
@@ -61,38 +58,38 @@ public class CarTypeService : ICarTypeService
     carType.Deactivate();
   }
 
-  public async Task RegisterCar(CarType.CarClasses carClass)
+  public async Task RegisterCar(CarClasses carClass)
   {
     var carType = await FindByCarClass(carClass);
     carType.RegisterCar();
   }
 
-  public async Task UnregisterCar(CarType.CarClasses? carClass)
+  public async Task UnregisterCar(CarClasses? carClass)
   {
     var carType = await FindByCarClass(carClass);
     carType.UnregisterCar();
   }
 
-  public async Task UnregisterActiveCar(CarType.CarClasses carClass)
+  public async Task UnregisterActiveCar(CarClasses carClass)
   {
     await _carTypeRepository.DecrementCounter(carClass);
   }
 
-  public async Task RegisterActiveCar(CarType.CarClasses? carClass)
+  public async Task RegisterActiveCar(CarClasses? carClass)
   {
     await _carTypeRepository.IncrementCounter(carClass.Value);
   }
 
-  public async Task<List<CarType.CarClasses>> FindActiveCarClasses()
+  public async Task<List<CarClasses>> FindActiveCarClasses()
   {
     return (await _carTypeRepository.FindByStatus(CarType.Statuses.Active))
       .Select(type => type.CarClass)
       .ToList();
   }
 
-  private int GetMinNumberOfCars(CarType.CarClasses carClass)
+  private int GetMinNumberOfCars(CarClasses carClass)
   {
-    if (carClass == CarType.CarClasses.Eco)
+    if (carClass == CarClasses.Eco)
     {
       return _appProperties.MinNoOfCarsForEcoClass;
     }
@@ -102,7 +99,7 @@ public class CarTypeService : ICarTypeService
     }
   }
 
-  public async Task RemoveCarType(CarType.CarClasses carClass)
+  public async Task RemoveCarType(CarClasses carClass)
   {
     var carType = await _carTypeRepository.FindByCarClass(carClass);
     if (carType != null)
@@ -111,7 +108,7 @@ public class CarTypeService : ICarTypeService
     }
   }
 
-  private async Task<CarType> FindByCarClass(CarType.CarClasses? carClass)
+  private async Task<CarType> FindByCarClass(CarClasses? carClass)
   {
     var byCarClass = await _carTypeRepository.FindByCarClass(carClass);
     if (byCarClass == null)

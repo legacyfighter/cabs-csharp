@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using FluentAssertions.Extensions;
+using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Controllers;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
@@ -29,7 +30,7 @@ public class AnalyzeNearbyTransitsIntegrationTest : TestWithGraphDb
       collection.AddSingleton(Clock);
       collection.AddSingleton(GeocodingService);
     }, ConfigurationOverridingGraphDatabaseUri());
-    await Fixtures.AnActiveCarCategory(CarType.CarClasses.Van);
+    await Fixtures.AnActiveCarCategory(CarClasses.Van);
     GeocodingService.GeocodeAddress(Arg.Any<Address>()).Returns(new double[] { 1, 1 });
   }
 
@@ -47,7 +48,7 @@ public class AnalyzeNearbyTransitsIntegrationTest : TestWithGraphDb
     //and
     Clock.GetCurrentInstant().Returns(Instant.FromUtc(2021, 1, 1, 0, 00));
     var driver =
-      await Fixtures.ANearbyDriver("WA001", 1, 1, CarType.CarClasses.Van, SystemClock.Instance.GetCurrentInstant());
+      await Fixtures.ANearbyDriver("WA001", 1, 1, CarClasses.Van, SystemClock.Instance.GetCurrentInstant());
     //and
     var address1 = new Address("1_1", "1", "1", "1", 1);
     var address2 = new Address("1_2", "2", "2", "2", 2);
@@ -101,7 +102,7 @@ public class AnalyzeNearbyTransitsIntegrationTest : TestWithGraphDb
     //and
     Clock.GetCurrentInstant().Returns(Instant.FromUtc(2021, 1, 1, 0, 00));
     var driver =
-      await Fixtures.ANearbyDriver("WA001", 1, 1, CarType.CarClasses.Van, SystemClock.Instance.GetCurrentInstant());
+      await Fixtures.ANearbyDriver("WA001", 1, 1, CarClasses.Van, SystemClock.Instance.GetCurrentInstant());
     //and
     var address1 = new Address("2_1", "1", "1", "1", 1);
     var address2 = new Address("2_2", "2", "2", "2", 2);
@@ -151,7 +152,7 @@ public class AnalyzeNearbyTransitsIntegrationTest : TestWithGraphDb
     var client = await Fixtures.AClient();
     //and
     Clock.GetCurrentInstant().Returns(Instant.FromUtc(2021, 1, 1, 0, 00));
-    var driver = await Fixtures.ANearbyDriver("WA001", 1, 1, CarType.CarClasses.Van, SystemClock.Instance.GetCurrentInstant());
+    var driver = await Fixtures.ANearbyDriver("WA001", 1, 1, CarClasses.Van, SystemClock.Instance.GetCurrentInstant());
     //and
     var address1 = new Address("3_1", "1", "1", "1", 1);
     var address2 = new Address("3_2", "2", "2", "2", 2);
@@ -186,7 +187,7 @@ public class AnalyzeNearbyTransitsIntegrationTest : TestWithGraphDb
     var client = await Fixtures.AClient();
     //and
     Clock.GetCurrentInstant().Returns(Instant.FromUtc(2021, 1, 1, 0, 00));
-    var driver = await Fixtures.ANearbyDriver("WA001", 1, 1, CarType.CarClasses.Van, SystemClock.Instance.GetCurrentInstant());
+    var driver = await Fixtures.ANearbyDriver("WA001", 1, 1, CarClasses.Van, SystemClock.Instance.GetCurrentInstant());
     //and
     var address1 = new Address("4_1", "1", "1", "1", 1);
     var address2 = new Address("4_2", "2", "2", "2", 2);

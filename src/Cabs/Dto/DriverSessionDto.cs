@@ -1,3 +1,4 @@
+using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Entity;
 using NodaTime;
 
@@ -9,7 +10,7 @@ public class DriverSessionDto
     Instant loggedAt,
     Instant? loggedOutAt,
     string platesNumber,
-    CarType.CarClasses carClass,
+    CarClasses carClass,
     string carBrand)
   {
     LoggedAt = loggedAt;
@@ -37,5 +38,5 @@ public class DriverSessionDto
   public Instant LoggedAt { get; set; }
   public Instant? LoggedOutAt { get; set; }
   public string PlatesNumber { get; set; }
-  public CarType.CarClasses? CarClass { get; set; }
+  public CarClasses? CarClass { get; set; }
 }

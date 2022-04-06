@@ -1,4 +1,5 @@
-﻿using LegacyFighter.Cabs.DistanceValue;
+﻿using LegacyFighter.Cabs.CarFleet;
+using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;
 using NodaTime;
@@ -20,7 +21,7 @@ public class TransitDetailsFacade : ITransitDetailsFacade
   }
 
   public async Task TransitRequested(Instant when, long? transitId, Address from, Address to, Distance distance,
-    Client client, CarType.CarClasses? carClass, Money estimatedPrice, Tariff tariff)
+    Client client, CarClasses? carClass, Money estimatedPrice, Tariff tariff)
   {
     var transitDetails =
       new TransitDetails(when, transitId, from, to, distance, client, carClass, estimatedPrice, tariff);

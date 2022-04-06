@@ -1,7 +1,5 @@
 using System.Linq;
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.Service;
+using LegacyFighter.Cabs.CarFleet;
 
 namespace LegacyFighter.CabsTests.Common;
 
@@ -14,7 +12,7 @@ public class CarTypeFixture
     _carTypeService = carTypeService;
   }
 
-  public async Task<CarType> AnActiveCarCategory(CarType.CarClasses carClass)
+  public async Task<CarTypeDto> AnActiveCarCategory(CarClasses carClass)
   {
     var carTypeDto = new CarTypeDto
     {

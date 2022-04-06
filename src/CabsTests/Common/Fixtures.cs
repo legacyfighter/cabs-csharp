@@ -1,4 +1,5 @@
 using System.Linq;
+using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
@@ -111,7 +112,7 @@ public class Fixtures
     string plateNumber,
     double latitude,
     double longitude,
-    CarType.CarClasses carClass,
+    CarClasses carClass,
     Instant when) 
   {
     return await _driverFixture.ANearbyDriver(
@@ -127,7 +128,7 @@ public class Fixtures
     string plateNumber,
     double latitude,
     double longitude,
-    CarType.CarClasses carClass,
+    CarClasses carClass,
     Instant when,
     string carBrand) 
   {
@@ -155,9 +156,9 @@ public class Fixtures
     return await _rideFixture.ARideWithFixedClock(price, publishedAt, completedAt, client, driver, from, destination, clock);
   }
 
-  public async Task<CarType> AnActiveCarCategory(CarType.CarClasses carClass)
+  public async Task AnActiveCarCategory(CarClasses carClass)
   {
-    return await _carTypeFixture.AnActiveCarCategory(carClass);
+    await _carTypeFixture.AnActiveCarCategory(carClass);
   }
 
   public async Task ClientHasDoneTransits(Client client, int noOfTransits, IGeocodingService geocodingService) 

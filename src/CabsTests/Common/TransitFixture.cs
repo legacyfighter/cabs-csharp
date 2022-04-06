@@ -1,3 +1,4 @@
+using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
@@ -37,7 +38,7 @@ public class TransitFixture
       to,
       Distance.Zero,
       client,
-      CarType.CarClasses.Van,
+      CarClasses.Van,
       new Money(price),
       Tariff.OfTime(when));
     await _transitDetailsFacade.TransitAccepted(transitId, when.InUtc().ToInstant(), driver.Id);

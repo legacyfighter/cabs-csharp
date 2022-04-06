@@ -1,3 +1,4 @@
+using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;
 using LegacyFighter.Cabs.Repository;
@@ -41,9 +42,9 @@ public class RideFixture
   {
     from = await _addressRepository.Save(from);
     destination = await _addressRepository.Save(destination);
-    await _carTypeFixture.AnActiveCarCategory(CarType.CarClasses.Van);
+    await _carTypeFixture.AnActiveCarCategory(CarClasses.Van);
     var transit = await _transitService.CreateTransit(
-      client.Id, from, destination, CarType.CarClasses.Van);
+      client.Id, from, destination, CarClasses.Van);
     await _transitService.PublishTransit(transit.Id);
     await _transitService.FindDriversForTransit(transit.Id);
     await _transitService.AcceptTransit(driver.Id, transit.Id);
@@ -74,9 +75,9 @@ public class RideFixture
     from = await _addressRepository.Save(from);
     destination = await _addressRepository.Save(destination);
     clock.GetCurrentInstant().Returns(publishedAt);
-    await _carTypeFixture.AnActiveCarCategory(CarType.CarClasses.Van);
+    await _carTypeFixture.AnActiveCarCategory(CarClasses.Van);
     var transit = await _transitService.CreateTransit(
-      client.Id, from, destination, CarType.CarClasses.Van);
+      client.Id, from, destination, CarClasses.Van);
     await _transitService.PublishTransit(transit.Id);
     await _transitService.FindDriversForTransit(transit.Id);
     await _transitService.AcceptTransit(driver.Id, transit.Id);

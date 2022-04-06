@@ -1,3 +1,4 @@
+using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Entity;
@@ -69,7 +70,7 @@ public class TransitDto
     List<DriverDto> proposedDrivers,
     AddressDto from,
     AddressDto to,
-    CarType.CarClasses? carClass,
+    CarClasses? carClass,
     ClientDto clientDto)
   {
     Id = id;
@@ -109,7 +110,7 @@ public class TransitDto
   public ClaimDto ClaimDto { get; set; }
   public AddressDto To { get; set; }
   public AddressDto From { get; set; }
-  public CarType.CarClasses? CarClass { get; set; }
+  public CarClasses? CarClass { get; set; }
   public ClientDto ClientDto { get; set; }
   public long? Id { get; }
   public Transit.Statuses? Status { get; set; }

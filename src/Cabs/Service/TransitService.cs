@@ -1,3 +1,4 @@
+using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Dto;
@@ -78,7 +79,7 @@ public class TransitService : ITransitService
     return await _addressRepository.Save(address);
   }
 
-  public async Task<Transit> CreateTransit(long? clientId, Address from, Address to, CarType.CarClasses? carClass)
+  public async Task<Transit> CreateTransit(long? clientId, Address from, Address to, CarClasses? carClass)
   {
     var client = await _clientRepository.Find(clientId);
 
@@ -301,9 +302,9 @@ public class TransitService : ITransitService
               ));
             driversAvgPositions = driversAvgPositions.Take(20).ToList();
 
-            var carClasses = new List<CarType.CarClasses?>();
+            var carClasses = new List<CarClasses?>();
             var activeCarClasses = (await _carTypeService.FindActiveCarClasses())
-              .Select(c => new CarType.CarClasses?(c)).ToList();
+              .Select(c => new CarClasses?(c)).ToList();
             if (!activeCarClasses.Any())
             {
               return transit;

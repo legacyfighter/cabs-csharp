@@ -1,3 +1,4 @@
+using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Repository;
 using NodaTime;
@@ -19,7 +20,7 @@ public class DriverSessionService : IDriverSessionService
     _clock = clock;
   }
 
-  public async Task<DriverSession> LogIn(long? driverId, string plateNumber, CarType.CarClasses? carClass, string carBrand)
+  public async Task<DriverSession> LogIn(long? driverId, string plateNumber, CarClasses? carClass, string carBrand)
   {
     var session = new DriverSession
     {

@@ -1,4 +1,5 @@
-﻿using LegacyFighter.Cabs.Common;
+﻿using LegacyFighter.Cabs.CarFleet;
+using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;
@@ -25,7 +26,7 @@ public class TransactionalTransitDetailsFacade : ITransitDetailsFacade
   }
 
   public async Task TransitRequested(Instant when, long? transitId, Address from, Address to, Distance distance, Client client,
-    CarType.CarClasses? carClass, Money estimatedPrice, Tariff tariff)
+    CarClasses? carClass, Money estimatedPrice, Tariff tariff)
   {
     await _inner.TransitRequested(when, transitId, from, to, distance, client, carClass, estimatedPrice, tariff);
   }

@@ -1,4 +1,5 @@
 ﻿using System;
+using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Dto;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.Service;
@@ -21,7 +22,7 @@ public class TransitLifeCycleIntegrationTest
   {
     GeocodingService = Substitute.For<IGeocodingService>();
     _app = CabsApp.CreateInstance(collection => { collection.AddSingleton(GeocodingService); });
-    await Fixtures.AnActiveCarCategory(CarType.CarClasses.Van);
+    await Fixtures.AnActiveCarCategory(CarClasses.Van);
     GeocodingService.GeocodeAddress(Arg.Any<Address>()).Returns(new double[] { 1, 1 });
   }
 
@@ -453,12 +454,12 @@ public class TransitLifeCycleIntegrationTest
 
   private async Task<long?> ANearbyDriver(string plateNumber)
   {
-    return (await Fixtures.ANearbyDriver(plateNumber, 1, 1, CarType.CarClasses.Van, SystemClock.Instance.GetCurrentInstant(), "BRAND")).Id;
+    return (await Fixtures.ANearbyDriver(plateNumber, 1, 1, CarClasses.Van, SystemClock.Instance.GetCurrentInstant(), "BRAND")).Id;
   }
 
   private async Task<long?> AFarAwayDriver(string plateNumber)
   {
-    return (await Fixtures.ANearbyDriver(plateNumber, 1000, 1000, CarType.CarClasses.Van, SystemClock.Instance.GetCurrentInstant(), "BRAND")).Id;
+    return (await Fixtures.ANearbyDriver(plateNumber, 1000, 1000, CarClasses.Van, SystemClock.Instance.GetCurrentInstant(), "BRAND")).Id;
   }
 
   private async Task<Transit> RequestTransitFromTo(AddressDto pickup, AddressDto destination)

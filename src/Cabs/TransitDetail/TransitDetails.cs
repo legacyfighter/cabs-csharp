@@ -1,4 +1,5 @@
-﻿using LegacyFighter.Cabs.Common;
+﻿using LegacyFighter.Cabs.CarFleet;
+using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;
@@ -11,7 +12,7 @@ public class TransitDetails : BaseEntity
   public Instant? DateTime { get; private set; }
   public Instant? CompleteAt { get; private set; }
   public virtual Client Client { get; private set; }
-  public CarType.CarClasses? CarType { get; }
+  public CarClasses? CarType { get; }
   public virtual Address From { get; private set; }
   public virtual Address To { get; private set; }
   public Instant? Started { get; private set; }
@@ -38,7 +39,7 @@ public class TransitDetails : BaseEntity
     Address to,
     Distance distance,
     Client client,
-    CarType.CarClasses? carClass,
+    CarClasses? carClass,
     Money estimatedPrice,
     Tariff tariff)
   {

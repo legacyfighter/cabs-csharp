@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Data.Common;
+using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Dto;
@@ -140,7 +141,7 @@ public class SqlBasedDriverReportCreator : IDriverReportCreator
       null,
       RetrieveFromAddress(row),
       RetrieveToAddress(row),
-      Enum.Parse<CarType.CarClasses>(row["CarType"].ToString()),
+      Enum.Parse<CarClasses>(row["CarType"].ToString()),
       null);
   }
 
@@ -150,7 +151,7 @@ public class SqlBasedDriverReportCreator : IDriverReportCreator
       row["LoggedAt"].ToInstant(),
       row["LoggedOutAt"].ToNullableInstant(),
       row["PlatesNumber"].ToString(),
-      Enum.Parse<CarType.CarClasses>(row["CarClass"].ToString()),
+      Enum.Parse<CarClasses>(row["CarClass"].ToString()),
       row["CarBrand"].ToString());
   }
 

@@ -1,4 +1,5 @@
-﻿using LegacyFighter.Cabs.DistanceValue;
+﻿using LegacyFighter.Cabs.CarFleet;
+using LegacyFighter.Cabs.DistanceValue;
 using LegacyFighter.Cabs.Entity;
 using LegacyFighter.Cabs.MoneyValue;
 using NodaTime;
@@ -9,7 +10,7 @@ public interface ITransitDetailsFacade
 {
   Task<TransitDetailsDto> Find(long? transitId);
   Task TransitRequested(Instant when, long? transitId, Address from, Address to, Distance distance,
-    Client client, CarType.CarClasses? carClass, Money estimatedPrice, Tariff tariff);
+    Client client, CarClasses? carClass, Money estimatedPrice, Tariff tariff);
   Task PickupChangedTo(long? transitId, Address newAddress, Distance newDistance);
   Task DestinationChanged(long? transitId, Address newAddress, Distance newDistance);
   Task TransitPublished(long? transitId, Instant when);

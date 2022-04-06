@@ -1,12 +1,12 @@
-namespace LegacyFighter.Cabs.Entity;
+namespace LegacyFighter.Cabs.CarFleet;
 
 public class CarTypeActiveCounter
 {
-  private CarType.CarClasses CarClass { get; }
+  private CarClasses CarClass { get; }
 
-  public int ActiveCarsCounter { get; } = 0;
+  internal int ActiveCarsCounter { get; } = 0;
 
-  public CarTypeActiveCounter(CarType.CarClasses carClass)
+  public CarTypeActiveCounter(CarClasses carClass)
   {
     CarClass = carClass;
   }

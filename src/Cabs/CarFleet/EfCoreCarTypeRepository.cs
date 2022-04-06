@@ -1,18 +1,18 @@
-using LegacyFighter.Cabs.Entity;
+using LegacyFighter.Cabs.Repository;
 using Microsoft.EntityFrameworkCore;
 
-namespace LegacyFighter.Cabs.Repository;
+namespace LegacyFighter.Cabs.CarFleet;
 
 public interface ICarTypeRepository
 {
-  Task<CarType> FindByCarClass(CarType.CarClasses? carClass);
+  Task<CarType> FindByCarClass(CarClasses? carClass);
   Task<List<CarType>> FindByStatus(CarType.Statuses status);
   Task<CarType> Find(long? id);
   Task<CarType> Save(CarType type);
   Task Delete(CarType carType);
-  Task<CarTypeActiveCounter> FindActiveCounter(CarType.CarClasses? carClass);
-  Task IncrementCounter(CarType.CarClasses carClass);
-  Task DecrementCounter(CarType.CarClasses carClass);
+  Task<CarTypeActiveCounter> FindActiveCounter(CarClasses? carClass);
+  Task IncrementCounter(CarClasses carClass);
+  Task DecrementCounter(CarClasses carClass);
 }
 
 internal class CarTypeRepository : ICarTypeRepository
@@ -28,12 +28,12 @@ internal class CarTypeRepository : ICarTypeRepository
     _carTypeActiveCounterRepository = carTypeActiveCounterRepository;
   }
 
-  public Task<CarType> FindByCarClass(CarType.CarClasses? carClass)
+  public Task<CarType> FindByCarClass(CarClasses? carClass)
   {
     return _carTypeEntityRepository.FindByCarClass(carClass);
   }
 
-  public Task<CarTypeActiveCounter> FindActiveCounter(CarType.CarClasses? carClass)
+  public Task<CarTypeActiveCounter> FindActiveCounter(CarClasses? carClass)
   {
     return _carTypeActiveCounterRepository.FindByCarClass(carClass);
   }
@@ -61,20 +61,20 @@ internal class CarTypeRepository : ICarTypeRepository
       await _carTypeActiveCounterRepository.FindByCarClass(carType.CarClass));
   }
 
-  public async Task IncrementCounter(CarType.CarClasses carClass)
+  public async Task IncrementCounter(CarClasses carClass)
   {
     await _carTypeActiveCounterRepository.IncrementCounter(carClass);
   }
 
-  public async Task DecrementCounter(CarType.CarClasses carClass)
+  public async Task DecrementCounter(CarClasses carClass)
   {
     await _carTypeActiveCounterRepository.DecrementCounter(carClass);
   }
 }
 
-public interface ICarTypeEntityRepository
+internal interface ICarTypeEntityRepository
 {
-  Task<CarType> FindByCarClass(CarType.CarClasses? carClass);
+  Task<CarType> FindByCarClass(CarClasses? carClass);
   Task<List<CarType>> FindByStatus(CarType.Statuses status);
   Task<CarType> Find(long? id);
   Task<CarType> Save(CarType type);
@@ -90,7 +90,7 @@ internal class EfCoreCarTypeRepository : ICarTypeEntityRepository
     _context = context;
   }
 
-  public async Task<CarType> FindByCarClass(CarType.CarClasses? carClass)
+  public async Task<CarType> FindByCarClass(CarClasses? carClass)
   {
     return await _context.CarTypes.FirstOrDefaultAsync(c => c.CarClass == carClass);
   }
@@ -119,13 +119,13 @@ internal class EfCoreCarTypeRepository : ICarTypeEntityRepository
   }
 }
 
-public interface ICarTypeActiveCounterRepository
+internal interface ICarTypeActiveCounterRepository
 {
-  Task<CarTypeActiveCounter> FindByCarClass(CarType.CarClasses? carTypeCarClass);
+  Task<CarTypeActiveCounter> FindByCarClass(CarClasses? carTypeCarClass);
   Task Delete(CarTypeActiveCounter item);
   Task<CarTypeActiveCounter> Save(CarTypeActiveCounter carTypeActiveCounter);
-  Task DecrementCounter(CarType.CarClasses carClass);
-  Task IncrementCounter(CarType.CarClasses carClass);
+  Task DecrementCounter(CarClasses carClass);
+  Task IncrementCounter(CarClasses carClass);
 }
 
 internal class EfCoreCarTypeActiveCounterRepository : ICarTypeActiveCounterRepository
@@ -137,7 +137,7 @@ internal class EfCoreCarTypeActiveCounterRepository : ICarTypeActiveCounterRepos
     _dbContext = dbContext;
   }
 
-  public async Task<CarTypeActiveCounter> FindByCarClass(CarType.CarClasses? carTypeCarClass)
+  public async Task<CarTypeActiveCounter> FindByCarClass(CarClasses? carTypeCarClass)
   {
     return await _dbContext.CarTypeActiveCounters.FindAsync(carTypeCarClass);
   }
@@ -163,7 +163,7 @@ internal class EfCoreCarTypeActiveCounterRepository : ICarTypeActiveCounterRepos
     return carTypeActiveCounter;
   }
 
-  public async Task DecrementCounter(CarType.CarClasses carClass)
+  public async Task DecrementCounter(CarClasses carClass)
   {
     const string commandText = 
       $"UPDATE {nameof(CarTypeActiveCounter)}s " +
@@ -172,7 +172,7 @@ internal class EfCoreCarTypeActiveCounterRepository : ICarTypeActiveCounterRepos
     await _dbContext.Database.ExecuteSqlRawAsync(commandText, Enum.GetName(carClass));
   }
 
-  public async Task IncrementCounter(CarType.CarClasses carClass)
+  public async Task IncrementCounter(CarClasses carClass)
   {
     const string commandText = 
       $"UPDATE {nameof(CarTypeActiveCounter)}s " +

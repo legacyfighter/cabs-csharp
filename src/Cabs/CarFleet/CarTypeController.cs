@@ -1,9 +1,6 @@
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
-using LegacyFighter.Cabs.Service;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LegacyFighter.Cabs.Controllers;
+namespace LegacyFighter.Cabs.CarFleet;
 
 [ApiController]
 [Route("[controller]")]
@@ -20,18 +17,18 @@ public class CarTypeController
   public async Task<CarTypeDto> Create([FromBody] CarTypeDto carTypeDto)
   {
     var created = await _carTypeService.Create(carTypeDto);
-    return await _carTypeService.LoadDto(created.Id);
+    return created;
   }
 
   [HttpPost("/cartypes/{carClass}/registerCar")]
-  public async Task<IActionResult> RegisterCar(CarType.CarClasses carClass)
+  public async Task<IActionResult> RegisterCar(CarClasses carClass)
   {
     await _carTypeService.RegisterCar(carClass);
     return new OkResult();
   }
 
   [HttpPost("/cartypes/{carClass}/unregisterCar")]
-  public async Task<IActionResult> UnregisterCar(CarType.CarClasses carClass)
+  public async Task<IActionResult> UnregisterCar(CarClasses carClass)
   {
     await _carTypeService.UnregisterCar(carClass);
     return new OkResult();

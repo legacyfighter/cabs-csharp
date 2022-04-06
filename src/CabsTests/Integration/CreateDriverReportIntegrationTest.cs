@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Crm.Claims;
 using LegacyFighter.Cabs.DriverReports;
 using LegacyFighter.Cabs.Dto;
@@ -39,8 +40,8 @@ public class CreateDriverReportIntegrationTest
       ctx.AddSingleton(GeocodingService);
       ctx.AddSingleton(Clock);
     });
-    await AnActiveCarCategory(CarType.CarClasses.Van);
-    await AnActiveCarCategory(CarType.CarClasses.Premium);
+    await Fixtures.AnActiveCarCategory(CarClasses.Van);
+    await Fixtures.AnActiveCarCategory(CarClasses.Premium);
   }
 
   [TearDown]
@@ -62,11 +63,11 @@ public class CreateDriverReportIntegrationTest
     await Fixtures.DriverHasAttribute(driver, DriverAttribute.DriverAttributeNames.MedicalExaminationRemarks,
       "private info");
     //and
-    await DriverHasDoneSessionAndPicksSomeoneUpInCar(driver, client, CarType.CarClasses.Van, "WU1213", "SCODA FABIA",
+    await DriverHasDoneSessionAndPicksSomeoneUpInCar(driver, client, CarClasses.Van, "WU1213", "SCODA FABIA",
       Today);
-    await DriverHasDoneSessionAndPicksSomeoneUpInCar(driver, client, CarType.CarClasses.Van, "WU1213", "SCODA OCTAVIA",
+    await DriverHasDoneSessionAndPicksSomeoneUpInCar(driver, client, CarClasses.Van, "WU1213", "SCODA OCTAVIA",
       Yesterday);
-    var inBmw = await DriverHasDoneSessionAndPicksSomeoneUpInCar(driver, client, CarType.CarClasses.Van, "WU1213",
+    var inBmw = await DriverHasDoneSessionAndPicksSomeoneUpInCar(driver, client, CarClasses.Van, "WU1213",
       "BMW M2", DayBeforeYesterday);
     //and
     await Fixtures.CreateClaim(client, inBmw, "za szybko");
@@ -122,7 +123,7 @@ public class CreateDriverReportIntegrationTest
   }
 
   private async Task<Transit> DriverHasDoneSessionAndPicksSomeoneUpInCar(Driver driver, Client client,
-    CarType.CarClasses carClass, string plateNumber, string carBrand, Instant when)
+    CarClasses carClass, string plateNumber, string carBrand, Instant when)
   {
     Clock.GetCurrentInstant().Returns(when);
     var driverId = driver.Id;
@@ -160,22 +161,5 @@ public class CreateDriverReportIntegrationTest
     };
     GeocodingService.GeocodeAddress(address).Returns(new[] { latitude, longitude });
     return await AddressRepository.Save(address);
-  }
-
-  private async Task<CarType> AnActiveCarCategory(CarType.CarClasses carClass)
-  {
-    var carTypeDto = new CarTypeDto
-    {
-      CarClass = carClass,
-      Description = "opis"
-    };
-    var carType = await CarTypeService.Create(carTypeDto);
-    foreach (var _ in Enumerable.Range(1, carType.MinNoOfCarsToActivateClass))
-    {
-      await CarTypeService.RegisterCar(carType.CarClass);
-    }
-
-    await CarTypeService.Activate(carType.Id);
-    return carType;
   }
 }

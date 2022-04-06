@@ -1,5 +1,6 @@
 using System.Data.Common;
 using LegacyFighter.Cabs.Agreements;
+using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Contracts.Legacy;
 using LegacyFighter.Cabs.Contracts.Model;
@@ -114,20 +115,7 @@ public class SqLiteDbContext : DbContext
       builder.Property(x => x.Transactions).IsRequired();
       builder.Property(x => x.Active).IsRequired();
     });
-    modelBuilder.Entity<CarType>(builder =>
-    {
-      builder.MapBaseEntityProperties();
-      builder.Property(t => t.CarClass).HasConversion<string>().IsRequired();
-      builder.Property(t => t.Status).HasConversion<string>().IsRequired();
-      builder.Property(t => t.CarsCounter).IsRequired();
-      builder.Property(t => t.MinNoOfCarsToActivateClass).IsRequired();
-    });
-    modelBuilder.Entity<CarTypeActiveCounter>(builder =>
-    {
-      builder.HasKey("CarClass");
-      builder.Property("CarClass").HasConversion<string>().IsRequired().ValueGeneratedNever();
-      builder.Property(t => t.ActiveCarsCounter).IsRequired();
-    });
+
     modelBuilder.Entity<Client>(builder =>
     {
       builder.MapBaseEntityProperties();
@@ -259,6 +247,7 @@ public class SqLiteDbContext : DbContext
     });
     AgreementsSchema.MapUsing(modelBuilder, instantConverter);
     ClaimSchema.MapUsing(modelBuilder, instantConverter);
+    CarFleetSchema.MapUsing(modelBuilder);
 
     MapRepairEntities(modelBuilder);
     MapContractEntities(modelBuilder);

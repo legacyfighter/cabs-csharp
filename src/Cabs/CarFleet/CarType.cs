@@ -1,6 +1,6 @@
 using LegacyFighter.Cabs.Common;
 
-namespace LegacyFighter.Cabs.Entity;
+namespace LegacyFighter.Cabs.CarFleet;
 
 public class CarType : BaseEntity
 {
@@ -8,14 +8,6 @@ public class CarType : BaseEntity
   {
     Inactive,
     Active
-  }
-
-  public enum CarClasses
-  {
-    Eco,
-    Regular,
-    Van,
-    Premium
   }
 
   public CarType(CarClasses carClass, string description, int minNoOfCarsToActivateClass)
@@ -29,12 +21,12 @@ public class CarType : BaseEntity
   {
   }
 
-  public void RegisterCar()
+  internal void RegisterCar()
   {
     CarsCounter++;
   }
 
-  public void UnregisterCar()
+  internal void UnregisterCar()
   {
     CarsCounter--;
     if (CarsCounter < 0)
@@ -43,7 +35,7 @@ public class CarType : BaseEntity
     }
   }
 
-  public void Activate()
+  internal void Activate()
   {
     if (CarsCounter < MinNoOfCarsToActivateClass)
     {
@@ -54,16 +46,16 @@ public class CarType : BaseEntity
     Status = Statuses.Active;
   }
 
-  public void Deactivate()
+  internal void Deactivate()
   {
     Status = Statuses.Inactive;
   }
 
-  public CarClasses CarClass { get; set; }
-  public string Description { get; set; }
-  public Statuses? Status { get; private set; } = Statuses.Inactive;
-  public int CarsCounter { get; private set; }
-  public int MinNoOfCarsToActivateClass { get; private set; }
+  internal CarClasses CarClass { get; set; }
+  internal string Description { get; set; }
+  internal Statuses? Status { get; private set; } = Statuses.Inactive;
+  internal int CarsCounter { get; private set; }
+  internal int MinNoOfCarsToActivateClass { get; private set; }
 
   public override bool Equals(object obj)
   {

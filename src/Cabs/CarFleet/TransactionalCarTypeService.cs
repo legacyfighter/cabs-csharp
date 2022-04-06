@@ -1,8 +1,6 @@
 using LegacyFighter.Cabs.Common;
-using LegacyFighter.Cabs.Dto;
-using LegacyFighter.Cabs.Entity;
 
-namespace LegacyFighter.Cabs.Service;
+namespace LegacyFighter.Cabs.CarFleet;
 
 public class TransactionalCarTypeService : ICarTypeService
 {
@@ -33,7 +31,7 @@ public class TransactionalCarTypeService : ICarTypeService
     return carTypeDto;
   }
 
-  public async Task<CarType> Create(CarTypeDto carTypeDto)
+  public async Task<CarTypeDto> Create(CarTypeDto carTypeDto)
   {
     await using var tx = await _transactions.BeginTransaction();
     var carType = await _inner.Create(carTypeDto);
@@ -55,35 +53,35 @@ public class TransactionalCarTypeService : ICarTypeService
     await tx.Commit();
   }
 
-  public async Task RegisterCar(CarType.CarClasses carClass)
+  public async Task RegisterCar(CarClasses carClass)
   {
     await using var tx = await _transactions.BeginTransaction();
     await _inner.RegisterCar(carClass);
     await tx.Commit();
   }
 
-  public async Task UnregisterCar(CarType.CarClasses? carClass)
+  public async Task UnregisterCar(CarClasses? carClass)
   {
     await using var tx = await _transactions.BeginTransaction();
     await _inner.UnregisterCar(carClass);
     await tx.Commit();
   }
  
-  public async Task UnregisterActiveCar(CarType.CarClasses carClass)
+  public async Task UnregisterActiveCar(CarClasses carClass)
   {
     await using var tx = await _transactions.BeginTransaction();
     await _inner.UnregisterActiveCar(carClass);
     await tx.Commit();
   }
 
-  public async Task RegisterActiveCar(CarType.CarClasses? carClass)
+  public async Task RegisterActiveCar(CarClasses? carClass)
   {
     await using var tx = await _transactions.BeginTransaction();
     await _inner.RegisterActiveCar(carClass);
     await tx.Commit();
   }
 
-  public async Task<List<CarType.CarClasses>> FindActiveCarClasses()
+  public async Task<List<CarClasses>> FindActiveCarClasses()
   {
     await using var tx = await _transactions.BeginTransaction();
     var activeCarClasses = await _inner.FindActiveCarClasses();
@@ -91,7 +89,7 @@ public class TransactionalCarTypeService : ICarTypeService
     return activeCarClasses;
   }
 
-  public async Task RemoveCarType(CarType.CarClasses carClass)
+  public async Task RemoveCarType(CarClasses carClass)
   {
     await using var tx = await _transactions.BeginTransaction();
     await _inner.RemoveCarType(carClass);

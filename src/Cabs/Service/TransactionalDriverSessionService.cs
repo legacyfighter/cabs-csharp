@@ -1,3 +1,4 @@
+using LegacyFighter.Cabs.CarFleet;
 using LegacyFighter.Cabs.Common;
 using LegacyFighter.Cabs.Entity;
 
@@ -14,7 +15,7 @@ public class TransactionalDriverSessionService : IDriverSessionService
     _transactions = transactions;
   }
 
-  public Task<DriverSession> LogIn(long? driverId, string plateNumber, CarType.CarClasses? carClass, string carBrand)
+  public Task<DriverSession> LogIn(long? driverId, string plateNumber, CarClasses? carClass, string carBrand)
   {
     return _inner.LogIn(driverId, plateNumber, carClass, carBrand);
   }
